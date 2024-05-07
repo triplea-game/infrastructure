@@ -1,30 +1,39 @@
+# First bootstrap all machines, so we can do SSH connection
 - hosts: all
-  tags: common
+  remote_user: root
   roles:
-    - system/apt_common_tools
-    - system/hostname
-    - system/firewall
-    - system/journald
-    - system/admin_user
+    - system/ansible_user
+#    - system/apt_common_tools
+#    - system/hostname
+#    - system/firewall
+#    - system/journald
+#    - system/admin_user
 
-- hosts: forums
-  tags: forums
+- hosts: all
+  remote_user: ansible
   roles:
-    - nginx_forums_conf
+     - system/admin_user
 
-- hosts: lobbyServer
-  tags: [lobby, lobby_server]
-  roles:
-    - {name: java, tags: java}
-    - {name: postfix, tags: postfix}
-    - {name: database/postgres/install, tags: postgres}
-    - {name: database/flyway/install, tags: flyway}
-    - {name: nginx/install, tags: nginx}
-    - {name: lobby_server, tags: lobby_app}
 
-- hosts: botHosts
-  tags: [bot, bots]
-  roles:
-    - java
-    - bot
 
+#- hosts: forums
+#  tags: forums
+#  roles:
+#    - nginx_forums_conf
+#
+#- hosts: lobbyServer
+#  tags: [lobby, lobby_server]
+#  roles:
+#    - {name: java, tags: java}
+#    - {name: postfix, tags: postfix}
+#    - {name: database/postgres/install, tags: postgres}
+#    - {name: database/flyway/install, tags: flyway}
+#    - {name: nginx/install, tags: nginx}
+#    - {name: lobby_server, tags: lobby_app}
+#
+#- hosts: botHosts
+#  tags: [bot, bots]
+#  roles:
+#    - java
+#    - bot
+#
