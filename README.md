@@ -1,5 +1,11 @@
 # Infrastructure Project
 
+## Access Overview
+
+- root user login not allowed
+- ansible SSH user is local user, who should have SSH keys
+  installed on the remote system.
+- each admin user has their own account & sudo access
 
 ## Secrets
 

@@ -1,18 +1,13 @@
-# First bootstrap all machines, so we can do SSH connection
-- hosts: all
-  remote_user: root
-  roles:
-    - system/ansible_user
-#    - system/apt_common_tools
-#    - system/hostname
-#    - system/firewall
-#    - system/journald
-#    - system/admin_user
+
 
 - hosts: all
   remote_user: ansible
   roles:
      - system/admin_user
+#    - system/apt_common_tools
+#    - system/hostname
+#    - system/firewall
+#    - system/journald
 
 
 
