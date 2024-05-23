@@ -4,16 +4,7 @@ set -eu
 
 scriptDir="$(dirname "$0")"
 
-if [[ $1 == "--apply" ]]; then
-  CHECK_MODE=""
- :
-else
-  CHECK_MODE="--check --diff"
-  echo "!!! CHECK MODE, NO CHANGES WILL BE MADE !!!"
-  echo "    To instead apply changes, run: $0 --apply"
-  echo ""
- :
-fi;
+
 
 function main() {
   # Check if ansible is installed, if not, then ask to install it.
@@ -29,7 +20,7 @@ function main() {
 }
 
 function installAnsible() {
-  read -p "Ansible not installed, would you like to install it now with apt? " -n 1 -r
+  read -p "Ansible not installed, would you like to install it now with apt (y/n)? " -n 1 -r
   echo    # (optional) move to a new line
   if [[ $REPLY =~ ^[Yy]$ ]]
   then
@@ -44,5 +35,22 @@ function installAnsible() {
   fi
 }
 
-main
+function printCheckMode() {
+  if [ -n "$CHECK_MODE" ]; then
+    echo ""
+    echo "!!! CHECK MODE, NO CHANGES MADE !!!"
+    echo "    To apply changes, instead run: $0 --apply"
+    echo ""
+  fi;
+}
 
+
+if [[ "${1-}" == "--apply" ]]; then
+  CHECK_MODE=""
+  main
+else
+  CHECK_MODE="--check --diff"
+  printCheckMode
+  main
+  printCheckMode
+fi
