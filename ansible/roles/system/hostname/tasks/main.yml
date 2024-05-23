@@ -1,6 +1,6 @@
 - name: set hostname of system
   hostname: 
-    name: "{{ inventory_hostname }}"
+    name: "{{ hostname }}"
   register: hostname_result
 
 - name: deploy /etc/hosts file with hostname in it

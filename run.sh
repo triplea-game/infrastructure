@@ -4,6 +4,17 @@ set -eu
 
 scriptDir="$(dirname "$0")"
 
+if [[ $1 == "--apply" ]]; then
+  CHECK_MODE=""
+ :
+else
+  CHECK_MODE="--check --diff"
+  echo "!!! CHECK MODE, NO CHANGES WILL BE MADE !!!"
+  echo "    To instead apply changes, run: $0 --apply"
+  echo ""
+ :
+fi;
+
 function main() {
   # Check if ansible is installed, if not, then ask to install it.
   hash ansible-playbook 2> /dev/null || installAnsible
@@ -13,9 +24,7 @@ function main() {
   ANSIBLE_CONFIG="$scriptDir/ansible.cfg" \
   ansible-playbook \
     --inventory "$scriptDir/ansible/prod.inventory" \
-    --vault-password-file "$scriptDir/vault_password" \
-    "$scriptDir/ansible/playbook.yml"
-  #   $VAULT_PASSWORD_FILE_ARG $TAGS_ARG $DIFF_ARG $VERBOSE_ARG
+    $CHECK_MODE "$scriptDir/ansible/playbook.yml"
   set +x
 }
 

@@ -1,11 +1,29 @@
 # Infrastructure Project
 
-## Access Overview
 
-- root user login not allowed
-- ansible SSH user is local user, who should have SSH keys
-  installed on the remote system.
-- each admin user has their own account & sudo access
+## Running
+
+### Before getting started
+
+- need your SSH public key installed on the servers
+   - method 1) add your SSH key to the ansible role that deploys
+      admin users. When pushed & merged to master, all servers will
+      be updated to have an account for you with your SSH key
+   - method 2) if you have access to linode, you can open a 'lish' console
+      login as root, create a user & add your SSH key
+- "ansible" user should be configured on each server during setup.
+  The 'user' configured is important as ansible runs everything over
+  SSH, so long as you can SSH, you can run ansible. 
+
+## Running
+
+Run `run.sh`, by default it will run in 'dry-run' mode and will
+not make any changes. This will run ansible which will do the full
+config of each server (install admin users, their SSH keys, etc..)
+
+
+
+
 
 ## Secrets
 

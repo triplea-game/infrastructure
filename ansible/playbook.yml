@@ -1,7 +1,6 @@
 
 
 - hosts: all
-  remote_user: ansible
   roles:
      - system/admin_user
 #    - system/apt_common_tools
