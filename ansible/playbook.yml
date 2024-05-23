@@ -4,9 +4,9 @@
   roles:
      - system/admin_user
 #    - system/apt_common_tools
-#    - system/hostname
 #    - system/firewall
-#    - system/journald
+     - system/journald
+     - system/hostname
 
 
 

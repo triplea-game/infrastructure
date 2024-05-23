@@ -1,9 +1,5 @@
-- name: set hostname of system
-  hostname: 
-    name: "{{ hostname }}"
-  register: hostname_result
-
 - name: deploy /etc/hosts file with hostname in it
+  become: true
   template:
     src: etc_hosts.j2
     dest: /etc/hosts
@@ -11,8 +7,9 @@
     owner: root
     group: root
 
-- name: reboot machine for hostname to take effect
-  when: hostname_result.changed
-  reboot:
-
-
+- name: set hostname of system
+  become: true
+  notify: reboot_system
+  hostname: 
+    name: "{{ hostname }}"
+    use: debian

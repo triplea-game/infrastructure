@@ -5,17 +5,31 @@ set -eu
 scriptDir="$(dirname "$0")"
 
 
-
 function main() {
   # Check if ansible is installed, if not, then ask to install it.
   hash ansible-playbook 2> /dev/null || installAnsible
 
+  if [[ "${1-}" == "--apply" ]]; then
+    local CHECK_MODE=""
+    runAnsible "$CHECK_MODE"
+  else
+    local CHECK_MODE="--check --diff"
+    printCheckMode
+    runAnsible "$CHECK_MODE"
+    printCheckMode
+  fi
+}
+
+function runAnsible() {
+  local CHECK_MODE=${1-}
   # run ansible
   set -x
+  # shellcheck disable=SC2086
   ANSIBLE_CONFIG="$scriptDir/ansible.cfg" \
-  ansible-playbook \
-    --inventory "$scriptDir/ansible/prod.inventory" \
-    $CHECK_MODE "$scriptDir/ansible/playbook.yml"
+    ansible-playbook \
+      --verbose \
+      --inventory "$scriptDir/ansible/prod.inventory" \
+      $CHECK_MODE "$scriptDir/ansible/playbook.yml"
   set +x
 }
 
@@ -36,21 +50,10 @@ function installAnsible() {
 }
 
 function printCheckMode() {
-  if [ -n "$CHECK_MODE" ]; then
     echo ""
-    echo "!!! CHECK MODE, NO CHANGES MADE !!!"
+    echo "!!! PREVIEW MODE, NO CHANGES ARE ACTUALLY MADE !!!"
     echo "    To apply changes, instead run: $0 --apply"
     echo ""
-  fi;
 }
 
-
-if [[ "${1-}" == "--apply" ]]; then
-  CHECK_MODE=""
-  main
-else
-  CHECK_MODE="--check --diff"
-  printCheckMode
-  main
-  printCheckMode
-fi
+main "${1-}"
