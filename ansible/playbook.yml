@@ -1,14 +1,15 @@
-
-
 - hosts: all
   roles:
-     - system/admin_user
-#    - system/apt_common_tools
-#    - system/firewall
-     - system/journald
-     - system/hostname
+    - system/admin_user
+    - system/firewall
+    - system/apt_packages
+    - system/journald
+    # because hostname role may reboot the system, it is executed last. On reboot, any major package updatges
+    # will take effect & the system will be in a clean/ready state for further host-specific deployments.
+    - system/hostname
 
-
+- hosts: bots
+  roles:
 
 #- hosts: forums
 #  tags: forums
