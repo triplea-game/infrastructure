@@ -8,8 +8,8 @@
     # will take effect & the system will be in a clean/ready state for further host-specific deployments.
     - system/hostname
 
-- hosts: bots
-  roles:
+#- hosts: bots
+#  roles:
 
 #- hosts: forums
 #  tags: forums

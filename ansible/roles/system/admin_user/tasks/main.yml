@@ -48,6 +48,6 @@
     mode: "600"
     owner: "{{ item.name }}"
     group: "{{ item.name }}"
-  with_items: "{{ admion_users }}"
+  with_items: "{{ admin_users }}"
   loop_control:
     label: "{{ item.name }}"
