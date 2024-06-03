@@ -1,3 +1,8 @@
+- name: assert hostname var is defined, we expect this variable to be defined in inventory file
+  assert:
+    that:
+      - hostname is defined and hostname != ""
+
 - name: deploy /etc/hosts file with hostname in it
   become: true
   template:

@@ -1,3 +1,3 @@
 [bot]
-172.232.163.49 hostname=bot01-seattle
+172.232.163.49 hostname=bot01-seattle bot_instances=[10, 11, 12]
 
