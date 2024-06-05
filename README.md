@@ -56,3 +56,6 @@ chown -R ansible:ansible /home/ansible
 echo 'ansible    ALL=(ALL)    NOPASSWD:ALL
 Defaults:ansible        !requiretty' > /etc/sudoers.d/ansible
 ```
+
+echo 'dan    ALL=(ALL)    NOPASSWD:ALL
+Defaults:ansible        !requiretty' > /etc/sudoers.d/dan

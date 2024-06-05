@@ -27,7 +27,8 @@ function runAnsible() {
   # shellcheck disable=SC2086
   ANSIBLE_CONFIG="$scriptDir/ansible.cfg" \
     ansible-playbook \
-      --tags bot \
+      --limit lobby \
+      --tags lobby \
       --verbose \
       --inventory "$scriptDir/ansible/prod.inventory" \
       $CHECK_MODE "$scriptDir/ansible/playbook.yml"

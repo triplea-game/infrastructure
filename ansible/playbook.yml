@@ -13,6 +13,11 @@
   roles:
     - bot
 
+- hosts: lobby
+  tags: lobby
+  roles:
+    - lobby_server
+
 
 #- hosts: forums
 #  tags: forums

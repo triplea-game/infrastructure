@@ -1,5 +1,7 @@
 lobby_user: lobby
 # Full version includes the build number, eg: 2.6+153432
+build_version: 2.6.14752
+product_version: 2.6
 lobby_full_version: "{{ build_version }}"
 
 # product version is just the major.minor, eg: 2.6
@@ -7,12 +9,14 @@ lobby_product_version: "{{ product_version }}"
 lobby_name: "lobby_{{ lobby_product_version }}"
 lobby_home_folder: "/opt/lobby/{{ lobby_product_version }}"
 
+lobby_db_password: ""
+
 lobby_ports:
   "default": "8080"
   "2.5": "8080"
   "2.6": "9026"
 
-lobby_http_port: "{{ lobby_ports[lobby_product_version] }}"
+lobby_http_port: "9026"
 
 lobby_db_host: "localhost"
 lobby_db_port: "5432"
