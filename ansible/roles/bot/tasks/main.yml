@@ -1,10 +1,11 @@
 - name: assert vars are set
   assert:
     that:
-      - bot_number > 0
+      - "{{ bot_numbers | length }}  > 0"
       - bot_location_city_name != ""
 
 - name: allow ports
+  become: true
   ufw:
     rule: allow
     port: "40{{ item }}"
@@ -12,24 +13,27 @@
   with_items: "{{ bot_numbers }}"
 
 - name: create service user to run the app
+  become: true
   user:
     name: "{{ bot_user }}"
     create_home: no
     system: yes
 
-- name: deploy scripts to admin home
+- name: deploy scripts
+  become: true
   template:
     src: "{{ item }}.j2"
-    dest: "{{ admin_home }}/{{ item }}"
-    owner: "{{ admin_user }}"
-    group: "{{ admin_user }}"
+    dest: "/opt/"
+    owner: "{{ bot_user }}"
+    group: "{{ bot_user }}"
     mode: "0755"
   with_items:
-    - start-all
-    - stop-all
+#    - start-all
+#    - stop-all
     - download-all-maps
 
 - name: create folders
+  become: true
   file:
     state: directory
     path: "{{ item }}"
@@ -42,25 +46,28 @@
     - "{{ bot_maps_folder }}"
 
 - name: Download Bot Zip File
+  become: true
   register: bot_zip_file_download
   get_url:
     url: "{{ bot_zip_file_url }}"
     dest: "{{ bot_install_home }}"
     mode: "0644"
-    checksum: "md5:e83a688423c2441a5f3a89f2db0b8993"
+    checksum: "md5:d5f6a5828f28db8f5e61945327e8d8c0"
     owner: "{{ bot_user }}"
     group: "{{ bot_user }}"
 
 - name: extract zip file
+  become: true
   when: bot_zip_file_download.changed
   unarchive:
     remote_src: yes
-    src: "{{ bot_install_home }}/triplea-game-headless-2.5.22294.zip"
+    src: "{{ bot_install_home }}/triplea-game-headless.zip"
     dest: "{{ bot_install_home }}/"
     owner: "{{ bot_user }}"
     group: "{{ bot_user }}"
 
 - name: create triplea-root touch file
+  become: true
   file:
     state: touch
     path: "{{ bot_install_home }}/.triplea-root"
@@ -69,6 +76,7 @@
     group: "{{ bot_user }}"
 
 - name: ensure logging folder /var/log/triplea exists
+  become: true
   file:
     path: /var/log/triplea
     state: directory
@@ -77,6 +85,7 @@
     group: adm
 
 - name: deploy rsyslog config files to send log output from syslog to files
+  become: true
   register: bot_rsyslog_conf
   template:
     src: bot-rsyslog.conf
@@ -87,12 +96,14 @@
   with_items: "{{ bot_numbers }}"
 
 - name: restart rsyslog to pick up any config changes
+  become: true
   when: bot_rsyslog_conf.changed
   service:
     name: rsyslog
     state: restarted
 
 - name: install systemd service script
+  become: true
   register: bot_service
   template:
     src: bot.service.j2
@@ -100,11 +111,13 @@
     mode: "644"
 
 - name: reload systemd configurations
+  become: true
   when: bot_service.changed
   systemd:
     daemon_reload: yes
 
 - name: enable and ensure bots are started
+  become: true
   service:
     name: "bot@{{ item }}"
     state: started

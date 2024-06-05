@@ -1,3 +1,8 @@
 [bot]
-172.232.163.49 hostname=bot01-seattle bot_instances=[10, 11, 12]
+172.232.163.49 hostname=bot01-seattle
+
+[bot:vars]
+bot_number = 10
+bot_numbers = [10, 11, 12]
+bot_location_city_name = seattle
 
