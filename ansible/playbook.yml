@@ -1,4 +1,5 @@
 - hosts: all
+  tags: system
   roles:
     - system/admin_user
     - system/firewall

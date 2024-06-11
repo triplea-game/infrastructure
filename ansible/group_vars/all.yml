@@ -2,11 +2,9 @@
 # Other than these variables, roles should be fully self-contained.
 
 ansible_connection: ssh
-admin_user: "admin"
-admin_home: "/home/{{ admin_user }}"
+admin_group: admin
 ansible_python_interpreter: /usr/bin/python3
 
-bot_numbers: ["01", "02", "03", "04" ]
 lobby_restart_on_new_deployment: false
 lobby_uri: "https://prod.triplea-game.org"
 

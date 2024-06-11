@@ -1,7 +1,7 @@
-- name: create admin group
+- name: create admin group, allows shared access to triplea items like logs
   become: true
   group:
-    name: admin
+    name: "{{ admin_group }}"
     state: present
 
 - name: create admin user accounts
@@ -11,7 +11,7 @@
     shell: /bin/bash
     create_home: yes
     append: yes
-    groups: "{{ item.name }},admin"
+    groups: "{{ item.name }},{{ admin_group }}"
   with_items: "{{ admin_users }}"
   loop_control:
     label: "{{ item.name }}"
