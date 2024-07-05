@@ -2,3 +2,4 @@ admin_users:
   - name: dan
     ssh_keys:
       - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICJm7+fmoeoPGKpH2nyjh5bKC55C+VH63VzqEiXOjShk dan@laptop"
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILAo4tUJg3cgpqaZcp41hE/01XMOJLHRXT8GQSmHc3aF dan@desk"

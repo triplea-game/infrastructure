@@ -1,3 +1,20 @@
 [bot]
 172.232.163.49 hostname=bot01-seattle
+23.92.29.90  hostname=prod2-bot02-atlanta
+45.33.100.196  hostname=prod2-bot04
+96.126.103.252  hostname=prod2-bot06-California
+45.79.188.157  hostname=prod2-bot07-Jersey
 
+[bot:vars]
+bot_number = 10
+bot_numbers = [10, 11, 12]
+bot_location_city_name = seattle
+
+[lobby]
+prod.triplea-game.org hostname=prod.triplea-game.org
+
+[old_lobby]
+#45.79.144.53
+
+[forums]
+45.33.80.67  hostname=forums

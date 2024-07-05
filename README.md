@@ -53,5 +53,9 @@ chmod 700 /home/ansible/.ssh
 chmod 600 /home/ansible/.ssh/authorized_keys
 chown -R ansible:ansible /home/ansible
 
-
+echo 'ansible    ALL=(ALL)    NOPASSWD:ALL
+Defaults:ansible        !requiretty' > /etc/sudoers.d/ansible
 ```
+
+echo 'dan    ALL=(ALL)    NOPASSWD:ALL
+Defaults:ansible        !requiretty' > /etc/sudoers.d/dan
