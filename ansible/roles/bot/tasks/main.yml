@@ -44,7 +44,7 @@
     url: "{{ bot_zip_file_url }}"
     dest: "{{ bot_install_home }}"
     mode: "0644"
-    checksum: "md5:d5f6a5828f28db8f5e61945327e8d8c0"
+    checksum: "md5:07b8f95d3675a146a5b72db9e0ad8a3f"
     owner: "{{ bot_user }}"
     group: "{{ bot_user }}"
 
