@@ -2,7 +2,7 @@
 
 # This script will download all maps to a bot server
 
-sudo -u "{{ bot_user }}" mkdir -p "{{ bot_maps_folder }}"
+sudo -u bot mkdir -p "{{ bot_maps_folder }}"
 cd "{{ bot_maps_folder }}"
 for j in 1 2 3 4; do
   while read mapRepo; do

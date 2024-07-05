@@ -1,0 +1,6 @@
+bot_install_folder: /opt/bot/2.6
+bot_zip:
+  url: https://github.com/triplea-game/triplea/releases/download/2.6.14756/triplea-game-headless.zip
+  md5: 07b8f95d3675a146a5b72db9e0ad8a3f
+
+bot_maps_folder:

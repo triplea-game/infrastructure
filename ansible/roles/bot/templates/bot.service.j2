@@ -12,7 +12,7 @@ ExecStart=java -server \
   -Djava.awt.headless=true \
   -jar {{ bot_jar }} \
   -Ptriplea.port="40%i" \
-  -Ptriplea.name="Bot{{ bot_number }}%i_{{ bot_location_city_name }}" \
+  -Ptriplea.name="{{ bot_name }}%i_{{ bot_city }}" \
   -Ptriplea.lobby.uri="{{ bot_lobby_uri }}" \
   -Ptriplea.map.folder="{{ bot_maps_folder }}"
 Restart=always
