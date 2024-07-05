@@ -2,22 +2,23 @@
   tags: system
   roles:
     - system/admin_user
-#    - system/firewall
-#    - system/apt_packages
-#    - system/journald
-#    # because hostname role may reboot the system, it is executed last. On reboot, any major package updatges
-#    # will take effect & the system will be in a clean/ready state for further host-specific deployments.
-#    - system/hostname
+    - system/firewall
+    - system/apt_packages
+    - system/journald
+    # because hostname role may reboot the system, it is executed last. On reboot, any major package updates
+    # will take effect & the system will be in a clean/ready state for further host-specific deployments.
+    - system/hostname
 #
 #- hosts: bots
 #  tags: [bots, bot]
 #  roles:
 #    - bot
-#
-#- hosts: lobby
-#  tags: lobby
+
+#- hosts: botHosts
+#  tags: [bot, bots]
 #  roles:
-#    - lobby_server
+#    - java
+#    - bot
 
 
 #- hosts: forums
@@ -35,9 +36,9 @@
 #    - {name: nginx/install, tags: nginx}
 #    - {name: lobby_server, tags: lobby_app}
 #
-#- hosts: botHosts
-#  tags: [bot, bots]
-#  roles:
-#    - java
-#    - bot
+
 #
+#- hosts: lobby
+#  tags: lobby
+#  roles:
+#    - lobby_server

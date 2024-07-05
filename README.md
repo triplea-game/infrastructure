@@ -17,12 +17,8 @@
 
 ## Running
 
-Run `run.sh`, by default it will run in 'dry-run' mode and will
-not make any changes. This will run ansible which will do the full
-config of each server (install admin users, their SSH keys, etc..)
-
-
-
+Run `run.sh`, by default it will run in 'dry-run' mode and will not make any
+changes but instead will report the changes that would be made.
 
 
 ## Secrets
@@ -57,5 +53,3 @@ echo 'ansible    ALL=(ALL)    NOPASSWD:ALL
 Defaults:ansible        !requiretty' > /etc/sudoers.d/ansible
 ```
 
-echo 'dan    ALL=(ALL)    NOPASSWD:ALL
-Defaults:ansible        !requiretty' > /etc/sudoers.d/dan
