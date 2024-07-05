@@ -1,23 +1,39 @@
 - name: UFW allow SSH
   become: true
+  retries: 12
+  delay: 5
+  register: result
+  until: result is not failed
   ufw:
     rule: allow
     name: OpenSSH
 
 - name: UFW deny incoming by default
   become: true
+  retries: 12
+  delay: 5
+  register: result
+  until: result is not failed
   ufw:
     default: deny
     direction: incoming
 
 - name: UFW allow outgoing by default
   become: true
+  retries: 12
+  delay: 5
+  register: result
+  until: result is not failed
   ufw:
     default: allow
     direction: outgoing
 
 - name: turn on ssh rate limiting
   become: true
+  retries: 12
+  delay: 5
+  register: result
+  until: result is not failed
   ufw:
     rule: limit
     port: ssh
@@ -25,5 +41,9 @@
 
 - name: Turn on firewall
   become: true
+  retries: 12
+  delay: 5
+  register: result
+  until: result is not failed
   ufw:
     state: enabled
