@@ -7,7 +7,7 @@ scriptDir="$(dirname "$0")"
 
 set -x
 ANSIBLE_CONFIG="$scriptDir/ansible.cfg" ansible \
-  botHosts -a '/home/admin/download-all-maps' \
+  bots -a 'sudo /home/admin/download-all-maps' \
   --inventory "$scriptDir/ansible/prod.inventory" \
   --verbose
 

@@ -9,8 +9,8 @@
 #    # will take effect & the system will be in a clean/ready state for further host-specific deployments.
 #    - system/hostname
 #
-#- hosts: bot
-#  tags: bot
+#- hosts: bots
+#  tags: [bots, bot]
 #  roles:
 #    - bot
 #
