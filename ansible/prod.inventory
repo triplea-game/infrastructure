@@ -1,9 +1,9 @@
 [bots]
-172.232.163.49 hostname=bot01-seattle
-23.92.29.90  hostname=prod2-bot02.triplea-game.org
-45.33.100.196  hostname=prod2-bot04.triplea-game.org
-96.126.103.252  hostname=prod2-bot06.triplea-game.org
-45.79.188.157  hostname=prod2-bot07.triplea-game.org
+bot01 ansible_host=172.232.163.49 hostname=bot01-seattle
+bot02 ansible_host=23.92.29.90  hostname=prod2-bot02.triplea-game.org
+bot04 ansible_host=45.33.100.196  hostname=prod2-bot04.triplea-game.org
+bot06 ansible_host=96.126.103.252  hostname=prod2-bot06.triplea-game.org
+bot07 ansible_host=45.79.188.157  hostname=prod2-bot07.triplea-game.org
 
 [bots:vars]
 bot_number = 10
@@ -11,10 +11,10 @@ bot_numbers = [10, 11, 12]
 bot_location_city_name = seattle
 
 [lobby]
-prod.triplea-game.org hostname=prod.triplea-game.org
+lobby ansible_host=prod.triplea-game.org hostname=prod.triplea-game.org
 
 [old_lobby]
 #45.79.144.53
 
 [forums]
-45.33.80.67  hostname=forums.triplea-game.org
+forums ansible_host=45.33.80.67  hostname=forums.triplea-game.org

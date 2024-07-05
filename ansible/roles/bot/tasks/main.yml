@@ -4,6 +4,11 @@
       - "{{ bot_numbers | length }}  > 0"
       - bot_location_city_name != ""
 
+- name: install java
+  apt:
+    state: present
+    name: "openjdk-11-jdk-headless"
+
 - name: create service user to run the app
   become: true
   user:

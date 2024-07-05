@@ -4,7 +4,7 @@
 
 sudo -u "{{ bot_user }}" mkdir -p "{{ bot_maps_folder }}"
 cd "{{ bot_maps_folder }}"
-for j in 1 2; do
+for j in 1 2 3 4; do
   while read mapRepo; do
     downloadFile="$(echo $mapRepo | sed 's|.*/||')-master.zip"
     sudo -u "{{ bot_user }}" wget -O "$downloadFile" "https://github.com/$mapRepo/archive/master.zip"
