@@ -4,6 +4,12 @@
     name: "{{ admin_group }}"
     state: present
 
+- name: create docker group
+  become: true
+  group:
+    name: docker
+    state: present
+
 - name: create admin user accounts
   become: true
   user:
@@ -11,7 +17,7 @@
     shell: /bin/bash
     create_home: yes
     append: yes
-    groups: "{{ item.name }},{{ admin_group }}"
+    groups: "{{ item.name }},{{ admin_group }},docker"
   with_items: "{{ admin_users }}"
   loop_control:
     label: "{{ item.name }}"
