@@ -12,10 +12,10 @@ bot07 ansible_host=45.79.188.157  hostname=prod2-bot07.triplea-game.org bot_name
 bot01 ansible_host=172.232.163.49 hostname=bot01-seattle bot_name=Bot1 bot_city=Seattle
 
 [lobby]
-lobby ansible_host=prod.triplea-game.org hostname=prod.triplea-game.org
+prod.lobby ansible_host=prod.triplea-game.org hostname=prod.triplea-game.org
 
 [old_lobby]
 #45.79.144.53
 
 [forums]
-forums ansible_host=45.33.80.67  hostname=forums.triplea-game.org
+prod.forums ansible_host=45.33.80.67  hostname=forums.triplea-game.org
