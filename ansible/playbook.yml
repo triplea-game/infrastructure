@@ -33,12 +33,17 @@
 #    - {name: postfix, tags: postfix}
 #    - {name: database/postgres/install, tags: postgres}
 #    - {name: database/flyway/install, tags: flyway}
-#    - {name: nginx/install, tags: nginx}
 #    - {name: lobby_server, tags: lobby_app}
 #
 
-#
-#- hosts: lobby
-#  tags: lobby
+#- hosts: reverse_proxy
 #  roles:
-#    - lobby_server
+#    - {name: nginx/install, tags: nginx}
+
+- hosts: lobby
+  tags: lobby
+  roles:
+    - lobby/docker
+#    - lobby/database
+#    - lobby/server
+
