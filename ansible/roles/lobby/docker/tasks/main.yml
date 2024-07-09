@@ -1,3 +1,5 @@
+# Install instructions from: https://docs.docker.com/engine/install/ubuntu/
+
 - name: make sure incorrect versions of docker are not installed
   become: true
   package:
@@ -8,8 +10,6 @@
       - docker.io
       - containerd
       - runc
-
-# Install instructions at: https://docs.docker.com/engine/install/ubuntu/
 
 - name: ensure keyring directory exists
   become: true

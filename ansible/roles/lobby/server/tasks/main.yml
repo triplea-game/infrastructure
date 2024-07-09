@@ -1,5 +1,4 @@
-- name: apt install docker
-  become: true
-  package:
-    name:
-      - docker
+- name: deploy systemctl service file to run lobby
+
+- name: start lobby if it is not already running
+  
