@@ -45,5 +45,6 @@
   roles:
     - lobby/docker
 #    - lobby/database
+#    - lobby/postfix
 #    - lobby/server
 
