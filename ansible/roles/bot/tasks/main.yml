@@ -9,13 +9,15 @@
     state: present
     name: "openjdk-11-jdk-headless"
 
+
+
 - name: create service user to run the app
   become: true
   user:
     name: "bot"
+    groups: "bot,docker"
     create_home: no
     system: yes
-
 
 - name: create folders
   become: true
@@ -27,6 +29,7 @@
     group: "{{ admin_group }}"
   with_items:
     - "{{ bot_install_folder }}"
+    - /home/bot/triplea/savedGames/
 #    - "{{ bot_folder }}"
 #    - "{{ bot_install_home }}"
 #    - "{{ bot_maps_folder }}"

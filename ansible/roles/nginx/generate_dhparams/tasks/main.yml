@@ -9,7 +9,7 @@
 - name: generate dhparam.pem
   when: nginx_generate_dhparam
   shell:
-    cmd: openssl dhparam -out {{ dhparams_pem_file }} 4096
+    cmd: openssl dhparam -out /etc/nginx/dhparam.pem 4096
     creates: "{{ dhparams_pem_file }}"
 
 - name: set permissions of dhparam.pem

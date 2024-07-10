@@ -8,32 +8,16 @@
     # because hostname role may reboot the system, it is executed last. On reboot, any major package updates
     # will take effect & the system will be in a clean/ready state for further host-specific deployments.
     - system/hostname
-#
+
 - hosts: bots
   tags: [bots, bot]
   roles:
     - bot
 
-#- hosts: botHosts
-#  tags: [bot, bots]
-#  roles:
-#    - java
-#    - bot
-
-
 #- hosts: forums
 #  tags: forums
 #  roles:
 #    - nginx_forums_conf
-#
-#- hosts: lobbyServer
-#  tags: [lobby, lobby_server]
-#  roles:
-#    - {name: java, tags: java}
-#    - {name: postfix, tags: postfix}
-#    - {name: database/postgres/install, tags: postgres}
-#    - {name: database/flyway/install, tags: flyway}
-#    - {name: lobby_server, tags: lobby_app}
 #
 
 #- hosts: reverse_proxy
@@ -43,8 +27,8 @@
 - hosts: lobby
   tags: lobby
   roles:
-    - lobby/docker
+    - system/docker
 #    - lobby/database
-#    - lobby/postfix
-#    - lobby/server
+#    - system/postfix
+    - lobby/server
 
