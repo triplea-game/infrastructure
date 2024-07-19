@@ -4,13 +4,13 @@ Documentation=
 
 [Service]
 WorkingDirectory={{ bot_install_home }}
-User={{ bot_user }}
-Group={{ bot_user }}
+User=bot
+Group=bot
 ExecStart=java -server \
   -Xmx{{ bot_max_memory }} \
   -Xss1250K \
   -Djava.awt.headless=true \
-  -jar {{ bot_jar }} \
+  -jar {{ bot_install_home }}/bin/triplea-game-headless.jar \
   -Ptriplea.port="40%i" \
   -Ptriplea.name="{{ bot_name }}%i_{{ bot_city }}" \
   -Ptriplea.lobby.uri="{{ bot_lobby_uri }}" \

@@ -1,11 +1,7 @@
-bot_install_folder:
-bot_jar_url:
-
-
-## The location of the server, should be a city name
-## Value needs override - typically set per host (see inventory file)
-#bot_location_city_name: ""
-
+bot_install_folder: /opt/bot/2.6
+bot_zip:
+  url: https://github.com/triplea-game/triplea/releases/download/2.6.14756/triplea-game-headless.zip
+  md5: 07b8f95d3675a146a5b72db9e0ad8a3f
 
 bot_instances:
   - number: "01"
@@ -15,28 +11,13 @@ bot_instances:
   - number: "03"
     port: "4003"
 
-
-bot_folder: "/opt/bot"
-bot_version: "2.6"
-
-# The location where we will install the bot binaries
-bot_install_home: "{{ bot_folder }}/{{ bot_version }}"
+bot_install_home: "/opt/bot/2.6"
+bot_maps_folder: "{{ bot_install_folder }}/maps"
 
 bot_zip_file_url: "https://github.com/triplea-game/triplea/releases/download/2.6.14756/triplea-game-headless.zip"
-
-# The location of the jar executable that we will run to launch the bot server.
-bot_jar: "{{ bot_install_home }}/bin/triplea-game-headless.jar"
-
-# A folder where the bot server will find maps.
-bot_maps_folder: "{{ bot_install_folder }}/maps"
 
 # The URI of the lobby that the bot would connect to.
 bot_lobby_uri: "https://prod.triplea-game.org"
 
 bot_max_memory: "256m"
-
-# The number of the bot server, should be globally unique
-#bot_number: 0
-# When set to true, all maps on the bot server will be updated (overwritten).
-#update_maps: false
 

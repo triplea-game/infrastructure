@@ -1,8 +1,11 @@
-- name: create admin group, allows shared access to triplea items like logs
+- name: ensure admin user group & docker user group exist
   become: true
   group:
-    name: "{{ admin_group }}"
+    name: "{{ item }}"
     state: present
+  with_items:
+    - "{{ admin_group }}"
+    - docker
 
 - name: create docker group
   become: true
