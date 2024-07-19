@@ -5,12 +5,13 @@
 /var/log/user.log
 /var/log/cron.log
 {
-	rotate 4
-	weekly
+	rotate 60
+	daily
+	maxsize 250M
 	missingok
 	notifempty
+	nocreate
 	compress
-	delaycompress
 	sharedscripts
 	postrotate
 		/usr/lib/rsyslog/rsyslog-rotate
