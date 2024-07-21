@@ -1,4 +1,4 @@
-bot_version: "2.6.14794"
+bot_version: "2.6.14796"
 bot_install_folder: /opt/bot/{{ bot_version }}
 bot_maps_folder: "/opt/bot/maps"
 
