@@ -1,5 +1,7 @@
 bot_version: "2.6.14794"
 bot_install_folder: /opt/bot/{{ bot_version }}
+bot_maps_folder: "/opt/bot/maps"
+
 bot_zip:
   url: https://github.com/triplea-game/triplea/releases/download/{{ bot_version }}/triplea-game-headless.zip
   md5: 4048df4d437b198cea05435f9a2678ad
@@ -13,5 +15,3 @@ bot_instances:
     port: "4003"
 
 bot_max_memory: "256m"
-
-bot_maps_folder: "{{ bot_install_folder }}/maps"

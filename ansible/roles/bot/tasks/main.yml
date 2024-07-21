@@ -29,7 +29,7 @@
   become: true
   template:
     src: "download-all-maps.sh.j2"
-    dest: "{{ bot_install_folder }}/download-all-maps.sh"
+    dest: "/opt/bot/download-all-maps.sh"
     owner: "bot"
     group: "{{ admin_group }}"
     mode: "0755"
