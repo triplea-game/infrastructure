@@ -4,7 +4,7 @@
     state: present
     name: "openjdk-11-jdk-headless"
 
-- name: create service user to run the app
+- name: create service user {bot}
   become: true
   user:
     name: "bot"
@@ -22,7 +22,7 @@
     group: "{{ admin_group }}"
   with_items:
     - "/home/bot/triplea/savedGames/"
-#    - "{{ bot_install_folder }}"
+    - "{{ bot_install_folder }}"
     - "{{ bot_maps_folder }}"
 
 - name: deploy scripts
@@ -38,28 +38,22 @@
   become: true
   register: bot_zip_file_download
   get_url:
-    url: "{{ bot_zip_file_url }}"
+    url: "{{ bot_zip.url }}"
     dest: "{{ bot_install_folder }}"
     mode: "0644"
     checksum: "md5:{{ bot_zip.md5 }}"
     owner: "bot"
     group: "{{ admin_group }}"
 
-- name: stat to check if we have successfully extracted the zip file
-  become: true
-  register: extracted_files
-  stat:
-    path: "{{ bot_install_folder }}/bin/triplea-game-headless.jar"
-
 - name: extract zip file
   become: true
-  when: not extracted_files.stat.exists
   unarchive:
     remote_src: yes
     src: "{{ bot_install_folder }}/triplea-game-headless.zip"
     dest: "{{ bot_install_folder }}/"
     owner: "bot"
     group: "{{ admin_group }}"
+    creates: "{{ bot_install_folder }}/bin/triplea-game-headless.jar"
 
 - name: create triplea-root touch file
   become: true
