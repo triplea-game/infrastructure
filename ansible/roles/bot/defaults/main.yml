@@ -4,7 +4,7 @@ bot_maps_folder: "/opt/bot/maps"
 
 bot_zip:
   url: https://github.com/triplea-game/triplea/releases/download/{{ bot_version }}/triplea-game-headless.zip
-  md5: 4048df4d437b198cea05435f9a2678ad
+  md5: a5075c021ddc9ed090ebaa3fe83cc8d8
 
 bot_instances:
   - number: "01"
