@@ -4,6 +4,12 @@
     state: present
     name: "openjdk-11-jdk-headless"
 
+- name: create service group {bot}
+  become: true
+  group:
+    name: "bot"
+    state: present
+
 - name: create service user {bot}
   become: true
   user:
