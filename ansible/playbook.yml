@@ -28,8 +28,8 @@
 - hosts: lobby
   tags: lobby
   roles:
+    - {name: lobby/reverse_proxy, tags: [nginx, reverse_proxy]}
     - system/docker
 #    - lobby/database
 #    - system/postfix
     - lobby/server
-
