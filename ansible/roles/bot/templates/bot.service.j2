@@ -6,22 +6,21 @@ Documentation=
 WorkingDirectory={{ bot_install_folder }}
 User=bot
 Group=bot
-Environment="MAPS_FOLDER={{ bot_maps_folder }}"
-ExecStart=java -server \
-  -Xmx{{ bot_max_memory }} \
-  -Xss1250K \
-  -Djava.awt.headless=true \
-  -Dtriplea.port="40%i" \
-  -Dtriplea.name="{{ bot_name }}%i_{{ bot_city }}" \
-  -Dtriplea.lobby.uri="https://prod.triplea-game.org" \
-  -Dtriplea.exit.on.game.end=true \
-  -jar {{ bot_install_folder }}/bin/triplea-game-headless.jar
+ExecStart=docker run \
+   --rm \
+   --network host \
+   --pull always \
+   --env BOT_PORT_NUMBER=40%i \
+   --env LOBBY_URI=https://prod.triplea-game.org \
+   --env BOT_NAME={{ bot_name }}%i_{{ bot_city }} \
+   --env EXIT_ON_GAME_END=true \
+   --env BOT_MAX_MEMORY={{ bot_max_memory }} \
+   -v {{ bot_maps_folder }}:/downloadedMaps \
+   -v /home/bot/triplea/savedGames/autoSave:/home/bot/triplea/savedGames/autoSave \
+   --name bot%i \
+   ghcr.io/triplea-game/bot:latest
 Restart=always
-
-StandardOutput=syslog
-StandardError=syslog
 SyslogIdentifier=bot%i
-
 
 [Install]
 WantedBy=multi-user.target

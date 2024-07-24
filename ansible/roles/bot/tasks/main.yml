@@ -14,7 +14,8 @@
   become: true
   user:
     name: "bot"
-    groups: "bot"
+    groups: "bot,docker"
+    uid: "999"
     create_home: no
     system: yes
 
@@ -48,36 +49,6 @@
     special_time: daily
     job: /opt/bot/download-all-maps.sh > /var/log/bot/map-download.log 2>&1
     user: bot
-
-- name: Download Bot Zip File
-  become: true
-  register: bot_zip_file_download
-  get_url:
-    url: "{{ bot_zip.url }}"
-    dest: "{{ bot_install_folder }}"
-    mode: "0644"
-    checksum: "md5:{{ bot_zip.md5 }}"
-    owner: "bot"
-    group: "{{ admin_group }}"
-
-- name: extract zip file
-  become: true
-  unarchive:
-    remote_src: yes
-    src: "{{ bot_install_folder }}/triplea-game-headless.zip"
-    dest: "{{ bot_install_folder }}/"
-    owner: "bot"
-    group: "{{ admin_group }}"
-    creates: "{{ bot_install_folder }}/bin/triplea-game-headless.jar"
-
-- name: create triplea-root touch file
-  become: true
-  file:
-    state: touch
-    path: "{{ bot_install_folder }}/.triplea-root"
-    mode: "0644"
-    owner: "bot"
-    group: "{{ admin_group }}"
 
 - name: ensure logging folder /var/log/triplea exists
   become: true
