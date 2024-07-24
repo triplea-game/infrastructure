@@ -8,11 +8,12 @@
     # because hostname role may reboot the system, it is executed last. On reboot, any major package updates
     # will take effect & the system will be in a clean/ready state for further host-specific deployments.
     - system/hostname
-    - {name: system/logging_config, tags: logging}
+    - { name: system/logging_config, tags: logging }
 
 - hosts: bots
-  tags: [bots, bot]
+  tags: [ bots, bot ]
   roles:
+    - { name: system/docker, tags: docker }
     - bot
 
 #- hosts: forums
@@ -28,8 +29,8 @@
 - hosts: lobby
   tags: lobby
   roles:
-    - {name: lobby/reverse_proxy, tags: [nginx, reverse_proxy]}
+    - { name: lobby/reverse_proxy, tags: [ nginx, reverse_proxy ] }
     - system/docker
-#    - lobby/database
-#    - system/postfix
+    #    - lobby/database
+    #    - system/postfix
     - lobby/server
