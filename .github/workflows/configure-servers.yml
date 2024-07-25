@@ -16,4 +16,4 @@ jobs:
       - name: run ansible
         if: ${{ env.IS_MASTER_BUILD }}
         run: |
-          ./run.sh
+          ANSIBLE_REMOTE_USER=ansible ./run.sh
