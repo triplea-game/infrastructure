@@ -19,6 +19,7 @@ ExecStart=docker run \
    -v /home/bot/triplea/savedGames/autoSave:/home/bot/triplea/savedGames/autoSave \
    --name bot%i \
    ghcr.io/triplea-game/bot:latest
+ExecStop=docker stop bot%i
 Restart=always
 SyslogIdentifier=bot%i
 
