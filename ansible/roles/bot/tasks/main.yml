@@ -29,7 +29,6 @@
     group: "{{ admin_group }}"
   with_items:
     - "/home/bot/triplea/savedGames/"
-    - "{{ bot_install_folder }}"
     - "{{ bot_maps_folder }}"
     - "/var/log/bot/"
 
