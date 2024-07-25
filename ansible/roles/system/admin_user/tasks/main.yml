@@ -7,6 +7,14 @@
     - "{{ admin_group }}"
     - docker
 
+- name: create admin user groups
+  become: true
+  group:
+    name: "{{ item.name }}"
+  with_items: "{{ admin_users }}"
+  loop_control:
+    label: "{{ item.name }}"
+
 - name: create admin user accounts
   become: true
   user:
