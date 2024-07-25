@@ -45,7 +45,7 @@ ansible-vault encrypt --vault-password-file vault_password $file
 - update `ansible.cfg`, update 'remote-user' to be root
 - Run the following: `./run.sh --limit [IP-ADDRESS] --tags system`
 - The above will deploy all admin accounts to the server, after which the CI/CD system will be able to manage the server
-
+- Cleanup: Delete the ansible user private & public keys from your machine
 
 
 To bootstrap an existing server, if we only have root access via password, then we need to create a user account with
@@ -108,3 +108,20 @@ sudo systemctl status bot@01
 sudo journalctl -ubot@01 -n 1000
 ```
 
+## Setting up Ansible user SSH key
+
+```
+ssh-keygen
+# specify key name: /home/$USER/.ssh/ansible
+# no passphrase
+```
+
+Update private key: https://github.com/triplea-game/infrastructure/settings/secrets/actions
+  - Update secret value, with the new private SSH key: SSH_PRIVATE_KEY
+
+Update public key in `admin_users/default/main.yml`
+
+If you already have a SSH key installed on all the servers, then you can run ansible
+with `./run.sh`. Updating the private/public keys for the ansible account will break
+github actions. This can easily be fixed by first ensuring you have SSH access,
+then running ansible from your local machine with your account.

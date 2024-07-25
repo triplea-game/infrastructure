@@ -1,4 +1,7 @@
 admin_users:
+  - name: ansible
+    ssh_keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILBak1DKq5e7s7uEgWiIb93dWtedDIZs5GtE57umsDtj ansible@githubActions"
   - name: dan
     ssh_keys:
       - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICJm7+fmoeoPGKpH2nyjh5bKC55C+VH63VzqEiXOjShk dan@laptop"

@@ -1,0 +1,19 @@
+name: Run ansible to configure servers
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    env:
+      IS_MASTER_BUILD: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: run ansible
+        if: ${{ env.IS_MASTER_BUILD }}
+        run: |
+          ./run.sh
