@@ -38,8 +38,19 @@ ansible-vault encrypt --vault-password-file vault_password $file
 
 ## Linode Setup
 
-Add the following as a 'user script' in linode setup
+- start server creation process in linode
+- add your SSH public key to linode & mark it to be added to the server (you can select this while creating the linode)
+- finish creating the server
+- add entry to `prod.inventory`
+- update `ansible.cfg`, update 'remote-user' to be root
+- Run the following: `./run.sh --limit [IP-ADDRESS] --tags system`
+- The above will deploy all admin accounts to the server, after which the CI/CD system will be able to manage the server
 
+
+
+To bootstrap an existing server, if we only have root access via password, then we need to create a user account with
+a trusted SSH key, and sudo access. Once that is done, the server can be managed via ansible. The below is an example
+of creating the needed user account:
 ```bash
 #!/bin/bash
 useradd ansible
@@ -51,5 +62,49 @@ chown -R ansible:ansible /home/ansible
 
 echo 'ansible    ALL=(ALL)    NOPASSWD:ALL
 Defaults:ansible        !requiretty' > /etc/sudoers.d/ansible
+```
+
+
+## Ops
+
+
+Server list: see file `prod.inventory`
+
+
+### Running Deployments
+
+Update bots:
+```
+./run.sh --limit bots
+```
+
+Update lobby:
+```
+./run.sh --limit lobby
+```
+
+
+
+### Bots
+
+Bot process is designed to be managed by systemctl. Systemctl will ensure bot is always running.
+(Do not use docker restart=always)
+
+
+Restart bot (restart can take a while ~60 seconds, sometimes having trouble with clean shut down):
+```
+sudo systemctl restart bot@01
+```
+
+Restart bot via docker (less preferred):
+```
+docker stop bot01
+```
+
+Check bot status & logs:
+```
+docker container ls
+sudo systemctl status bot@01
+sudo journalctl -ubot@01 -n 1000
 ```
 
