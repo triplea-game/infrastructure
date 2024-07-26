@@ -67,8 +67,20 @@ Defaults:ansible        !requiretty' > /etc/sudoers.d/ansible
 
 ## Ops
 
+CI/CD workflow, this runs ansible on any merge to master:
+https://github.com/triplea-game/infrastructure/blob/master/.github/workflows/configure-servers.yml
 
-Server list: see file `prod.inventory`
+Server list:
+<https://github.com/triplea-game/infrastructure/blob/master/ansible/prod.inventory>
+
+To get SSH access, add an account here (then commit & merge, CI/CD will deploy the account automatically):
+<https://github.com/triplea-game/infrastructure/blob/master/ansible/roles/system/admin_user/defaults/main.yml>
+
+Of note, when you get SSH access, you can run `./run.sh` out of the box after that point. By default the script
+runs in a 'dry-mode' which only reports changes. This is ideal for doing things like:
+- checking what will be run
+- configuring live servers. Configure the server, make the config changes locally and then run `./run.sh`,
+  if it reports no diff, then all config has been successfully made.
 
 
 ### Running Deployments
