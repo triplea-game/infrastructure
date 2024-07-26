@@ -7,9 +7,6 @@
 [bots]
 bot01 ansible_host=172.232.163.49 hostname=bot01-seattle bot_name=Bot1 bot_city=Seattle
 bot02 ansible_host=139.162.172.138 hostname=bot02-frankfurt bot_name=Bot2 bot_city=Frankfurt
-bot03 ansible_host=172.233.246.245 hostname=bot03-paris bot_name=Bot3 bot_city=Paris
-bot04 ansible_host=172.105.106.109 hostname=bot04-toronto bot_name=Bot4 bot_city=Toronto
-bot05 ansible_host=172.233.153.111 hostname=bot05-losAngeles bot_name=Bot5 bot_city=LosAngeles
 
 [lobby]
 prod.lobby ansible_host=prod.triplea-game.org hostname=prod.triplea-game.org
