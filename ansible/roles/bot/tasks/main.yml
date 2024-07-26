@@ -1,9 +1,3 @@
-- name: install java
-  become: true
-  apt:
-    state: present
-    name: "openjdk-11-jdk-headless"
-
 - name: create service group {bot}
   become: true
   group:
@@ -48,15 +42,6 @@
     special_time: daily
     job: /opt/bot/download-all-maps.sh > /var/log/bot/map-download.log 2>&1
     user: bot
-
-- name: ensure logging folder /var/log/triplea exists
-  become: true
-  file:
-    path: /var/log/triplea
-    state: directory
-    mode: "0755"
-    owner: "bot"
-    group:  "{{ admin_group }}"
 
 - name: install systemd service script
   become: true
