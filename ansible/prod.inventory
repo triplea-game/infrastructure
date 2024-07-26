@@ -1,4 +1,5 @@
 [old_bots]
+#   Old bots can be accessed via root password  & linode. 
 #bot02 ansible_host=23.92.29.90  hostname=prod2-bot02.triplea-game.org bot_name=Bot2 bot_city=Atlanta
 #bot04 ansible_host=45.33.100.196  hostname=prod2-bot04.triplea-game.org bot_name=Bot4 bot_city=Atlanta
 #bot06 ansible_host=96.126.103.252  hostname=prod2-bot06.triplea-game.org bot_name=Bot6 bot_city=California
