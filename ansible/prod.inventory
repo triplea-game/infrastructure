@@ -1,9 +1,12 @@
+# note, we only install the 'system' roles to 'old-bots'. We just configure admin user permissions.
+# The actual bot install is not updated at all on the old-bots. These are effectively legacy
+# servers that we will want to turn off when we can.
+
 [old_bots]
-#   Old bots can be accessed via root password  & linode. 
-#bot02 ansible_host=23.92.29.90  hostname=prod2-bot02.triplea-game.org bot_name=Bot2 bot_city=Atlanta
-#bot04 ansible_host=45.33.100.196  hostname=prod2-bot04.triplea-game.org bot_name=Bot4 bot_city=Atlanta
-#bot06 ansible_host=96.126.103.252  hostname=prod2-bot06.triplea-game.org bot_name=Bot6 bot_city=California
-#bot07 ansible_host=45.79.188.157  hostname=prod2-bot07.triplea-game.org bot_name=Bot7 bot_city=Jersey
+bot02 ansible_host=23.92.29.90  hostname=prod2-bot02.triplea-game.org bot_name=Bot2 bot_city=Atlanta
+bot04 ansible_host=45.33.100.196  hostname=prod2-bot04.triplea-game.org bot_name=Bot4 bot_city=Atlanta
+bot06 ansible_host=96.126.103.252  hostname=prod2-bot06.triplea-game.org bot_name=Bot6 bot_city=California
+bot07 ansible_host=45.79.188.157  hostname=prod2-bot07.triplea-game.org bot_name=Bot7 bot_city=Jersey
 
 [bots]
 bot01 ansible_host=172.232.163.49 hostname=bot01-seattle bot_name=Bot1 bot_city=Seattle
