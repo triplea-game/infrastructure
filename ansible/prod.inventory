@@ -19,4 +19,4 @@ prod.lobby ansible_host=prod.triplea-game.org hostname=prod.triplea-game.org
 #45.79.144.53
 
 [forums]
-prod.forums ansible_host=45.33.80.67  hostname=forums.triplea-game.org
+#prod.forums ansible_host=45.33.80.67  hostname=forums.triplea-game.org

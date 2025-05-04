@@ -1,4 +1,5 @@
 - name: Ensure latest bash and ssl
+  become: true
   apt:
     state: latest
     name:
@@ -8,6 +9,7 @@
       - libssl-doc
 
 - name: Install PostgreSQL
+  become: true
   apt:
     state: present
     name:
@@ -17,6 +19,7 @@
       - python3-psycopg2
 
 - name: Ensure the PostgreSQL service is running
+  become: true
   service:
     name: postgresql
     state: started
@@ -24,6 +27,7 @@
 
 - name: deploy file /etc/postgresql/12/main/pg_hba.conf
   notify: reload_postgres
+  become: true
   copy:
     src: pg_hba.conf
     dest: /etc/postgresql/12/main/pg_hba.conf

@@ -1,6 +1,7 @@
 - hosts: all
   tags: system
   roles:
+    - system/docker
     - name: system/admin_user
       vars:
         admin_users:
@@ -13,12 +14,11 @@
               - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILAo4tUJg3cgpqaZcp41hE/01XMOJLHRXT8GQSmHc3aF dan@desk"
     - system/firewall
     - system/apt_packages
-    - system/docker
     - system/journald
+    - system/logging_config
     # because hostname role may reboot the system, it is executed last. On reboot, any major package updates
     # will take effect & the system will be in a clean/ready state for further host-specific deployments.
     - system/hostname
-    - system/logging_config
 
 - hosts: bots
   tags: [ bots, bot ]
