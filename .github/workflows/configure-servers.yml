@@ -1,3 +1,6 @@
+# Runs whenever there is any change to master
+# Updates all servers to have the 'infrastructure' deployment
+
 name: Run ansible to configure servers
 on:
   push:
@@ -16,4 +19,4 @@ jobs:
       - name: run ansible
         if: ${{ env.IS_MASTER_BUILD }}
         run: |
-          ANSIBLE_REMOTE_USER=ansible APPLY=1 ./run.sh --limit bots && ANSIBLE_REMOTE_USER=ansible APPLY=1 ./run.sh --tags system
+          ANSIBLE_REMOTE_USER=ansible APPLY=1 ./run.sh --limit bots && ANSIBLE_REMOTE_USER=ansible APPLY=1 ./run.sh

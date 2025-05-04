@@ -1,0 +1,33 @@
+- name: Ensure latest bash and ssl
+  apt:
+    state: latest
+    name:
+      - bash
+      - openssl
+      - libssl-dev
+      - libssl-doc
+
+- name: Install PostgreSQL
+  apt:
+    state: present
+    name:
+      - postgresql
+      - postgresql-contrib
+      - libpq-dev
+      - python3-psycopg2
+
+- name: Ensure the PostgreSQL service is running
+  service:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: deploy file /etc/postgresql/12/main/pg_hba.conf
+  notify: reload_postgres
+  copy:
+    src: pg_hba.conf
+    dest: /etc/postgresql/12/main/pg_hba.conf
+    owner: postgres
+    group: postgres
+    mode: "0640"
+

@@ -1,36 +1,40 @@
 - hosts: all
   tags: system
   roles:
-    - system/admin_user
+    - name: system/admin_user
+      vars:
+        admin_users:
+          - name: ansible
+            ssh_keys:
+              - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILBak1DKq5e7s7uEgWiIb93dWtedDIZs5GtE57umsDtj ansible@githubActions"
+          - name: dan
+            ssh_keys:
+              - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICJm7+fmoeoPGKpH2nyjh5bKC55C+VH63VzqEiXOjShk dan@laptop"
+              - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILAo4tUJg3cgpqaZcp41hE/01XMOJLHRXT8GQSmHc3aF dan@desk"
     - system/firewall
     - system/apt_packages
+    - system/docker
     - system/journald
     # because hostname role may reboot the system, it is executed last. On reboot, any major package updates
     # will take effect & the system will be in a clean/ready state for further host-specific deployments.
     - system/hostname
-    - { name: system/logging_config, tags: logging }
+    - system/logging_config
 
 - hosts: bots
   tags: [ bots, bot ]
   roles:
-    - { name: system/docker, tags: docker }
     - bot
-
-#- hosts: forums
-#  tags: forums
-#  roles:
-#    - nginx_forums_conf
-#
-
-#- hosts: reverse_proxy
-#  roles:
-#    - {name: nginx/install, tags: nginx}
 
 - hosts: lobby
   tags: lobby
   roles:
-    - { name: lobby/reverse_proxy, tags: [ nginx, reverse_proxy ] }
-    - system/docker
-    #    - lobby/database
-    #    - system/postfix
-    - lobby/server
+    - reverse_proxy/nginx
+    - database/postgres
+    - smtp/postfix
+    - name: system/admin_user
+      tags: lobby_admin
+      vars:
+        admin_users:
+          - name: deploy-lobby
+            ssh_keys:
+              - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE4FxzavyHhAVLHwIc9Nfb5xtbK/mk9QzmWWBWFv561A deploylobby@triplea"
