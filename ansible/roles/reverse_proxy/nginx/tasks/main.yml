@@ -8,11 +8,16 @@
   become: true
   notify: reload_nginx
   template:
-    src: etc_nginx_sites_enabled_default.conf
-    dest: /etc/nginx/sites-enabled/default
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
     mode: "0644"
     owner: root
     group: root
+  with_items:
+    - src: etc_nginx_sites_enabled_default.conf
+      dest: /etc/nginx/sites-enabled/default
+    - src: etc_nginx_sites_enabled_lobby.conf
+      dest: /etc/nginx/sites-enabled/lobby.conf
 
 - name: ensure nginx is started
   become: true

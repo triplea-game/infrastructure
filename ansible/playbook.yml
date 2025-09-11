@@ -28,7 +28,7 @@
 - hosts: lobby
   tags: lobby
   roles:
-    - reverse_proxy/nginx
+    - {name: reverse_proxy/nginx, tags: nginx}
     - database/postgres
     - smtp/postfix
     - name: system/admin_user

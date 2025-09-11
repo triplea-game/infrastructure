@@ -19,4 +19,4 @@ jobs:
       - name: run ansible
         if: ${{ env.IS_MASTER_BUILD }}
         run: |
-          ANSIBLE_REMOTE_USER=ansible APPLY=1 ./run.sh
+          make deploy-prod
