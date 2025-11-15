@@ -19,6 +19,7 @@
     mode: 0644
 
 - name: apt update
+  become: true
   ansible.builtin.apt:
     update_cache: yes
 

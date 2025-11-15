@@ -29,7 +29,7 @@
   tags: lobby
   roles:
     - {name: reverse_proxy/nginx, tags: nginx}
-    - database/postgres
+    - {name: database/postgres, tags: database}
     - smtp/postfix
     - name: system/admin_user
       tags: lobby_admin
