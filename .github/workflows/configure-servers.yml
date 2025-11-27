@@ -5,7 +5,7 @@ name: Run ansible to configure servers
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   build:
     env:
