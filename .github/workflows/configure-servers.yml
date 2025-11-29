@@ -21,8 +21,12 @@ jobs:
         run: |
           set -eu
           make deploy-test
+        env:
+          TRIPLEA_ANSIBLE_VAULT_PASSWORD: ${{ secrets.TRIPLEA_ANSIBLE_VAULT_PASSWORD }}
       - name: deploy prod
         if: ${{ env.IS_MAIN_BUILD }}
         run: |
           set -eu
           make deploy-prod
+        env:
+          TRIPLEA_ANSIBLE_VAULT_PASSWORD: ${{ secrets.TRIPLEA_ANSIBLE_VAULT_PASSWORD }}

@@ -14,7 +14,10 @@ show-install-ansible: ## Prints commands to install ansible (linux)
 	@echo sudo add-apt-repository --yes --update ppa:ansible/ansible
 	@echo sudo apt install --yes ansible
 
-vaultPassword=@echo "${TRIPLEA_ANSIBLE_VAULT_PASSWORD}" > ansible/vault-password; trap 'rm -f "ansible/vault-password"' EXIT
+deps:
+	test -n "$${TRIPLEA_ANSIBLE_VAULT_PASSWORD}"
+
+vaultPassword=@echo "$${TRIPLEA_ANSIBLE_VAULT_PASSWORD}" > ansible/vault-password; trap 'rm -f "ansible/vault-password"' EXIT
 runAnsible=$(vaultPassword); ANSIBLE_CONFIG="ansible/ansible.cfg" ansible-playbook --vault-password-file ansible/vault-password
 testInventory=--inventory ansible/inventory/test.inventory
 prodInventory=--inventory ansible/inventory/prod.inventory
