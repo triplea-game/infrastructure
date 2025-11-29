@@ -1,5 +1,19 @@
 # Infrastructure Project
 
+Contains ansible playbook for first time setup of servers.
+
+Things to install:
+- admin users
+- security settings
+- initial firewall
+- common utilities:
+  - docker
+- databases
+
+We want to install things that are mostly need one-time configuration,
+take a long time to install.
+
+
 
 ## Running
 
@@ -28,7 +42,7 @@ Ansible vault encryption: https://docs.ansible.com/ansible/latest/vault_guide/va
 Encrypt a single value (for a variable)
 ```
  secret=[some-secret]
-echo $secret |  ansible-vault encrypt_string --vault-password-file vault_password 2> /dev/null
+echo -n $secret |  ansible-vault encrypt_string --vault-password-file vault_password 2> /dev/null
 ```
 
 Encrypt a file:
