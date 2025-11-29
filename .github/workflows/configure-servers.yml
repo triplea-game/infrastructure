@@ -20,13 +20,13 @@ jobs:
         if: ${{ env.IS_MAIN_BUILD }}
         run: |
           set -eu
-          ANSIBLE_USER=deploy-infrastructure make deploy-test
+          make deploy-test SSH_USER=deploy-infrastructure
         env:
           TRIPLEA_ANSIBLE_VAULT_PASSWORD: ${{ secrets.TRIPLEA_ANSIBLE_VAULT_PASSWORD }}
       - name: deploy prod
         if: ${{ env.IS_MAIN_BUILD }}
         run: |
           set -eu
-          ANSIBLE_USER=deploy-infrastructure make deploy-prod
+          make deploy-prod SSH_USER=deploy-infrastructure
         env:
           TRIPLEA_ANSIBLE_VAULT_PASSWORD: ${{ secrets.TRIPLEA_ANSIBLE_VAULT_PASSWORD }}

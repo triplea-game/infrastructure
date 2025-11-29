@@ -2,8 +2,10 @@ MAKEFLAGS += --always-make --warn-undefined-variables
 SHELL=/bin/bash -eu
 
 nc=\033[0m
+SSH_USER ?= $${USER}
 
 help: ## Show this help text
+	echo $(SSH_USER)
 	grep -h -E '^[a-z]+.*:' $(MAKEFILE_LIST) | \
 		awk -F ":|#+" '{printf "\033[31m%s $(nc) \n   %s $(nc)\n    \033[3;37mDepends On: $(nc) [ %s ]\n", $$1, $$3, $$2}'
 
@@ -18,7 +20,7 @@ deps:
 	test -n "$${TRIPLEA_ANSIBLE_VAULT_PASSWORD}"
 
 vaultPassword=@echo "$${TRIPLEA_ANSIBLE_VAULT_PASSWORD}" > ansible/vault-password; trap 'rm -f "ansible/vault-password"' EXIT
-runAnsible=$(vaultPassword); ANSIBLE_CONFIG="ansible/ansible.cfg" ansible-playbook --vault-password-file ansible/vault-password
+runAnsible=$(vaultPassword); ANSIBLE_CONFIG="ansible/ansible.cfg" ansible-playbook --vault-password-file ansible/vault-password -e ansible_user=$(SSH_USER)
 testInventory=--inventory ansible/inventory/test.inventory
 prodInventory=--inventory ansible/inventory/prod.inventory
 playbook=ansible/playbook.yml
@@ -30,7 +32,7 @@ diff-test: ansible-galaxy-install
 	$(runAnsible) --check --diff $(testInventory) $(playbook)
 
 deploy-test: ansible-galaxy-install
-	$(runAnsible) -e ansible_user=deploy-infrastructure $(testInventory) $(playbook)
+	$(runAnsible) $(testInventory) $(playbook)
 
 diff-prod: ansible-galaxy-install
 	$(runAnsible) --check --diff $(prodInventory) $(playbook)
