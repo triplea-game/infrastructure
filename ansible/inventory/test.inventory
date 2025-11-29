@@ -1,0 +1,5 @@
+[lobby]
+test.triplea-game.org hostname=test.triplea-game.org
+
+[all:vars]
+nginx_default_conf_template=test.default.conf

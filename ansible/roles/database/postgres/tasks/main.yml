@@ -1,3 +1,25 @@
+- name: Add postgres-12 apt repo signing key
+  become: true
+  copy:
+    src: postgres-12-apt.gpg
+    dest: /etc/apt/keyrings/postgres-12.asc
+    owner: root
+    mode: 0644
+
+- name: Add apt repo listing
+  become: true
+  copy:
+    src: postgres.list
+    dest: /etc/apt/sources.list.d/postgres-12.list
+    owner: root
+    group: root
+    mode: 0644
+
+- name: apt update
+  become: true
+  ansible.builtin.apt:
+    update_cache: yes
+
 - name: Ensure latest bash and ssl
   become: true
   apt:
@@ -13,8 +35,7 @@
   apt:
     state: present
     name:
-      - postgresql
-      - postgresql-contrib
+      - postgresql-12
       - libpq-dev
       - python3-psycopg2
 

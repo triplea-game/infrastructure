@@ -4,15 +4,24 @@
     name: nginx
     state: present
 
-- name: deploy default nginx sites_enabled config
+- name: deploy /etc/nginx/sites-enabled/default default nginx sites_enabled config
   become: true
   notify: reload_nginx
   template:
-    src: etc_nginx_sites_enabled_default.conf
-    dest: /etc/nginx/sites-enabled/default
-    mode: "0644"
+    src: "{{ nginx_default_conf_template }}"
+    dest: "/etc/nginx/sites-enabled/default"
     owner: root
     group: root
+    mode: "0644"
+
+- name: create /etc/nginx/include/ folder
+  become: true
+  file:
+    state: directory
+    path: /etc/nginx/include/
+    owner: root
+    group: root
+    mode: "0755"
 
 - name: ensure nginx is started
   become: true
