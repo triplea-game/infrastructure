@@ -2,8 +2,8 @@
 #forums.triplea-game.org hostname=forums.triplea-game.org
 
 [bots]
-bot01 ansible_host=172.232.163.49 hostname=bot01-seattle bot_name=Bot1 bot_city=Seattle
-bot02 ansible_host=139.162.172.138 hostname=bot02-frankfurt bot_name=Bot2 bot_city=Frankfurt
+#bot01 ansible_host=172.232.163.49 hostname=bot01-seattle bot_name=Bot1 bot_city=Seattle
+#bot02 ansible_host=139.162.172.138 hostname=bot02-frankfurt bot_name=Bot2 bot_city=Frankfurt
 
 [lobby]
 prod.triplea-game.org hostname=prod.triplea-game.org
