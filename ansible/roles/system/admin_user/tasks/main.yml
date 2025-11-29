@@ -27,7 +27,7 @@
   loop_control:
     label: "{{ item.name }}"
 
-- name: Deployer sudo permissions file - /etc/sudoers.d/{{ admin }}
+- name: Deployer sudo permissions file - /etc/sudoers.d/[admin-user]
   become: true
   template:
     src: sudoer_file.sudo
