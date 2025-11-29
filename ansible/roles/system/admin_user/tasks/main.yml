@@ -39,7 +39,7 @@
   loop_control:
     label: "{{ item.name }}"
 
-- name: SSH keys - create directory - /home/{{admin}}/.ssh/
+- name: SSH keys - create directory - /home/[admin-user]/.ssh/
   become: true
   file:
     path: "/home/{{ item.name }}/.ssh/"
