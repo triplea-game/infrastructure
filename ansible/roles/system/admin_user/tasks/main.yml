@@ -51,7 +51,7 @@
   loop_control:
     label: "{{ item.name }}"
 
-- name: SSH keys - deploy authorized_keys file -  /home/{{admin}}/.ssh/authorized_keys
+- name: SSH keys - deploy authorized_keys file -  /home/[admin-user/.ssh/authorized_keys
   become: true
   template:
     src: authorized_keys.j2
