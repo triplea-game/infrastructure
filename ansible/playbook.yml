@@ -1,19 +1,19 @@
 - hosts: all
   tags: system
   roles:
-    - system/docker
     - name: system/admin_user
       vars:
         admin_users:
-          - name: ansible
+          - name: deploy-infrastructure
             ssh_keys:
-              - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILBak1DKq5e7s7uEgWiIb93dWtedDIZs5GtE57umsDtj ansible@githubActions"
+              - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOv3r5zoYjc9LZ+K3hXmrU2Xhv56cBeHg/i33Ecx2e4+ deploy-infrastructure@triplea"
           - name: dan
             ssh_keys:
               - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICJm7+fmoeoPGKpH2nyjh5bKC55C+VH63VzqEiXOjShk dan@laptop"
               - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILAo4tUJg3cgpqaZcp41hE/01XMOJLHRXT8GQSmHc3aF dan@desk"
-    - system/firewall
     - system/apt_packages
+    - system/docker
+    - system/firewall
     - system/journald
     - system/logging_config
     # because hostname role may reboot the system, it is executed last. On reboot, any major package updates
@@ -32,12 +32,11 @@
     - {name: database/postgres, tags: database}
     - smtp/postfix
     - name: system/admin_user
-      tags: lobby_admin
       vars:
         admin_users:
-          - name: deploy-lobby
+          - name: deploy-lobby-server
             ssh_keys:
-              - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE4FxzavyHhAVLHwIc9Nfb5xtbK/mk9QzmWWBWFv561A deploylobby@triplea"
+              - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGkElpnOlB+qwq3ISJW5ygZ/7FtUeq6YbvRRXCPQbVWS deploy-lobby-server@triplea"
           - name: deploy-support-server
             ssh_keys:
-              - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAlUYHJTuP+t1MSR0PlgWKuDdL9w3aNl+8V4aIoPSUqI deploysupport@triplea"
+              - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAlUYHJTuP+t1MSR0PlgWKuDdL9w3aNl+8V4aIoPSUqI deploy-support-server@triplea"
