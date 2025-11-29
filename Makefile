@@ -30,7 +30,7 @@ diff-test: ansible-galaxy-install
 	$(runAnsible) --check --diff $(testInventory) $(playbook)
 
 deploy-test: ansible-galaxy-install
-	$(runAnsible) -vvv $(testInventory) $(playbook)
+	$(runAnsible) -e ansible_user=deploy-infrastructure $(testInventory) $(playbook)
 
 diff-prod: ansible-galaxy-install
 	$(runAnsible) --check --diff $(prodInventory) $(playbook)
