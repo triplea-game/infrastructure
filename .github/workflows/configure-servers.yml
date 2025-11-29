@@ -1,4 +1,4 @@
-# Runs whenever there is any change to master
+# Runs whenever there is any change to main
 # Updates all servers to have the 'infrastructure' deployment
 
 name: Run ansible to configure servers
@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     env:
-      IS_MASTER_BUILD: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      IS_MAIN_BUILD: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,6 +17,8 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: run ansible
-        if: ${{ env.IS_MASTER_BUILD }}
+        if: ${{ env.IS_MAIN_BUILD }}
         run: |
-          ANSIBLE_REMOTE_USER=ansible APPLY=1 ./run.sh
+          set -eu
+          make deploy-test
+          make deploy-prod
