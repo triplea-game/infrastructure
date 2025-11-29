@@ -16,9 +16,13 @@ jobs:
       - uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-      - name: run ansible
+      - name: deploy test
         if: ${{ env.IS_MAIN_BUILD }}
         run: |
           set -eu
           make deploy-test
+      - name: deploy prod
+        if: ${{ env.IS_MAIN_BUILD }}
+        run: |
+          set -eu
           make deploy-prod
