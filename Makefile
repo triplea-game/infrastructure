@@ -5,7 +5,6 @@ nc=\033[0m
 SSH_USER ?= $${USER}
 
 help: ## Show this help text
-	echo $(SSH_USER)
 	grep -h -E '^[a-z]+.*:' $(MAKEFILE_LIST) | \
 		awk -F ":|#+" '{printf "\033[31m%s $(nc) \n   %s $(nc)\n    \033[3;37mDepends On: $(nc) [ %s ]\n", $$1, $$3, $$2}'
 
