@@ -34,7 +34,7 @@
     dest: "/etc/sudoers.d/{{ item.name }}"
     owner: root
     group: root
-    mode: "640"
+    mode: "0440"
   with_items: "{{ admin_users }}"
   loop_control:
     label: "{{ item.name }}"

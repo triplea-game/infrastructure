@@ -34,6 +34,9 @@ take a long time to install.
 Run `run.sh`, by default it will run in 'dry-run' mode and will not make any
 changes but instead will report the changes that would be made.
 
+## Terraform (TF) Setup
+
+- Need env variable "LINODE_TOKEN"
 
 ## Secrets
 

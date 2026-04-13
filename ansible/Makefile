@@ -4,6 +4,9 @@ SHELL=/bin/bash -eu
 nc=\033[0m
 SSH_USER ?= $${USER}
 
+# Env Variables
+# TRIPLEA_ANSIBLE_VAULT_PASSWORD: Vault password for Ansible
+
 help: ## Show this help text
 	grep -h -E '^[a-z]+.*:' $(MAKEFILE_LIST) | \
 		awk -F ":|#+" '{printf "\033[31m%s $(nc) \n   %s $(nc)\n    \033[3;37mDepends On: $(nc) [ %s ]\n", $$1, $$3, $$2}'
@@ -18,26 +21,29 @@ show-install-ansible: ## Prints commands to install ansible (linux)
 deps:
 	test -n "$${TRIPLEA_ANSIBLE_VAULT_PASSWORD}"
 
-vaultPassword=@echo "$${TRIPLEA_ANSIBLE_VAULT_PASSWORD}" > ansible/vault-password; trap 'rm -f "ansible/vault-password"' EXIT
-runAnsible=$(vaultPassword); ANSIBLE_CONFIG="ansible/ansible.cfg" ansible-playbook --vault-password-file ansible/vault-password -e ansible_user=$(SSH_USER)
-testInventory=--inventory ansible/inventory/test.inventory
-prodInventory=--inventory ansible/inventory/prod.inventory
-playbook=ansible/playbook.yml
+vaultPassword=echo "$${TRIPLEA_ANSIBLE_VAULT_PASSWORD}" > ./vault-password; trap 'rm -f "./vault-password"' EXIT
+runAnsible=ANSIBLE_CONFIG="./ansible.cfg" ansible-playbook --vault-password-file ./vault-password -e ansible_user=$(SSH_USER)
+testInventory=--inventory inventory/test.inventory
+prodInventory=--inventory inventory/prod.inventory
+playbook=playbook.yml
 
 ansible-galaxy-install:
-	ansible-galaxy collection install -r ansible/requirements.yml --force
+	ansible-galaxy collection install -r requirements.yml --force
 
 diff-test: ansible-galaxy-install
-	$(runAnsible) --check --diff $(testInventory) $(playbook)
+	$(vaultPassword); $(runAnsible) --check --diff $(testInventory) $(playbook)
 
 deploy-test: ansible-galaxy-install
-	$(runAnsible) $(testInventory) $(playbook)
+	$(vaultPassword); $(runAnsible) $(testInventory) $(playbook)
+
+print-prod: ansible-galaxy-install
+	@echo $(runAnsible) --check --diff $(prodInventory) $(playbook)
 
 diff-prod: ansible-galaxy-install
-	$(runAnsible) --check --diff $(prodInventory) $(playbook)
+	$(vaultPassword); $(runAnsible) --check --diff $(prodInventory) $(playbook)
 
 deploy-prod: ansible-galaxy-install
-	$(runAnsible) $(prodInventory) $(playbook)
+	$(vaultPassword); $(runAnsible) $(prodInventory) $(playbook)
 
 update-bots:
 	$(ansibleConf) ansible $(EXTRA_ARGS) \
