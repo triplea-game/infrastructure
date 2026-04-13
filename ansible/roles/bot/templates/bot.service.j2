@@ -8,7 +8,7 @@ Group=bot
 ExecStart=docker run \
    --rm \
    --network host \
-   --pull always \
+   --pull missing \
    --env BOT_PORT_NUMBER=40%i \
    --env LOBBY_URI=https://prod.triplea-game.org \
    --env BOT_NAME={{ bot_name }}%i_{{ bot_city }} \
