@@ -1,3 +1,9 @@
+Key part is the server config file:
+ - remove lines to delete bots, add lines to increase them
+ - once a bot is added, you'll need to run 'ansible' part
+
+
+
 Server configuration and workflow
 
 This directory holds the Terraform root that creates infrastructure. The server list is intended to be the single source of truth for adding/removing Linode instances.
