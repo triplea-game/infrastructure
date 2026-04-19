@@ -1,76 +1,72 @@
 # Infrastructure Project
 
-Contains ansible playbook for first time setup of servers.
+Ansible playbooks and Terraform configuration for provisioning and configuring TripleA game servers on Linode.
 
-Things to install:
-- admin users
-- security settings
-- initial firewall
-- common utilities:
-  - docker
-- databases
+Ansible manages:
+- Admin user accounts & SSH keys
+- Firewall rules
+- Common utilities (Docker, apt packages)
+- Databases (PostgreSQL)
+- Reverse proxy (nginx)
+- SMTP (postfix)
+- Bot processes (managed via systemd)
 
-We want to install things that are mostly need one-time configuration,
-take a long time to install.
+---
 
+## Quick Start
 
+1. **Get SSH access** — add your SSH public key to `ansible/roles/system/admin_user` in `playbook.yml`, 
+   then open a PR. CI/CD will deploy your account on merge.
+2. **Set required environment variables** (see section below).
+3. **Run a dry-run** to verify everything is working:
+   ```bash
+   ./run.sh
+   ```
+   No changes are made by default — it runs in preview/check mode.
 
-## Running
+---
 
-Run `run.sh`, by default it will run in 'dry-run' mode and will not make any
-changes but instead will report the changes that would be made.
+## Required Environment Variables & Tokens
 
-### Before getting started
+| Variable | Used By | Purpose | How to obtain |
+|---|---|---|---|
+| `LINODE_TOKEN` | Terraform | Linode Personal Access Token to provision/manage servers | [Linode Cloud Manager](https://cloud.linode.com/profile/tokens) → Create token |
+| `TF_VAR_linode_token` | Terraform | Alternative to `LINODE_TOKEN` — the Terraform Makefile exports one from the other automatically | Same as above |
+| `TRIPLEA_ANSIBLE_VAULT_PASSWORD` | Ansible (`ansible/Makefile`) | Password to decrypt Ansible Vault secrets in playbooks | Shared secret — ask a maintainer |
+| `SSH_PRIVATE_KEY` | GitHub Actions | Private SSH key for the `deploy-infrastructure` ansible user | See [GitHub Actions secrets](https://github.com/triplea-game/infrastructure/settings/secrets/actions) |
 
-- need your SSH public key installed on the servers
-   - method 1) add your SSH key to the ansible role that deploys
-      admin users. When pushed & merged to master, all servers will
-      be updated to have an account for you with your SSH key
-   - method 2) if you have access to linode, you can open a 'lish' console
-      login as root, create a user & add your SSH key
-- "ansible" user should be configured on each server during setup.
-  The 'user' configured is important as ansible runs everything over
-  SSH, so long as you can SSH, you can run ansible. 
+> **Local runs via `run.sh`:** only your personal SSH key (already on servers) is needed — no vault password required unless your playbook targets encrypted variables.
+>
+> **Local runs via `ansible/Makefile`:** `TRIPLEA_ANSIBLE_VAULT_PASSWORD` must be set.
+>
+> **Terraform:** `LINODE_TOKEN` or `TF_VAR_linode_token` must be set.
 
-## Terraform (TF) Setup
+---
 
-- Need env variable "LINODE_TOKEN"
+## Server Onboarding
 
-## Secrets
+### New server on Linode
 
-Ansible vault encryption: https://docs.ansible.com/ansible/latest/vault_guide/vault_encrypting_content.html
+1. Start server creation in Linode Cloud Manager.
+2. Add your SSH public key and mark it to be added to the server.
+3. Finish creating the server, then add its IP to `ansible/inventory/prod.inventory`.
+4. Temporarily set `remote_user = root` in `ansible/ansible.cfg`.
+5. Run the system bootstrap to create all admin accounts:
+   ```bash
+   ./run.sh --limit [IP-ADDRESS] --tags system
+   ```
+6. Revert `ansible.cfg` back to the normal ansible user.
+7. Delete the temporary root-level SSH keys from your machine.
 
-Encrypt a single value (for a variable)
-```
- secret=[some-secret]
-echo -n $secret |  ansible-vault encrypt_string --vault-password-file vault_password 2> /dev/null
-```
+### Bootstrapping an existing server (root password access only)
 
-Encrypt a file:
-```
-ansible-vault encrypt --vault-password-file vault_password $file
-```
+If you only have root password access, manually create the ansible service account first:
 
-## Linode Setup
-
-- start server creation process in linode
-- add your SSH public key to linode & mark it to be added to the server (you can select this while creating the linode)
-- finish creating the server
-- add entry to `prod.inventory`
-- update `ansible.cfg`, update 'remote-user' to be root
-- Run the following: `./run.sh --limit [IP-ADDRESS] --tags system`
-- The above will deploy all admin accounts to the server, after which the CI/CD system will be able to manage the server
-- Cleanup: Delete the ansible user private & public keys from your machine
-
-
-To bootstrap an existing server, if we only have root access via password, then we need to create a user account with
-a trusted SSH key, and sudo access. Once that is done, the server can be managed via ansible. The below is an example
-of creating the needed user account:
 ```bash
-#!/bin/bash
 useradd ansible
 mkdir -p /home/ansible/.ssh
-echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINAUjUJsoqE4NEEnv8Hov06Kn6CNhSDheGRxm7HbLaG9 ansible@triplea" > /home/ansible/.ssh/authorized_keys
+echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINAUjUJsoqE4NEEnv8Hov06Kn6CNhSDheGRxm7HbLaG9 ansible@triplea" \
+  > /home/ansible/.ssh/authorized_keys
 chmod 700 /home/ansible/.ssh
 chmod 600 /home/ansible/.ssh/authorized_keys
 chown -R ansible:ansible /home/ansible
@@ -79,76 +75,143 @@ echo 'ansible    ALL=(ALL)    NOPASSWD:ALL
 Defaults:ansible        !requiretty' > /etc/sudoers.d/ansible
 ```
 
+Once done, the server can be managed with `./run.sh` as normal.
 
-## Ops
+---
 
-CI/CD workflow, this runs ansible on any merge to master:
-https://github.com/triplea-game/infrastructure/blob/master/.github/workflows/configure-servers.yml
+## Running Ansible
 
-Server list:
-<https://github.com/triplea-game/infrastructure/blob/master/ansible/prod.inventory>
+`run.sh` is a wrapper around `ansible-playbook`. **By default it runs in dry-run (check) mode** and makes no changes.
 
-To get SSH access, add an account here (then commit & merge, CI/CD will deploy the account automatically):
-<https://github.com/triplea-game/infrastructure/blob/master/ansible/roles/system/admin_user/defaults/main.yml>
+```bash
+# Preview changes (default — no changes made)
+./run.sh
 
-Of note, when you get SSH access, you can run `./run.sh` out of the box after that point. By default the script
-runs in a 'dry-mode' which only reports changes. This is ideal for doing things like:
-- checking what will be run
-- configuring live servers. Configure the server, make the config changes locally and then run `./run.sh`,
-  if it reports no diff, then all config has been successfully made.
+# Apply changes
+APPLY=1 ./run.sh
 
+# Limit to a specific host or group
+APPLY=1 ./run.sh --limit bots
+APPLY=1 ./run.sh --limit lobby
 
-### Running Deployments
+# Apply specific tags only
+APPLY=1 ./run.sh --tags system
+APPLY=1 ./run.sh --limit [IP] --tags system
 
-Update bots:
-```
-./run.sh --limit bots
-```
-
-Update lobby:
-```
-./run.sh --limit lobby
+# Verbose output
+./run.sh --verbose
 ```
 
+### Using the Ansible Makefile (inside `ansible/`)
 
+```bash
+# Preview (check + diff)
+make diff
 
-### Bots
+# Apply
+make apply
 
-Bot process is designed to be managed by systemctl. Systemctl will ensure bot is always running.
-(Do not use docker restart=always)
+# Apply as the ansible service account
+make apply-as-ansible
 
-
-Restart bot (restart can take a while ~60 seconds, sometimes having trouble with clean shut down):
+# Update all bot maps
+make update-bots
 ```
+
+### Installing Ansible
+
+If Ansible is not installed, `run.sh` will prompt to install it. Or install manually:
+
+```bash
+sudo apt update && sudo apt install software-properties-common
+sudo add-apt-repository --yes --update ppa:ansible/ansible
+sudo apt install --yes ansible
+ansible-galaxy collection install -r ansible/requirements.yml --force
+```
+
+---
+
+## Running Terraform
+
+Terraform manages Linode server provisioning. All commands run from the `terraform/` directory via `make`.
+
+**Prerequisite:** `LINODE_TOKEN` must be set.
+
+```bash
+export LINODE_TOKEN=<your-linode-pat>
+cd terraform/
+
+make init      # Initialize providers
+make validate  # Validate configuration
+make plan      # Preview changes
+make apply     # Apply changes (interactive confirmation)
+```
+
+Server definitions live in `terraform/servers.auto.tfvars`. SSH public keys used during provisioning are in `terraform/keys/`.
+
+---
+
+## Secrets & Ansible Vault
+
+Sensitive values in playbooks are encrypted with [Ansible Vault](https://docs.ansible.com/ansible/latest/vault_guide/vault_encrypting_content.html).
+
+Encrypt a single variable value:
+```bash
+secret=<your-secret>
+echo -n $secret | ansible-vault encrypt_string --vault-password-file vault_password 2>/dev/null
+```
+
+Encrypt a whole file:
+```bash
+ansible-vault encrypt --vault-password-file vault_password <file>
+```
+
+The vault password is stored in `TRIPLEA_ANSIBLE_VAULT_PASSWORD` (locally) and as a GitHub Actions secret.
+
+---
+
+## CI/CD
+
+On every merge to `master`, GitHub Actions runs Ansible against all production servers:
+- Workflow: [`configure-servers.yml`](https://github.com/triplea-game/infrastructure/blob/master/.github/workflows/configure-servers.yml)
+- Uses the `deploy-infrastructure` SSH key (stored as `SSH_PRIVATE_KEY` in GitHub Actions secrets)
+
+**Server inventory:** [`ansible/inventory/prod.inventory`](https://github.com/triplea-game/infrastructure/blob/master/ansible/inventory/prod.inventory)
+
+**To add SSH access for a new user:** add their public key to `playbook.yml` under `system/admin_user`, then open a PR — CI/CD will deploy the account on merge.
+
+### Rotating the Ansible SSH key
+
+```bash
+ssh-keygen -f ~/.ssh/ansible  # no passphrase
+```
+
+1. Update the **private key** in [GitHub Actions secrets](https://github.com/triplea-game/infrastructure/settings/secrets/actions) → `SSH_PRIVATE_KEY`
+2. Update the **public key** in `playbook.yml` under the `deploy-infrastructure` user entry
+3. Ensure you have your own SSH access before rotating — rotating breaks CI/CD until the new key is deployed
+
+---
+
+## Bots
+
+Bot processes are managed by **systemd** (not Docker restart policies).
+
+```bash
+# Restart a bot
 sudo systemctl restart bot@01
-```
 
-Restart bot via docker (less preferred):
-```
+# Check status & logs
+sudo systemctl status bot@01
+sudo journalctl -ubot@01 -n 1000
+
+# List running containers
+docker container ls
+
+# Restart via docker (less preferred)
 docker stop bot01
 ```
 
-Check bot status & logs:
+Download all maps to all bots:
+```bash
+./update_bots.sh
 ```
-docker container ls
-sudo systemctl status bot@01
-sudo journalctl -ubot@01 -n 1000
-```
-
-## Setting up Ansible user SSH key
-
-```
-ssh-keygen
-# specify key name: /home/$USER/.ssh/ansible
-# no passphrase
-```
-
-Update private key: https://github.com/triplea-game/infrastructure/settings/secrets/actions
-  - Update secret value, with the new private SSH key: SSH_PRIVATE_KEY
-
-Update public key in `admin_users/default/main.yml`
-
-If you already have a SSH key installed on all the servers, then you can run ansible
-with `./run.sh`. Updating the private/public keys for the ansible account will break
-github actions. This can easily be fixed by first ensuring you have SSH access,
-then running ansible from your local machine with your account.

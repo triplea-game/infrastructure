@@ -1,4 +1,7 @@
 collections:
+  # Provides the dynamic Linode inventory plugin used in inventory/linode.yml
+  - name: community.general
+
   # to use a local clone instead, use the following:
   #- name: ../../../infrastructure-ansible-collection/
   #  type: dir

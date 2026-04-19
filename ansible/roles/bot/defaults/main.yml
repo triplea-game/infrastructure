@@ -1,4 +1,4 @@
-bot_name: "{{ host_name }}"
+bot_name: "{{ hostname }}"
 bot_maps_folder: "/opt/bot/maps"
 bot_zip:
   url: https://github.com/triplea-game/triplea/releases/download/{{ bot_version }}/triplea-game-headless.zip

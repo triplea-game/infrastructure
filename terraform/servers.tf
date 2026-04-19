@@ -1,7 +1,7 @@
 resource "linode_instance" "servers" {
   for_each = { for k, v in var.servers : k => v if !v.destroy }
 
-  label  = join("-", [each.value.region, each.key])
+  label  = each.key
   region = each.value.region
   type   = each.value.type
   image  = each.value.image

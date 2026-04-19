@@ -1,15 +1,26 @@
+# Dynamic inventory plugin for Linode.
+# Requires the community.general.linode plugin (see requirements.yml).
+# Requires LINODE_ACCESS_TOKEN environment variable before running Ansible.
+
 plugin: community.general.linode
 access_token: "{{ lookup('env', 'LINODE_ACCESS_TOKEN') }}"
+
+# Servers must be in a region lsted below
 regions:
   - us-west
+
+# Servers need to have any of these tags to be included in the inventory
 tags:
   - Bot
+  - bots
+
+# compose exposes variables to ansible from dynamic values
 compose:
   ansible_host: ipv4[0]
   hostname: label
+
+# keyed_groups creates an Ansible host group for each Linode tag.
+# EG: a server tagged "Bot" becomes a member of the inventory group "Bot".
 keyed_groups:
   - key: tags
     separator: ""
-groups:
-  bots: "'Bot' in tags"
-  lobby: "'lobby' in tags"

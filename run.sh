@@ -36,21 +36,15 @@ function printCheckMode() {
 # Check if ansible is installed, if not, then ask to install it.
 hash ansible-playbook 2> /dev/null || installAnsible
 
-if [[ "${APPLY-}" == "1" ]]; then
-  CHECK_MODE=""
-else
-  CHECK_MODE="--check --diff"
+if [[ "${APPLY-}" != "1" ]]; then
   printCheckMode
 fi
 
-set -x
-# run ansible
-# shellcheck disable=SC2068
-ANSIBLE_CONFIG="$scriptDir/ansible.cfg" \
-  ansible-playbook $@ \
-    --inventory "$scriptDir/ansible/prod.inventory" \
-    $CHECK_MODE "$scriptDir/ansible/playbook.yml"
-set +x
+(
+  set -x
+  cd "$(dirname "$0")/ansible"
+  make "${APPLY:+apply}${APPLY:-diff}"
+)
 
 if [[ "${APPLY-}" != "1" ]]; then
   printCheckMode
