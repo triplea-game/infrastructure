@@ -1,5 +1,6 @@
 - hosts: all
   tags: system
+  remote_user: ansible
   roles:
     - name: system/admin_user
       vars:

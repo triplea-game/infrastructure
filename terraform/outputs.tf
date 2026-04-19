@@ -10,12 +10,12 @@ output "instance_ids" {
 
 resource "local_file" "ansible_inventory" {
   content = templatefile("inventory.tmpl", {
-    # IPs
-    bot_ips    = linode_instance.servers[*].ip_address
+    # IPs – for_each produces a map, so extract values before iterating
+    bot_ips = [for inst in values(linode_instance.servers) : try(inst.ipv4[0], inst.ip_address)]
 
     # Hostnames (Linode label = hostname if set)
-    bot_labels = linode_instance.servers[*].label
+    bot_labels = [for inst in values(linode_instance.servers) : inst.label]
   })
-  # filename        = "../ansible/inventory/hosts.ini"
-  # file_permission = "0644"
+  filename        = "../ansible/inventory/hosts.ini"
+  file_permission = "0644"
 }

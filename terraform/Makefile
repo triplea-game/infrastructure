@@ -1,4 +1,4 @@
-.PHONY: init validate plan apply apply-now destroy fmt fmt-check
+.PHONY: init validate plan apply apply-now destroy fmt fmt-check output
 
 TF_VAR_linode_token ?= $(LINODE_TOKEN)
 export TF_VAR_linode_token
@@ -35,3 +35,9 @@ fmt-check:
 	@if [ -n "$(shell $(TF) fmt -recursive -check)" ]; then \
 		echo "Run 'make fmt' to fix formatting"; exit 1; \
 	fi
+
+output:
+	$(TF) apply -target=local_file.ansible_inventory -auto-approve -input=false
+	@echo "=== Ansible Inventory ==="
+	@cat ../ansible/inventory/hosts.ini
+

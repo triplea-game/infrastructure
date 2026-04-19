@@ -17,6 +17,9 @@ take a long time to install.
 
 ## Running
 
+Run `run.sh`, by default it will run in 'dry-run' mode and will not make any
+changes but instead will report the changes that would be made.
+
 ### Before getting started
 
 - need your SSH public key installed on the servers
@@ -28,11 +31,6 @@ take a long time to install.
 - "ansible" user should be configured on each server during setup.
   The 'user' configured is important as ansible runs everything over
   SSH, so long as you can SSH, you can run ansible. 
-
-## Running
-
-Run `run.sh`, by default it will run in 'dry-run' mode and will not make any
-changes but instead will report the changes that would be made.
 
 ## Terraform (TF) Setup
 
