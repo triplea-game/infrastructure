@@ -1,5 +1,5 @@
+bot_name: "{{ host_name }}"
 bot_maps_folder: "/opt/bot/maps"
-
 bot_zip:
   url: https://github.com/triplea-game/triplea/releases/download/{{ bot_version }}/triplea-game-headless.zip
   md5: 05223cac6f7e02322f1c7ac1073a2946

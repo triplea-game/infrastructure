@@ -1,0 +1,43 @@
+ansible [core 2.20.4]
+  config file = /home/dan/work/triplea-project/infrastructure/ansible/ansible.cfg
+  configured module search path = ['/home/dan/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /home/dan/.local/share/uv/tools/ansible/lib/python3.12/site-packages/ansible
+  ansible collection location = /home/dan/.ansible/collections:/usr/share/ansible/collections
+  executable location = /home/dan/.local/bin/ansible
+  python version = 3.12.3 (main, Mar  3 2026, 12:15:18) [GCC 13.3.0] (/home/dan/.local/share/uv/tools/ansible/bin/python)
+  jinja version = 3.1.6
+  pyyaml version = 6.0.3 (with libyaml v0.2.5)
+Using /home/dan/work/triplea-project/infrastructure/ansible/ansible.cfg as config file
+redirecting (type: inventory) ansible.builtin.linode to community.general.linode
+Parsed /home/dan/work/triplea-project/infrastructure/ansible/inventory/inventory.linode.yml inventory source with ansible_collections.community.general.plugins.inventory.linode plugin
+Skipping callback 'default', as we already have a stdout callback.
+Skipping callback 'oneline', as we already have a stdout callback.
+Using module file /home/dan/.local/share/uv/tools/ansible/lib/python3.12/site-packages/ansible/modules/ping.py
+Pipelining is enabled.
+<96.126.103.252> ESTABLISH SSH CONNECTION FOR USER: ansible
+<96.126.103.252> SSH: EXEC ssh -C -o ControlMaster=auto -o ControlPersist=60s -o KbdInteractiveAuthentication=no -o PreferredAuthentications=gssapi-with-mic,gssapi-keyex,hostbased,publickey -o PasswordAuthentication=no -o 'User="ansible"' -o ConnectTimeout=30 -o 'ControlPath="/tmp/ansible-ssh-%h-%p-%r"' -o NumberOfPasswordPrompts=1 96.126.103.252 '/bin/sh -c '"'"'/usr/bin/python3 && sleep 0'"'"''
+Using module file /home/dan/.local/share/uv/tools/ansible/lib/python3.12/site-packages/ansible/modules/ping.py
+Pipelining is enabled.
+<23.92.25.19> ESTABLISH SSH CONNECTION FOR USER: ansible
+<23.92.25.19> SSH: EXEC ssh -C -o ControlMaster=auto -o ControlPersist=60s -o KbdInteractiveAuthentication=no -o PreferredAuthentications=gssapi-with-mic,gssapi-keyex,hostbased,publickey -o PasswordAuthentication=no -o 'User="ansible"' -o ConnectTimeout=30 -o 'ControlPath="/tmp/ansible-ssh-%h-%p-%r"' -o NumberOfPasswordPrompts=1 23.92.25.19 '/bin/sh -c '"'"'/usr/bin/python3 && sleep 0'"'"''
+<23.92.25.19> (0, b'\n{"ping": "pong", "invocation": {"module_args": {"data": "pong"}}}\n', b'')
+bot01-us-west | SUCCESS => {
+    "changed": false,
+    "invocation": {
+        "module_args": {
+            "data": "pong"
+        }
+    },
+    "ping": "pong"
+}
+<96.126.103.252> (1, b'{"failed": true, "msg": "Ansible requires Python 3.9 or newer on the target. Current version: 3.8.10 (default, Mar 18 2025, 20:04:55) [GCC 9.4.0]"}\n', b'')
+<96.126.103.252> Failed to connect to the host via ssh: 
+[ERROR]: Task failed: Module failed: Ansible requires Python 3.9 or newer on the target. Current version: 3.8.10 (default, Mar 18 2025, 20:04:55) [GCC 9.4.0]
+Origin: <adhoc 'ping' task>
+
+{'action': 'ping', 'args': {}, 'timeout': 0, 'async_val': 0, 'poll': 15}
+
+prod2-bot06-California | FAILED! => {
+    "changed": false,
+    "msg": "Ansible requires Python 3.9 or newer on the target. Current version: 3.8.10 (default, Mar 18 2025, 20:04:55) [GCC 9.4.0]"
+}

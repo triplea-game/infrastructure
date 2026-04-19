@@ -8,3 +8,6 @@ ansible-galaxy collection install linode.cloud
 LINODE_ACCESS_TOKEN
 
 uv tool install --with-executables-from ansible-core,ansible-lint,linode_api4 ansible
+
+SSH_USER=ansible make diff
+

@@ -1,6 +1,0 @@
-plugin: community.general.linode
-access_token:
-regions:
-  - us-west
-tags:
-  - Bot

@@ -1,0 +1,15 @@
+plugin: community.general.linode
+access_token: "{{ lookup('env', 'LINODE_ACCESS_TOKEN') }}"
+regions:
+  - us-west
+tags:
+  - Bot
+compose:
+  ansible_host: ipv4[0]
+  hostname: label
+keyed_groups:
+  - key: tags
+    separator: ""
+groups:
+  bots: "'Bot' in tags"
+  lobby: "'lobby' in tags"
