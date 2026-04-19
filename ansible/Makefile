@@ -19,19 +19,21 @@ show-install-ansible: ## Prints commands to install ansible (linux)
 deps:
 	test -n "$${TRIPLEA_ANSIBLE_VAULT_PASSWORD}"
 
+verbosity=
+#verbosity=-vvv
 vaultPassword=echo "$${TRIPLEA_ANSIBLE_VAULT_PASSWORD}" > ./vault-password; trap 'rm -f "./vault-password"' EXIT
-runAnsible=ANSIBLE_CONFIG="./ansible.cfg" ansible-playbook -v --vault-password-file ./vault-password -e ansible_user=$(SSH_USER)
+runAnsible=ANSIBLE_CONFIG="./ansible.cfg" ansible-playbook $(verbosity) --vault-password-file ./vault-password -e ansible_user=$(SSH_USER)
 prodInventory=--inventory inventory/linode.yml
 playbook=playbook.yml
 
 
 show-hosts:
-	ansible-inventory -i inventory/inventory.linode.yml --graph
+	ansible-inventory -i inventory/linode.yml --graph
 
 ansible-galaxy-install:
 	ansible-galaxy collection install -r requirements.yml --force
 
-print: ansible-galaxy-install
+print:
 	@echo $(runAnsible) -U --check --diff $(prodInventory) $(playbook)
 
 diff: ansible-galaxy-install
@@ -39,6 +41,9 @@ diff: ansible-galaxy-install
 
 apply deploy: ansible-galaxy-install
 	$(vaultPassword); $(runAnsible) $(prodInventory) $(playbook)
+
+apply-as-ansible:  ansible-galaxy-install
+	SSH_USER=ansible make apply
 
 update-bots:
 	$(ansibleConf) ansible $(EXTRA_ARGS) \

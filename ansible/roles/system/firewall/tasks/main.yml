@@ -1,12 +1,3 @@
-- name: UFW allow SSH
-  become: true
-  retries: 12
-  delay: 5
-  register: result
-  until: result is not failed
-  ufw:
-    rule: allow
-    name: OpenSSH
 
 - name: UFW deny incoming by default
   become: true

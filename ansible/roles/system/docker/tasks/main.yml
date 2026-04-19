@@ -25,13 +25,15 @@
 
 - name: install docker packages
   become: true
-  package:
-    update_cache: true
+  apt:
+    update_cache: false
     name:
       - docker-ce
       - docker-ce-cli
       - containerd.io
       - docker-compose-plugin
+  environment:
+    DEBIAN_FRONTEND: noninteractive
 
 - name: create docker group, add users to this group to allow them to run docker without sudo
   become: true

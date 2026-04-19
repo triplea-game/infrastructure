@@ -1,5 +1,8 @@
 - hosts: all
   tags: system
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+    NEEDRESTART_MODE: a
   roles:
     - name: system/admin_user
       vars:
