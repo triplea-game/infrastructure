@@ -7,29 +7,31 @@ ifeq ($(TF_VAR_linode_token),)
   $(error Error: set TF_VAR_linode_token or LINODE_TOKEN before running)
 endif
 
+TF=terraform -chdir=$(PWD)
+
 init:
-	terraform -chdir=$(PWD) init -upgrade
+	$(TF) init -upgrade
 
 validate:
-	terraform -chdir=$(PWD) validate
+	$(TF) validate
 
 plan:
 	@echo $$TF_VAR_linode_token
-	terraform -chdir=$(PWD) plan -input=false
+	$(TF) plan -input=false
 
 apply:
-	terraform -chdir=$(PWD) apply -input=false
+	$(TF) apply -input=false
 
 apply-now:
-	terraform -chdir=$(PWD) apply -auto-approve
+	$(TF) apply -auto-approve
 
 destroy:
-	terraform -chdir=$(PWD) destroy -auto-approve
+	$(TF) destroy -auto-approve
 
 fmt:
-	terraform -chdir=$(PWD) fmt -recursive
+	$(TF) fmt -recursive
 
 fmt-check:
-	@if [ -n "$(shell terraform -chdir=$(PWD) fmt -recursive -check)" ]; then \
+	@if [ -n "$(shell $(TF) fmt -recursive -check)" ]; then \
 		echo "Run 'make fmt' to fix formatting"; exit 1; \
 	fi

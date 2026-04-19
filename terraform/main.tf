@@ -16,12 +16,6 @@ terraform {
   }
 }
 
-variable "linode_token" {
-  description = "Linode Personal Access Token. Set via environment variable: export TF_VAR_linode_token=<your_pat>"
-  type        = string
-  sensitive   = true
-}
-
 provider "linode" {
   token = var.linode_token
 }
