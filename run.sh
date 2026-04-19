@@ -42,6 +42,12 @@ fi
 
 (
   set -x
+  cd "$(dirname "$0")/terraform"
+  make "${APPLY:+apply}${APPLY:-plan}"
+)
+
+(
+  set -x
   cd "$(dirname "$0")/ansible"
   make "${APPLY:+apply}${APPLY:-diff}"
 )
