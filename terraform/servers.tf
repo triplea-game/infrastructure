@@ -1,7 +1,7 @@
-resource "linode_instance" "servers" {
-  for_each = var.servers
+resource "linode_instance" "bots" {
+  for_each = { for k, v in var.bots : k => v if !v.destroy }
 
-  label  = each.value.label
+  label  = each.key
   region = each.value.region
   type   = each.value.type
   image  = each.value.image
@@ -9,7 +9,7 @@ resource "linode_instance" "servers" {
   # Set the root authorized keys
   authorized_keys = local.root_keys
 
-  tags = each.value.tags
+  tags = ["bot"]
 
   metadata {
     user_data = base64encode(

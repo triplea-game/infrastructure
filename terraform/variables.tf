@@ -18,13 +18,12 @@ variable "ansible_pub_file" {
   default     = "keys/ansible.pub"
 }
 
-variable "servers" {
-  description = "Map of servers to create. Key is a logical name. Each object must include label, type, and image."
+variable "bots" {
+  description = "Map of bot servers to create. Key is the logical name (used as the Linode label). All bots are automatically tagged 'bot'."
   type = map(object({
-    label  = string
-    type   = optional(string, "g6-nanode-1")
-    image  = optional(string, "linode/ubuntu24.04")
-    region = string
-    tags   = optional(list(string), [])
+    destroy = optional(bool, false)
+    type    = optional(string, "g6-nanode-1")
+    image   = optional(string, "linode/ubuntu24.04")
+    region  = string
   }))
 }
