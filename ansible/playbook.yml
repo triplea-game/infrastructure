@@ -6,14 +6,7 @@
   roles:
     - name: system/admin_user
       vars:
-        admin_users:
-          - name: deploy-infrastructure
-            ssh_keys:
-              - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOv3r5zoYjc9LZ+K3hXmrU2Xhv56cBeHg/i33Ecx2e4+ deploy-infrastructure@triplea"
-          - name: dan
-            ssh_keys:
-              - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICJm7+fmoeoPGKpH2nyjh5bKC55C+VH63VzqEiXOjShk dan@laptop"
-              - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILAo4tUJg3cgpqaZcp41hE/01XMOJLHRXT8GQSmHc3aF dan@desk"
+        admin_users: "{{ lookup('file', playbook_dir + '/../terraform/keys/admins.json') | from_json }}"
     - system/apt_packages
     - system/docker
     - system/firewall

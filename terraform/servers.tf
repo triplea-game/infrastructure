@@ -12,7 +12,7 @@ resource "linode_instance" "servers" {
 
   metadata {
     user_data = base64encode(
-      templatefile("cloudinit.tpl", { root_keys = local.root_keys, ansible_keys = [local.ansible_key] })
+      templatefile("cloudinit.tpl", { root_keys = local.root_keys, ansible_keys = [local.ansible_key], admins = local.admins })
     )
   }
 

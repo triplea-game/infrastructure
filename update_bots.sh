@@ -3,12 +3,8 @@
 # This script will download all maps to all bots.
 set -eu
 
-scriptDir="$(dirname "$0")"
-
-set -x
-ANSIBLE_CONFIG="$scriptDir/ansible.cfg" ansible \
-  bots -a 'sudo /home/admin/download-all-maps' \
-  --inventory "$scriptDir/ansible/prod.inventory" \
-  --verbose
-
-set +x
+(
+  set -x
+  cd "$(dirname "$0")/ansible"
+  make update-bots
+)

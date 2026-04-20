@@ -18,6 +18,12 @@ variable "ansible_pub_file" {
   default     = "keys/ansible.pub"
 }
 
+variable "admin_pub_file" {
+  description = "Path (relative to this Terraform folder) to admins.json — a JSON array of {name, ssh_keys[]} objects defining all admin maintainers. Single source of truth consumed by both Terraform (cloud-init) and Ansible (playbook.yml). To add/remove an admin, edit this file and open a PR."
+  type        = string
+  default     = "keys/admins.json"
+}
+
 variable "servers" {
   description = "Map of servers to provision. Key becomes the Linode label. Tags define the server's role (e.g. 'bot', 'lobby')."
   type = map(object({
