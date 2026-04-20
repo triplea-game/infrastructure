@@ -5,3 +5,7 @@ ansible_connection: ssh
 admin_group: admin
 ansible_python_interpreter: /usr/bin/python3
 
+deploy_user:
+  name: deploy
+  ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJZwah7g0w5b9FjBtW9+psAWuF/dlrIq213C49L8sR1R deploy@triplea"
+

@@ -1,0 +1,6 @@
+Cmnd_Alias DOCKER_PULL = /usr/bin/docker pull *
+Cmnd_Alias SERVICE_RESTART = /bin/systemctl restart *
+
+deploy    ALL=(ALL)    NOPASSWD: DOCKER_PULL, SERVICE_RESTART
+Defaults:deploy        !requiretty
+

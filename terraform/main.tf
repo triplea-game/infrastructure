@@ -2,8 +2,9 @@
 terraform {
   required_version = "~> 1.5"
 
-  # State is stored remotely in Terraform Cloud under the "triplea-tf" organization.
-  backend "remote" {
+  # State is stored remotely in Terraform Cloud, but runs execute locally so
+  # that Ctrl+C cancels immediately without leaving the workspace locked.
+  cloud {
     organization = "triplea-tf"
     workspaces {
       name = "infra"

@@ -5,14 +5,11 @@ resource "linode_instance" "servers" {
   region = each.value.region
   type   = each.value.type
   image  = each.value.image
-
-  authorized_keys = local.root_keys
-
   tags = each.value.tags
 
   metadata {
     user_data = base64encode(
-      templatefile("cloudinit.tpl", { root_keys = local.root_keys, ansible_keys = [local.ansible_key], admins = local.admins })
+      templatefile("cloudinit.tpl", { admins = local.admins })
     )
   }
 
@@ -22,10 +19,11 @@ resource "linode_instance" "servers" {
     # Linode also writes back disk/config details we didn't set, which would
     # otherwise produce persistent phantom diffs.
     ignore_changes = [
+      authorized_keys,
       metadata,
       boot_config_label,
       config,
-      disk,
+      disk
     ]
   }
 }

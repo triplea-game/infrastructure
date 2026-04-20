@@ -6,18 +6,6 @@ variable "linode_token" {
 }
 
 
-variable "ssh_pub_file" {
-  description = "Path (relative to this Terraform folder) to a file containing one or more SSH public keys, one per line"
-  type        = string
-  default     = "keys/root.pub"
-}
-
-variable "ansible_pub_file" {
-  description = "Path (relative to this Terraform folder) to the Ansible user's public SSH key(s), one per line"
-  type        = string
-  default     = "keys/ansible.pub"
-}
-
 variable "admin_pub_file" {
   description = "Path (relative to this Terraform folder) to admins.json — a JSON array of {name, ssh_keys[]} objects defining all admin maintainers. Single source of truth consumed by both Terraform (cloud-init) and Ansible (playbook.yml). To add/remove an admin, edit this file and open a PR."
   type        = string
