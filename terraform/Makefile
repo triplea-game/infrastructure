@@ -16,7 +16,6 @@ validate:
 	$(TF) validate
 
 plan:
-	@echo $$TF_VAR_linode_token
 	$(TF) plan -input=false -lock=false
 
 apply:

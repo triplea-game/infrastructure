@@ -2,14 +2,19 @@
 
 Ansible playbooks and Terraform configuration for provisioning and configuring TripleA game servers on Linode.
 
+Terraform:
+- Creates and removes Linode servers
+- Initial admin accounts
+
+
 Ansible manages:
-- Admin user accounts & SSH keys
+- Admin user accounts
 - Firewall rules
 - Common utilities (Docker, apt packages)
 - Databases (PostgreSQL)
 - Reverse proxy (nginx)
 - SMTP (postfix)
-- Bot processes (managed via systemd)
+- Lobby & Bots running on docker
 
 ---
 
