@@ -23,16 +23,14 @@
 
 - hosts: lobby
   tags: lobby
+  collections:
+    - triplea.infra
   roles:
     - {name: reverse_proxy/nginx, tags: nginx}
     - {name: database/postgres, tags: database}
     - smtp/postfix
-    - name: system/admin_user
-      vars:
-        admin_users:
-          - name: deploy-lobby-server
-            ssh_keys:
-              - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGkElpnOlB+qwq3ISJW5ygZ/7FtUeq6YbvRRXCPQbVWS deploy-lobby-server@triplea"
-          - name: deploy-support-server
-            ssh_keys:
-              - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAlUYHJTuP+t1MSR0PlgWKuDdL9w3aNl+8V4aIoPSUqI deploy-support-server@triplea"
+    - lobby/nginx_conf
+    - triplea.infra.postgres_database
+    - triplea.infra.flyway
+    - triplea.infra.service_systemctl_conf
+    - nginx_conf

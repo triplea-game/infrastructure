@@ -3,7 +3,7 @@
 # Requires LINODE_ACCESS_TOKEN environment variable before running Ansible.
 
 plugin: community.general.linode
-access_token: "{{ lookup('env', 'LINODE_ACCESS_TOKEN') }}"
+access_token: "{{ lookup('env', 'LINODE_TOKEN') }}"
 
 # Servers must be in a region lsted below
 regions:

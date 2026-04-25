@@ -1,0 +1,17 @@
+#!/bin/bash
+# Managed by Ansible - do not edit manually
+set -euo pipefail
+
+docker pull {{ flyway_image }}
+
+docker container run \
+    --env FLYWAY_PASSWORD="{{ database_password }}" \
+    --network host \
+    {{ flyway_image }} \
+    -locations=filesystem:/flyway/sql \
+    -connectRetries=4 \
+    -user={{ database_user }} \
+    -url=jdbc:postgresql://{{ database_host }}:{{ database_port }}/{{ database_name }} \
+    -ignoreMigrationPatterns=repeatable:missing \
+    migrate
+

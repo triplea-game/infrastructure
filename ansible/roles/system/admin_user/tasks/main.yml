@@ -78,7 +78,7 @@
         name: "{{ deploy_user.name }}"
         shell: /bin/bash
         create_home: yes
-        groups: "{{ deploy_user.name }},docker"
+        groups: "{{ deploy_user.name }}"
         append: yes
 
     - name: deploy user - sudoers file

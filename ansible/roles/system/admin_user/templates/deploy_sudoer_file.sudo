@@ -1,5 +1,5 @@
-Cmnd_Alias DOCKER_PULL = /usr/bin/docker pull *
-Cmnd_Alias SERVICE_RESTART = /bin/systemctl restart *
+Cmnd_Alias FLYWAY_MIGRATE = /usr/local/bin/run-flyway-migrate.sh
+Cmnd_Alias DEPLOY_SERVICE = /usr/local/bin/deploy-service.sh
 
-deploy    ALL=(ALL)    NOPASSWD: DOCKER_PULL, SERVICE_RESTART
+deploy    ALL=(ALL)    NOPASSWD: FLYWAY_MIGRATE, DEPLOY_SERVICE
 Defaults:deploy        !requiretty
