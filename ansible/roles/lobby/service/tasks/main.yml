@@ -1,0 +1,9 @@
+- name: deploy script /usr/local/bin/deploy-service.sh
+  become: true
+  copy:
+    src: deploy-service.sh
+    dest: /usr/local/bin/deploy-service.sh
+    owner: root
+    group: root
+    mode: "0755"
+

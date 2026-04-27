@@ -52,6 +52,12 @@
     owner: root
     group: "{{ admin_group }}"
 
+- name: pull latest bot docker image
+  become: true
+  shell: docker pull ghcr.io/triplea-game/bot:latest
+  register: docker_pull_result
+  changed_when: "'Status: Downloaded newer image' in docker_pull_result.stdout"
+
 - name: allow ports
   become: true
   ufw:

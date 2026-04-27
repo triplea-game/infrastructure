@@ -1,5 +1,6 @@
 - name: Update and upgrade apt packages
   become: true
+  check_mode: false
   apt:
     upgrade: yes
     update_cache: yes
@@ -11,10 +12,6 @@
   apt:
     state: present
     name:
-      # acl installed to help with: "Failed to set permissions on the temporary files
-      # Ansible needs to create when becoming an unprivileged user"
-      # https://stackoverflow.com/questions/46352173/ansible-failed-to-set-permissions-on-the-temporary
-      - acl
       - fail2ban
       - htop
       - iftop

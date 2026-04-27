@@ -34,7 +34,7 @@
     dest: "/etc/sudoers.d/{{ item.name }}"
     owner: root
     group: root
-    mode: "640"
+    mode: "0440"
   with_items: "{{ admin_users }}"
   loop_control:
     label: "{{ item.name }}"
@@ -62,3 +62,47 @@
   with_items: "{{ admin_users }}"
   loop_control:
     label: "{{ item.name }}"
+
+# Deploy service account - limited to docker pull and service restarts only
+- name: create user for deployment named 'deploy'
+  block:
+    - name: deploy user - create group
+      become: true
+      group:
+        name: "{{ deploy_user.name }}"
+        state: present
+
+    - name: deploy user - create account
+      become: true
+      user:
+        name: "{{ deploy_user.name }}"
+        shell: /bin/bash
+        create_home: yes
+        groups: "{{ deploy_user.name }}"
+        append: yes
+
+    - name: deploy user - sudoers file
+      become: true
+      template:
+        src: deploy_sudoer_file.sudo
+        dest: "/etc/sudoers.d/{{ deploy_user.name }}"
+        owner: root
+        group: root
+        mode: "0440"
+
+    - name: deploy user - SSH directory
+      become: true
+      file:
+        path: "/home/{{ deploy_user.name }}/.ssh/"
+        state: directory
+        mode: "700"
+        owner: "{{ deploy_user.name }}"
+        group: "{{ deploy_user.name }}"
+
+    - name: deploy user - authorized_keys
+      become: true
+      authorized_key:
+        user: "{{ deploy_user.name }}"
+        state: present
+        key: "{{ deploy_user.ssh_key }}"
+

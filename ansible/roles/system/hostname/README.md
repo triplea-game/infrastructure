@@ -1,0 +1,1 @@
+Sets hostname on the system, reboots if the hostname was changed.
