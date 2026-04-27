@@ -1,0 +1,15 @@
+[
+  {
+    "name": "ansible",
+    "ssh_keys": [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGRQyy86G2NQUML3tUQroN30ZiCLt9qmPglrTfJ0IfCr ansible@triplea"
+    ]
+  },
+  {
+    "name": "dan",
+    "ssh_keys": [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIENZoW92mNwtkry/yDGSQB51Ap7Jo2wsVON1l5Sk7nJt dan@desk"
+    ]
+  }
+]
+
