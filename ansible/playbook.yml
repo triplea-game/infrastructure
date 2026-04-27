@@ -33,4 +33,3 @@
     - triplea.infra.postgres_database
     - triplea.infra.flyway
     - triplea.infra.service_systemctl_conf
-    - nginx_conf
