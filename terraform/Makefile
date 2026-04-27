@@ -15,7 +15,7 @@ init:
 validate:
 	$(TF) validate
 
-plan:
+plan diff:
 	$(TF) plan -input=false -lock=false
 
 apply:
