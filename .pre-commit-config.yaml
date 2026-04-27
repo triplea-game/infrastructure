@@ -1,0 +1,37 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-merge-conflict
+        stages: [pre-push]
+      - id: check-yaml
+        stages: [pre-push]
+      - id: end-of-file-fixer
+        stages: [pre-push]
+        exclude: ^database/migrations/.*\.sql
+      - id: trailing-whitespace
+        stages: [pre-push]
+        exclude: ^database/migrations/.*\.sql
+      - id: check-case-conflict
+        stages: [pre-push]
+      - id: check-added-large-files
+        stages: [pre-push]
+      - id: detect-private-key
+        stages: [pre-push]
+      - id: mixed-line-ending
+        stages: [pre-push]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+        stages: [pre-push]
+
+  - repo: local
+    hooks:
+      - id: make-format
+        name: Format (make format)
+        language: system
+        entry: make format
+        pass_filenames: false
+        stages: [pre-push]
