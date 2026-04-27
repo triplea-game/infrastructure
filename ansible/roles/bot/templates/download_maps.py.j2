@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+"""
+Downloads all TripleA maps from the maps listing server to the local maps directory.
+Each map is fetched as a zip file and extracted in place. Maps no longer present
+in the listing are removed. Errors for individual maps are logged but do not
+abort the overall run.
+
+A cache file (.map_cache.json) in the maps directory records the last-downloaded
+commit timestamp for each map (from the listing's lastCommitDateEpochMilli field).
+Maps whose timestamp has not changed since the last download are skipped.
+Delete the cache file or use --force to re-download everything.
+
+Usage:
+    python3 download_maps.py [--maps-dir PATH] [--url URL] [--force]
+"""
+import argparse
+import io
+import json
+import os
+import shutil
+import sys
+import urllib.request
+import zipfile
+
+MAPS_LISTING_URL = "https://prod.triplea-game.org/support/maps/listing"
+DEFAULT_MAPS_DIR = "{{ bot_maps_folder }}"
+CACHE_FILENAME = ".map_cache.json"
+
+
+def fetch_maps(url: str) -> list:
+    with urllib.request.urlopen(url, timeout=30) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
+def load_cache(maps_dir: str) -> dict:
+    """
+    Returns a dict mapping map_name -> {"timestamp": int, "dirs": [str, ...]}
+    for previously downloaded maps.
+    """
+    cache_path = os.path.join(maps_dir, CACHE_FILENAME)
+    if os.path.isfile(cache_path):
+        with open(cache_path) as f:
+            return json.load(f)
+    return {}
+
+
+def save_cache(maps_dir: str, cache: dict) -> None:
+    cache_path = os.path.join(maps_dir, CACHE_FILENAME)
+    with open(cache_path, "w") as f:
+        json.dump(cache, f, indent=2)
+
+
+def extract_top_level_dirs(zip_bytes: bytes) -> set:
+    """Returns the set of top-level directory names inside a zip archive."""
+    with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+        return {name.split("/")[0] for name in zf.namelist() if "/" in name}
+
+
+def download_and_extract(download_url: str, maps_dir: str, map_name: str) -> set:
+    """
+    Downloads a zip from download_url and extracts it into maps_dir.
+    Returns the set of top-level directory names extracted.
+    """
+    print(f"Downloading: {map_name}")
+    with urllib.request.urlopen(download_url, timeout=120) as response:
+        data = response.read()
+
+    extracted_dirs = extract_top_level_dirs(data)
+
+    with zipfile.ZipFile(io.BytesIO(data)) as zf:
+        zf.extractall(maps_dir)
+
+    return extracted_dirs
+
+
+def remove_stale_maps(maps_dir: str, known_dirs: set) -> int:
+    """
+    Removes subdirectories in maps_dir that are not in known_dirs.
+    Returns the count of directories removed.
+    """
+    removed = 0
+    for entry in os.scandir(maps_dir):
+        if entry.is_dir() and entry.name not in known_dirs:
+            shutil.rmtree(entry.path)
+            print(f"Removed stale map: {entry.name}")
+            removed += 1
+    return removed
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Download all TripleA maps from the listing server.")
+    parser.add_argument("--maps-dir", default=DEFAULT_MAPS_DIR, help="Directory to extract maps into")
+    parser.add_argument("--url", default=MAPS_LISTING_URL, help="Maps listing JSON URL")
+    parser.add_argument("--force", action="store_true", help="Re-download all maps, ignoring cached timestamps")
+    args = parser.parse_args()
+
+    maps_dir = args.maps_dir
+    if not os.path.isdir(maps_dir):
+        print(f"Error: '{maps_dir}' is not a directory", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Fetching map listing from {args.url} ...")
+    maps = fetch_maps(args.url)
+    print(f"Found {len(maps)} maps.")
+
+    cache = {} if args.force else load_cache(maps_dir)
+
+    known_dirs: set = set()
+    success_count = 0
+    skipped_count = 0
+    error_count = 0
+
+    listing_map_names = {m.get("mapName") for m in maps}
+
+    for map_data in maps:
+        download_url = map_data.get("downloadUrl", "")
+        map_name = map_data.get("mapName", "unknown")
+        last_commit = map_data.get("lastCommitDateEpochMilli")
+
+        if not download_url:
+            print(f"Skipping '{map_name}': no downloadUrl", file=sys.stderr)
+            continue
+
+        cached = cache.get(map_name, {})
+        cached_timestamp = cached.get("timestamp")
+        cached_dirs = cached.get("dirs", [])
+
+        if last_commit is not None and cached_timestamp == last_commit and cached_dirs:
+            print(f"Up to date, skipping: {map_name}")
+            known_dirs.update(cached_dirs)
+            skipped_count += 1
+            continue
+
+        try:
+            extracted = download_and_extract(download_url, maps_dir, map_name)
+            known_dirs.update(extracted)
+            cache[map_name] = {"timestamp": last_commit, "dirs": list(extracted)}
+            success_count += 1
+        except Exception as exc:
+            print(f"Error downloading '{map_name}': {exc}", file=sys.stderr)
+            # Keep existing cached dirs so a transient error doesn't trigger stale removal.
+            known_dirs.update(cached_dirs)
+            error_count += 1
+
+    removed = remove_stale_maps(maps_dir, known_dirs)
+
+    # Drop cache entries for maps that are no longer in the listing.
+    trimmed_cache = {k: v for k, v in cache.items() if k in listing_map_names}
+    save_cache(maps_dir, trimmed_cache)
+
+    print(f"Done. Downloaded: {success_count}, Skipped (up to date): {skipped_count}, Errors: {error_count}, Removed stale: {removed}")
+
+    if error_count > 0:
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

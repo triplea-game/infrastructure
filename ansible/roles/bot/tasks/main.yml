@@ -29,8 +29,8 @@
 - name: deploy scripts
   become: true
   template:
-    src: "download-all-maps.sh.j2"
-    dest: "/opt/bot/download-all-maps.sh"
+    src: "download_maps.py.j2"
+    dest: "/opt/bot/download_maps.py"
     owner: "bot"
     group: "{{ admin_group }}"
     mode: "0755"
@@ -40,7 +40,7 @@
   cron:
     name: "bot-download-maps"
     special_time: daily
-    job: /opt/bot/download-all-maps.sh > /var/log/bot/map-download.log 2>&1
+    job: python3 /opt/bot/download_maps.py > /var/log/bot/map-download.log 2>&1
     user: bot
 
 - name: install systemd service script
