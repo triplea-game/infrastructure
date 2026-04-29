@@ -14,6 +14,7 @@ ExecStart=docker run \
    --env BOT_NAME=Bot-{{ bot_name }}%i \
    --env EXIT_ON_GAME_END=true \
    --env BOT_MAX_MEMORY={{ bot_max_memory }} \
+   --env MAPS_FOLDER=/downloadedMaps \
    -v {{ bot_maps_folder }}:/downloadedMaps \
    -v /home/bot/triplea/savedGames/autoSave:/home/bot/triplea/savedGames/autoSave \
    --name bot%i \
