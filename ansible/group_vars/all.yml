@@ -2,6 +2,7 @@
 # Other than these variables, roles should be fully self-contained.
 
 ansible_connection: ssh
+ansible_user: ansible
 admin_group: admin
 ansible_python_interpreter: /usr/bin/python3
 
