@@ -39,29 +39,15 @@
   loop_control:
     label: "{{ item.name }}"
 
-- name: SSH keys - create directory - /home/[admin-user]/.ssh/
+- name: SSH keys - add authorized keys for admin users
   become: true
-  file:
-    path: "/home/{{ item.name }}/.ssh/"
-    state: directory
-    mode: "700"
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-  with_items: "{{ admin_users }}"
+  authorized_key:
+    user: "{{ item.0.name }}"
+    key: "{{ item.1 }}"
+    state: present
+  loop: "{{ admin_users | subelements('ssh_keys') }}"
   loop_control:
-    label: "{{ item.name }}"
-
-- name: SSH keys - deploy authorized_keys file -  /home/[admin-user/.ssh/authorized_keys
-  become: true
-  template:
-    src: authorized_keys.j2
-    dest: "/home/{{ item.name }}/.ssh/authorized_keys"
-    mode: "600"
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-  with_items: "{{ admin_users }}"
-  loop_control:
-    label: "{{ item.name }}"
+    label: "{{ item.0.name }}"
 
 # Deploy service account - limited to docker pull and service restarts only
 - name: create user for deployment named 'deploy'
