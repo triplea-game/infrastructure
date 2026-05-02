@@ -1,0 +1,43 @@
+- name: assert variables are set
+  assert:
+    that:
+      - server_name is defined
+      - docker_image is defined
+
+- name: create service group
+  become: true
+  group:
+    name: "{{ server_name }}"
+
+- name: create service user
+  become: true
+  user:
+    name: "{{ server_name }}"
+    groups: "{{ server_name }},docker"
+    create_home: no
+    system: yes
+
+- name: deploy systemctl service file /etc/systemd/system/(server-name).service
+  become: true
+  notify: restart_service
+  template:
+    src: server_name.service
+    dest: /etc/systemd/system/{{ server_name }}.service
+    owner: root
+    group: admin
+    mode: "0644"
+
+- name: daemon-reload and enable service
+  become: true
+  systemd_service:
+    daemon_reload: true
+    name: "{{ server_name }}.service"
+    enabled: true
+
+- name: pull latest docker image for server
+  become: true
+  shell: docker pull {{ docker_image }}
+  register: docker_pull_result
+  changed_when: "'Status: Downloaded newer image' in docker_pull_result.stdout"
+  notify: restart_service
+

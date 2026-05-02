@@ -23,13 +23,11 @@
 
 - hosts: lobby
   tags: lobby
-  collections:
-    - triplea.infra
   roles:
     - {name: reverse_proxy/nginx, tags: nginx}
     - {name: database/postgres, tags: database}
     - smtp/postfix
     - lobby/nginx_conf
-    - triplea.infra.postgres_database
-    - triplea.infra.flyway
-    - triplea.infra.service_systemctl_conf
+    - database/postgres_database
+    - lobby/flyway_migrate
+    - service_systemctl_conf

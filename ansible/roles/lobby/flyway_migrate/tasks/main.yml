@@ -1,0 +1,26 @@
+- assert:
+    that:
+      - flyway_image is defined
+      - database_host is defined
+      - database_port is defined
+      - database_name is defined
+      - database_user is defined
+      - database_password is defined
+
+- name: pull latest flyway docker image
+  command: |
+    docker pull {{ flyway_image }}
+
+- name: run flyway docker container
+  command: |
+    docker container run \
+        --env FLYWAY_PASSWORD="{{ database_password }}" \
+        --network host \
+        {{ flyway_image }} \
+        -locations=filesystem:/flyway/sql \
+        -connectRetries=4 \
+        -user={{ database_user }} \
+        -url=jdbc:postgresql://{{ database_host }}:{{ database_port }}/{{ database_name }} \
+        -ignoreMigrationPatterns=repeatable:missing \
+        migrate
+
