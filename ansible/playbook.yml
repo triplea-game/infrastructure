@@ -7,7 +7,8 @@
     - name: system/admin_user
       vars:
         admin_users: "{{ lookup('file', playbook_dir + '/../terraform/keys/admins.json') | from_json }}"
-    - system/apt_packages
+    - name: system/apt_packages
+      tags: apt
     - system/docker
     - system/firewall
     - system/journald
@@ -24,6 +25,8 @@
 - hosts: lobby
   tags: lobby
   roles:
+    ## Use the lobby to host backup files.
+    - backups_host
     - {name: reverse_proxy/nginx, tags: nginx}
     - {name: database/postgres, tags: database}
     - smtp/postfix
@@ -31,3 +34,8 @@
     - database/postgres_database
     - lobby/flyway_migrate
     - service_systemctl_conf
+
+- hosts: forums
+  tags: forums
+  roles:
+    - forums

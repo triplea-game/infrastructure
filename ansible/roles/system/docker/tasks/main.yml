@@ -11,6 +11,7 @@
 
 - name: Add apt repo listing
   become: true
+  tags: apt
   copy:
     src: docker.list
     dest: /etc/apt/sources.list.d/docker.list
@@ -20,11 +21,13 @@
 
 - name: apt update
   become: true
+  tags: apt
   ansible.builtin.apt:
     update_cache: yes
 
 - name: install docker packages
   become: true
+  tags: apt
   apt:
     update_cache: false
     name:

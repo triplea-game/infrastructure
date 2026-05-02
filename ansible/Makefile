@@ -36,6 +36,9 @@ print:
 diff plan: ansible-galaxy-install
 	$(runAnsible) --check --diff $(prodInventory) $(playbook)
 
+show:
+	@echo $(runAnsible) $(prodInventory) $(playbook)
+
 apply deploy: ansible-galaxy-install
 	$(runAnsible) $(prodInventory) $(playbook)
 

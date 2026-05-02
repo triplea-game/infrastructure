@@ -9,6 +9,7 @@ access_token: "{{ lookup('env', 'LINODE_TOKEN') }}"
 tags:
   - Bot
   - bots
+  - forums
 
 # compose exposes variables to ansible from dynamic values
 compose:

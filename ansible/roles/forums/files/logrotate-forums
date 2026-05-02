@@ -1,0 +1,12 @@
+/var/log/triplea-forums-backup.log
+/var/log/nodebb/nodebb.log
+{
+    daily
+    rotate 90
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}
+

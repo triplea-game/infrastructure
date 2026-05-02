@@ -213,6 +213,10 @@ Server definitions live in `terraform/servers.auto.tfvars`. SSH public keys used
 
 Sensitive values in playbooks are encrypted with [Ansible Vault](https://docs.ansible.com/ansible/latest/vault_guide/vault_encrypting_content.html).
 
+cd work/triplea-project/infrastructure/ansible
+cat [file-with-secret] | ansible-vault encrypt_string --name [ansible-var-name] --vault-password-file vault-password.sh 
+```
+
 Encrypt a single variable value:
 ```bash
 secret=<your-secret>

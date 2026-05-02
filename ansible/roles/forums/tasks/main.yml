@@ -1,0 +1,115 @@
+# Clone the repo to the server's app directory
+#sudo git clone https://github.com/triplea-project/forums.git /srv/triplea-forums
+
+  # Create the data directories that docker-compose.yml mounts
+
+  # Copy the example config to the host path that docker-compose.yml mounts
+#sudo cp /srv/triplea-forums/node-bb/example/config.json /opt/triplea-forums/config.json
+#sudo nano /opt/triplea-forums/config.json
+
+- name: create triplea-forums directory
+  become: true
+  file:
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+    path: "{{ item }}"
+  with_items:
+    - "{{ forums_working_directory }}"
+    - "{{ forums_working_directory }}/node-bb"
+    - "{{ forums_working_directory }}/node-bb/install"
+
+- name: deploy config.json file
+  become: true
+  template:
+    src: config.json.j2
+    dest: "{{ forums_working_directory }}/config.json"
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: deploy docker-compose.yml and Dockerfile
+  become: true
+  copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      mode: "0644"
+      owner: root
+      group: root
+  with_items:
+    - src: docker-compose.yml.j2
+      dest: "{{ nodebb_docker_compose_path }}"
+    - src: node-bb/Dockerfile
+      dest: "{{ forums_working_directory }}/node-bb/Dockerfile"
+    - src: node-bb/install/package.json
+      dest: "{{ forums_working_directory }}/node-bb/install/package.json"
+
+- name: create directories
+  become: true
+  file:
+    state: directory
+    mode: "0755"
+    owner: 1001
+    group: 1001
+    path: "{{ forums_working_directory }}/{{ item }}"
+  with_items:
+    - uploads
+    - uploads/category
+    - uploads/emoji
+    - uploads/files
+    - uploads/profile
+    - uploads/sounds
+    - uploads/system
+
+- name: deploy systemctl service file for forums
+  become: true
+  template:
+    src: forums.service.j2
+    dest: /etc/systemd/system/forums.service
+    owner: root
+    group: admin
+    mode: "0644"
+
+- name: daemon-reload and enable forums service
+  become: true
+  systemd_service:
+    daemon_reload: true
+    name: forums.service
+    enabled: true
+
+- name: Configure Forums Backup
+  block:
+    - name: deploy backup-user private key
+      become: true
+      template:
+        src: backup_user_private_key.j2
+        dest: "{{ backup_ssh_key_path }}"
+        owner: root
+        group: root
+        mode: "0600"
+    - name: Deploy backup script
+      become: true
+      template:
+        src: backup.sh.j2
+        dest: "{{ forums_working_directory }}/backup.sh"
+        owner: root
+        group: admin
+        mode: "0755"
+    - name: Schedule nightly backup cron job
+      become: true
+      cron:
+        name: triplea-forums-backup
+        user: root
+        hour: "7"
+        minute: "0"
+        job: "{{ forums_working_directory }}/backup.sh >> /var/log/triplea-forums-backup.log 2>&1"
+
+- name: Deploy logrotate config for forums and nodebb logs
+  become: true
+  copy:
+    src: logrotate-forums
+    dest: /etc/logrotate.d/forums
+    owner: root
+    group: root
+    mode: "0644"

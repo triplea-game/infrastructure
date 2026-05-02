@@ -1,0 +1,41 @@
+- name: create backup-users group
+  become: true
+  group:
+    name: backup-users
+    state: present
+
+- name: create backup users
+  become: true
+  user:
+    name: "{{ item }}"
+    group: backup-users
+    state: present
+  loop:
+    - forums-backup
+
+- name: deploy forums-backup ssh public key to authorized_keys
+  become: true
+  authorized_key:
+    user: forums-backup
+    state: present
+    exclusive: true
+    key: "{{ lookup('file', role_path + '/files/forums-backup-public-keys') }}"
+
+- name: create backups directory
+  become: true
+  file:
+      state: directory
+      path: /opt/backups/forums
+      mode: "0750"
+      owner: root
+      group: backup-users
+
+- name: prune old forum backup archives
+  become: true
+  cron:
+    name: prune-forums-backups
+    user: root
+    hour: "8"
+    minute: "0"
+    job: find /opt/backups/forums -name "*.gz" -mtime +30 -delete
+
