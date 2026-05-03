@@ -11,7 +11,7 @@
   become: true
   file:
     state: directory
-    mode: "0700"
+    mode: "0755"
     owner: root
     group: root
     path: "{{ marti_working_directory }}/keys"
@@ -26,7 +26,7 @@
   become: true
   file:
     path: "{{ marti_working_directory }}/keys/privkey.pem"
-    mode: "0400"
+    mode: "0444"
     owner: root
     group: root
 
@@ -91,4 +91,23 @@
     name: marti.service
     enabled: true
     state: started
+
+- name: deploy /usr/local/bin/deploy-marti.sh
+  become: true
+  template:
+    src: deploy-marti.sh.j2
+    dest: /usr/local/bin/deploy-marti.sh
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: deploy sudoers entry for deploy user - /etc/sudoers.d/deploy-marti
+  become: true
+  template:
+    src: deploy-marti-sudoers.j2
+    dest: /etc/sudoers.d/deploy-marti
+    owner: root
+    group: root
+    mode: "0440"
+    validate: /usr/sbin/visudo -cf %s
 

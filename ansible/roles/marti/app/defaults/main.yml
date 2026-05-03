@@ -17,5 +17,5 @@ marti_db_password: !vault |
 # Host is the compose service name; no auth needed for the internal relay.
 marti_smtp_host: postfix
 marti_smtp_port: 25
-marti_smtp_sender: '"TripleA Dice Server" <dice@dice.triplea-game.org>'
+marti_smtp_sender: "TripleA Dice Server <dice@dice.triplea-game.org>"
 
