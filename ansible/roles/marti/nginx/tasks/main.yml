@@ -1,0 +1,52 @@
+- name: install nginx
+  become: true
+  apt:
+    name: nginx
+    state: present
+
+- name: remove default nginx site
+  become: true
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: reload_nginx
+
+- name: deploy nginx vhost config
+  become: true
+  template:
+    src: dice.triplea-game.org.conf.j2
+    dest: /etc/nginx/sites-available/dice.triplea-game.org.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload_nginx
+
+- name: enable nginx vhost
+  become: true
+  file:
+    src: /etc/nginx/sites-available/dice.triplea-game.org.conf
+    dest: /etc/nginx/sites-enabled/dice.triplea-game.org.conf
+    state: link
+  notify: reload_nginx
+
+- name: open firewall port 80
+  become: true
+  ufw:
+    rule: allow
+    port: "80"
+    proto: tcp
+
+- name: open firewall port 443
+  become: true
+  ufw:
+    rule: allow
+    port: "443"
+    proto: tcp
+
+- name: ensure nginx is started and enabled
+  become: true
+  systemd:
+    name: nginx
+    state: started
+    enabled: true
+

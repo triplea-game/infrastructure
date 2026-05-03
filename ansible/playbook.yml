@@ -43,5 +43,6 @@
 - hosts: marti
   tags: marti
   roles:
+    - marti/nginx
     - marti/app
 
