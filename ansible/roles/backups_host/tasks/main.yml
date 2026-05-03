@@ -38,5 +38,4 @@
     user: root
     hour: "8"
     minute: "0"
-    job: find /opt/backups/forums -name "*.gz" -mtime +30 -delete
-
+    job: find /opt/backups/forums -name "*.gz" -mtime +10 -delete
