@@ -1,0 +1,94 @@
+- name: create marti working directory
+  become: true
+  file:
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+    path: "{{ marti_working_directory }}"
+
+- name: create keys directory
+  become: true
+  file:
+    state: directory
+    mode: "0700"
+    owner: root
+    group: root
+    path: "{{ marti_working_directory }}/keys"
+
+- name: generate RSA private key (first deploy only)
+  become: true
+  ansible.builtin.command:
+    cmd: openssl genrsa -out {{ marti_working_directory }}/keys/privkey.pem 4096
+    creates: "{{ marti_working_directory }}/keys/privkey.pem"
+
+- name: set private key permissions
+  become: true
+  file:
+    path: "{{ marti_working_directory }}/keys/privkey.pem"
+    mode: "0400"
+    owner: root
+    group: root
+
+- name: generate RSA public key (first deploy only)
+  become: true
+  ansible.builtin.command:
+    cmd: >
+      openssl rsa
+      -in {{ marti_working_directory }}/keys/privkey.pem
+      -outform PEM -pubout
+      -out {{ marti_working_directory }}/keys/pubkey.pem
+    creates: "{{ marti_working_directory }}/keys/pubkey.pem"
+
+- name: set public key permissions
+  become: true
+  file:
+    path: "{{ marti_working_directory }}/keys/pubkey.pem"
+    mode: "0444"
+    owner: root
+    group: root
+
+- name: deploy docker-compose.yml
+  become: true
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ marti_working_directory }}/docker-compose.yml"
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: deploy config.json
+  become: true
+  template:
+    src: config.json.j2
+    dest: "{{ marti_working_directory }}/config.json"
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: deploy .env
+  become: true
+  template:
+    src: .env.j2
+    dest: "{{ marti_working_directory }}/.env"
+    mode: "0600"
+    owner: root
+    group: root
+
+- name: deploy marti systemd service
+  become: true
+  template:
+    src: marti.service.j2
+    dest: /etc/systemd/system/marti.service
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: daemon-reload and enable marti service
+  become: true
+  systemd_service:
+    daemon_reload: true
+    name: marti.service
+    enabled: true
+    state: started
+

@@ -1,0 +1,21 @@
+marti_working_directory: /opt/triplea-marti
+marti_image: ghcr.io/triplea-game/dice-server-js:sha-b9c2771
+marti_port: 7654
+marti_hostname: dice.triplea-game.org
+
+# Replace with a strong password before first deploy.
+# Must stay consistent after first deploy - changing it will break the database connection.
+marti_db_password: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  39303965316635346630323864643766366334626133633561333338653630383431663738303063
+  3931656364666465386563616636663834336439653130630a633063323530383465303130306436
+  64653336643163326236306564663165383838636263343239653630356162323932373738666331
+  3230623937643731340a346561663734356130636466656132356630646265663065336362303438
+  35613132386631643065303939393835623033336536383932346563633962613661
+
+# SMTP is handled by the postfix container in the same compose stack.
+# Host is the compose service name; no auth needed for the internal relay.
+marti_smtp_host: postfix
+marti_smtp_port: 25
+marti_smtp_sender: '"TripleA Dice Server" <dice@triplea-game.org>'
+

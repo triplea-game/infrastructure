@@ -1,0 +1,29 @@
+{
+  "port": {{ marti_port }},
+  "database": {
+    "username": "postgres",
+    "host": "postgres",
+    "port": 5432,
+    "database": "dicedb"
+  },
+  "email": {
+    "smtp": {
+      "host": "{{ marti_smtp_host }}",
+      "port": {{ marti_smtp_port }}
+    },
+    "display": {
+      "sender": "{{ marti_smtp_sender }}",
+      "server": {
+        "protocol": "https",
+        "host": "{{ marti_hostname }}",
+        "port": 443,
+        "baseurl": ""
+      }
+    }
+  },
+  "keys": {
+    "private": "/app/keys/privkey.pem",
+    "public": "/app/keys/pubkey.pem"
+  }
+}
+

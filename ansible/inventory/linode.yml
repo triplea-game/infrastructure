@@ -10,6 +10,7 @@ tags:
   - Bot
   - bots
   - forums
+  - marti
 
 # compose exposes variables to ansible from dynamic values
 compose:

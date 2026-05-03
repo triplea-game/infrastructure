@@ -39,3 +39,9 @@
   tags: forums
   roles:
     - forums
+
+- hosts: marti
+  tags: marti
+  roles:
+    - marti/app
+

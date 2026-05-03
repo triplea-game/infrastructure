@@ -1,0 +1,43 @@
+services:
+  app:
+    image: {{ marti_image }}
+    ports:
+      - "127.0.0.1:{{ marti_port }}:{{ marti_port }}"
+    volumes:
+      - ./config.json:/app/config.json:ro
+      - ./keys:/app/keys:ro
+    environment:
+      - DB_PASSWORD=${DB_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postfix:
+        condition: service_started
+    restart: unless-stopped
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: dicedb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  postfix:
+    image: boky/postfix
+    environment:
+      - ALLOWED_SENDER_DOMAINS={{ marti_hostname }}
+      - POSTFIX_myhostname={{ marti_hostname }}
+      - DKIM_AUTOGENERATE=yes
+    volumes:
+      - dkim_keys:/etc/opendkim/keys
+    restart: unless-stopped
+volumes:
+  pgdata:
+  dkim_keys:
+
