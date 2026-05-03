@@ -9,7 +9,8 @@
   "email": {
     "smtp": {
       "host": "{{ marti_smtp_host }}",
-      "port": {{ marti_smtp_port }}
+      "port": {{ marti_smtp_port }},
+      "ignoreTLS": true
     },
     "display": {
       "sender": "{{ marti_smtp_sender }}",

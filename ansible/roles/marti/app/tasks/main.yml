@@ -76,7 +76,9 @@
     group: root
 
 - name: deploy marti systemd service
+  notify: restart_marti
   become: true
+  register: sysctl_file
   template:
     src: marti.service.j2
     dest: /etc/systemd/system/marti.service
@@ -86,28 +88,46 @@
 
 - name: daemon-reload and enable marti service
   become: true
+  when: sysctl_file.changed
   systemd_service:
     daemon_reload: true
     name: marti.service
     enabled: true
     state: started
 
-- name: deploy /usr/local/bin/deploy-marti.sh
-  become: true
-  template:
-    src: deploy-marti.sh.j2
-    dest: /usr/local/bin/deploy-marti.sh
-    owner: root
-    group: root
-    mode: "0755"
+- name: configure user for CICD deployments - user named 'deploy'
+  block:
+    - name: deploy user - create group
+      become: true
+      group:
+        name: deploy
+        state: present
 
-- name: deploy sudoers entry for deploy user - /etc/sudoers.d/deploy-marti
-  become: true
-  template:
-    src: deploy-marti-sudoers.j2
-    dest: /etc/sudoers.d/deploy-marti
-    owner: root
-    group: root
-    mode: "0440"
-    validate: /usr/sbin/visudo -cf %s
+    - name: deploy user - create account
+      become: true
+      user:
+        name: deploy
+        shell: /bin/bash
+        create_home: yes
+        groups: "deploy"
+        append: yes
+
+    - name: deploy /usr/local/bin/deploy-marti.sh
+      become: true
+      template:
+        src: deploy-marti.sh.j2
+        dest: /usr/local/bin/deploy-marti.sh
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: deploy sudoers entry for deploy user - /etc/sudoers.d/deploy-marti
+      become: true
+      template:
+        src: deploy-marti-sudoers.j2
+        dest: /etc/sudoers.d/deploy-marti
+        owner: root
+        group: root
+        mode: "0440"
+        validate: /usr/sbin/visudo -cf %s
 

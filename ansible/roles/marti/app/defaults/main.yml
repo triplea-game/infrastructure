@@ -1,5 +1,5 @@
 marti_working_directory: /opt/triplea-marti
-marti_image: ghcr.io/triplea-game/dice-server-js:sha-b9c2771
+marti_image: ghcr.io/triplea-game/dice-server-js:latest
 marti_port: 7654
 marti_hostname: dice.triplea-game.org
 

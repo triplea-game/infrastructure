@@ -289,9 +289,20 @@ Download all maps to all bots:
 ./update_bots.sh
 ```
 
----
 
-## Project Review
+## deploy user - restricted sudo
 
-See [`.docs/review.md`](.docs/review.md) for a full review of the project including known bugs, weaknesses, and improvement recommendations.
+The `deploy` user is a limited service account used for automated deployments. It is granted passwordless `sudo` for one specific script only - no general root access.
+
+**How it works:**
+
+1. The `admin_user` role creates the `deploy` user and installs `/etc/sudoers.d/deploy`.
+2. The `marti/app` role installs `/usr/local/bin/deploy-marti.sh` (owned by root) and drops `/etc/sudoers.d/deploy-marti`:
+   ```
+   Cmnd_Alias DEPLOY_MARTI = /usr/local/bin/deploy-marti.sh
+   deploy    ALL=(ALL)    NOPASSWD: DEPLOY_MARTI
+   ```
+3. The deploy pipeline connects as `deploy` via SSH and runs `sudo /usr/local/bin/deploy-marti.sh` directly.
+
+**Important:** Ansible's `become: true` must NOT be used for this task. `become` escalates to a root shell via a Python bootstrap, which is not covered by the sudoers rule. The `sudo` call must reference the exact script path from the command line so it matches the `NOPASSWD` entry.
 
