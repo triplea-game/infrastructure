@@ -1,6 +1,7 @@
 - name: Update and upgrade apt packages
   become: true
   check_mode: false
+  changed_when: false
   apt:
     upgrade: yes
     update_cache: yes

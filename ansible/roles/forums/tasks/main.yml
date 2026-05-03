@@ -29,9 +29,9 @@
     owner: root
     group: root
 
-- name: deploy docker-compose.yml and Dockerfile
+- name: deploy templates
   become: true
-  copy:
+  template:
       src: "{{ item.src }}"
       dest: "{{ item.dest }}"
       mode: "0644"
@@ -40,6 +40,16 @@
   with_items:
     - src: docker-compose.yml.j2
       dest: "{{ nodebb_docker_compose_path }}"
+
+- name: deploy static files
+  become: true
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+    owner: root
+    group: root
+  with_items:
     - src: node-bb/Dockerfile
       dest: "{{ forums_working_directory }}/node-bb/Dockerfile"
     - src: node-bb/install/package.json

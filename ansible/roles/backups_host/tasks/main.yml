@@ -9,6 +9,7 @@
   user:
     name: "{{ item }}"
     group: backup-users
+    shell: /bin/bash
     state: present
   loop:
     - forums-backup
@@ -26,7 +27,7 @@
   file:
       state: directory
       path: /opt/backups/forums
-      mode: "0750"
+      mode: "0770"
       owner: root
       group: backup-users
 
