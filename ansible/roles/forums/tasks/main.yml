@@ -17,8 +17,6 @@
     path: "{{ item }}"
   with_items:
     - "{{ forums_working_directory }}"
-    - "{{ forums_working_directory }}/node-bb"
-    - "{{ forums_working_directory }}/node-bb/install"
 
 - name: deploy config.json file
   become: true
@@ -41,19 +39,6 @@
     - src: docker-compose.yml.j2
       dest: "{{ nodebb_docker_compose_path }}"
 
-- name: deploy static files
-  become: true
-  copy:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    mode: "0644"
-    owner: root
-    group: root
-  with_items:
-    - src: node-bb/Dockerfile
-      dest: "{{ forums_working_directory }}/node-bb/Dockerfile"
-    - src: node-bb/install/package.json
-      dest: "{{ forums_working_directory }}/node-bb/install/package.json"
 
 - name: create directories
   become: true
