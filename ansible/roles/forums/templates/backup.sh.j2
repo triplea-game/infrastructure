@@ -3,10 +3,14 @@
 set -euo pipefail
 
 BACKUP_DIR="{{ forums_working_directory }}"
-BACKUP_FILE="triplea_forums_db_backup_$(date +%Y%m%d-%H%M%S).gz"
+BACKUP_FILE="triplea_forums_db_backup_$(date +%Y%m%d-%H%M%S).tar.gz"
 docker compose -f "{{ nodebb_docker_compose_path }}" exec -T mongodb \
   mongodump --db nodebb --archive | gzip > "$BACKUP_DIR/$BACKUP_FILE"
 rsync -az -e "ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new" \
   "$BACKUP_DIR/$BACKUP_FILE" \
   forums-backup@prod.triplea-game.org:/opt/backups/forums/
 rm -f "$BACKUP_DIR/$BACKUP_FILE"
+
+rsync -az --delete -e "ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new" \
+  "{{ nodebb_uploads_directory }}/" \
+  forums-backup@prod.triplea-game.org:/opt/backups/forums/uploads/
