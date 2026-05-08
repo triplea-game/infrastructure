@@ -3,6 +3,6 @@
 set -euo pipefail
 
 cd {{ marti_working_directory }}
-docker compose pull
-systemctl restart marti
+docker compose pull app
+docker compose up -d --no-deps app
 

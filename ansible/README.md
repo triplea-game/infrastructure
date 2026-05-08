@@ -1,6 +1,6 @@
 sudo apt install pipx
 pipx install uv
-pix ensurepath
+pipx ensurepath
 source ~/.bashrc
 ansible-galaxy collection install linode.cloud
 ## env vars needed

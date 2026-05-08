@@ -1,0 +1,7 @@
+#!/bin/bash
+# Managed by Ansible - do not edit manually
+set -euo pipefail
+
+cd /opt/triplea-forums
+docker compose pull nodebb
+docker compose up -d --no-deps nodebb

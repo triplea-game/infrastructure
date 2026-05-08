@@ -6,9 +6,13 @@ services:
       - mongodb_data:/data/db
     networks:
       - forums_internal
+    logging:
+      driver: journald
+      options:
+        tag: forums-mongodb
 
   nodebb:
-    image: ghcr.io/triplea-game/forums/nodebb:2bfc9c0
+    image: ghcr.io/triplea-game/forums/nodebb:latest
     restart: unless-stopped
     user: "1001:1001"
     ports:
@@ -22,6 +26,10 @@ services:
       - mongodb
     networks:
       - forums_internal
+    logging:
+      driver: journald
+      options:
+        tag: forums-nodebb
 
 volumes:
   mongodb_data:

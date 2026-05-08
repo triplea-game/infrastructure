@@ -1,8 +1,7 @@
 /var/log/triplea-forums-backup.log
-/var/log/nodebb/nodebb.log
 {
     daily
-    rotate 90
+    rotate 14
     compress
     delaycompress
     missingok

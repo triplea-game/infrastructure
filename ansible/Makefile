@@ -7,12 +7,8 @@ SSH_USER ?= $${USER}
 # Env Variables
 # TRIPLEA_ANSIBLE_VAULT_PASSWORD: Vault password for Ansible (used by vault-password.sh)
 
-show-install-ansible: ## Prints commands to install ansible (linux)
-    # https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html
-	@echo sudo apt update
-	@echo sudo apt install software-properties-common
-	@echo sudo add-apt-repository --yes --update ppa:ansible/ansible
-	@echo sudo apt install --yes ansible
+install-ansible: ## Prints commands to install ansible (linux)
+	uv tool install ansible-core --with ansible --with linode_api4
 
 deps:
 	test -n "$${TRIPLEA_ANSIBLE_VAULT_PASSWORD}"

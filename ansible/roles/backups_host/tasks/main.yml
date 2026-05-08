@@ -4,7 +4,10 @@
     name: backup-users
     state: present
 
-- name: create backup users
+# backup user is an account on the machine receiving the backups
+# we deploy a public SSH key to the backup machine allowing
+# the account to rsync files over
+- name: create backup user
   become: true
   user:
     name: "{{ item }}"
@@ -13,6 +16,15 @@
     state: present
   loop:
     - forums-backup
+
+- name: add admin users to backup-users group
+  become: true
+  user:
+    name: "{{ item }}"
+    group: backup-users
+    append: yes
+  loop:
+    - "{{ admin_users | map(attribute='name') | list }}"
 
 - name: deploy forums-backup ssh public key to authorized_keys
   become: true

@@ -97,21 +97,6 @@
 
 - name: configure user for CICD deployments - user named 'deploy'
   block:
-    - name: deploy user - create group
-      become: true
-      group:
-        name: deploy
-        state: present
-
-    - name: deploy user - create account
-      become: true
-      user:
-        name: deploy
-        shell: /bin/bash
-        create_home: yes
-        groups: "deploy"
-        append: yes
-
     - name: deploy /usr/local/bin/deploy-marti.sh
       become: true
       template:

@@ -73,6 +73,27 @@
     name: forums.service
     enabled: true
 
+- name: Configure Forums Deployment User - deploy-user
+  block:
+    - name: deploy /usr/local/bin/deploy-forums.sh
+      become: true
+      template:
+        src: deploy-forums.sh.j2
+        dest: /usr/local/bin/deploy-forums.sh
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: deploy sudoers entry for deploy user - /etc/sudoers.d/deploy-forums
+      become: true
+      template:
+        src: deploy-forums-sudoers.j2
+        dest: /etc/sudoers.d/deploy-forums
+        owner: root
+        group: root
+        mode: "0440"
+        validate: /usr/sbin/visudo -cf %s
+
 - name: Configure Forums Backup
   block:
     - name: deploy backup-user private key

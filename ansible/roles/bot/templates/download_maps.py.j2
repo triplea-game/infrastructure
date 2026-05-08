@@ -27,7 +27,7 @@ DEFAULT_MAPS_DIR = "{{ bot_maps_folder }}"
 CACHE_FILENAME = ".map_cache.json"
 
 
-def fetch_maps(url: str) -> list:
+def fetch_maps(url: str) -> dict:
     with urllib.request.urlopen(url, timeout=30) as response:
         return json.loads(response.read().decode("utf-8"))
 
@@ -100,7 +100,7 @@ def main():
         sys.exit(1)
 
     print(f"Fetching map listing from {args.url} ...")
-    maps = fetch_maps(args.url)
+    maps = fetch_maps(args.url).get("maps", [])
     print(f"Found {len(maps)} maps.")
 
     cache = {} if args.force else load_cache(maps_dir)
