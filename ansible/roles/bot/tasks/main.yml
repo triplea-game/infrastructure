@@ -23,6 +23,7 @@
     group: "{{ admin_group }}"
   with_items:
     - "/home/bot/triplea/savedGames/"
+    - "/home/bot/triplea/savedGames/autoSave/"
     - "{{ bot_maps_folder }}"
     - "/var/log/bot/"
 
