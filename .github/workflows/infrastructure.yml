@@ -17,7 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_IN_AUTOMATION: true
-      TF_CLI_ARGS: "-auto-approve"
       TF_VAR_linode_token: ${{ secrets.LINODE_TOKEN }}
     defaults:
       run:
