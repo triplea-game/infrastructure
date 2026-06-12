@@ -18,6 +18,7 @@ jobs:
     env:
       TF_IN_AUTOMATION: true
       TF_VAR_linode_token: ${{ secrets.LINODE_TOKEN }}
+      TF_TOKEN_app_terraform_io: ${{  secrets.TF_TOKEN_APP_TERRAFORM_IO }}
     defaults:
       run:
         working-directory: terraform/
