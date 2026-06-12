@@ -58,11 +58,12 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.INFRASTRUCTURE_SSH_PRIVATE_KEY }}
 
+      - uses: astral-sh/setup-uv@v5
+
       - name: Install Ansible + galaxy deps
         run: |
-          sudo apt-add-repository --yes --update ppa:ansible/ansible
-          sudo apt-get install -y ansible
-          ansible-galaxy collection install -r requirements.yml --force
+          make install-ansible
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Ansible Diff (PR preview)
         if: github.event_name == 'pull_request'
