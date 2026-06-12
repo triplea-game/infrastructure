@@ -48,7 +48,7 @@ jobs:
     needs: terraform
     env:
       TRIPLEA_ANSIBLE_VAULT_PASSWORD: ${{ secrets.TRIPLEA_ANSIBLE_VAULT_PASSWORD }}
-      LINODE_ACCESS_TOKEN: ${{ secrets.LINODE_TOKEN }}
+      LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
     defaults:
       run:
         working-directory: ansible/
