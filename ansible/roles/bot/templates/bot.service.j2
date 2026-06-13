@@ -11,7 +11,7 @@ ExecStart=docker run \
    --pull missing \
    --env BOT_PORT_NUMBER=40%i \
    --env LOBBY_URI=https://prod.triplea-game.org \
-   --env BOT_NAME=Bot-{{ bot_name }}%i \
+   --env BOT_NAME={{ bot_name }}%i \
    --env EXIT_ON_GAME_END=true \
    --env BOT_MAX_MEMORY={{ bot_max_memory }} \
    --env MAPS_FOLDER=/downloadedMaps \
