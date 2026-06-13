@@ -15,6 +15,6 @@ servers = {
   Bot-us-west-1 = { region = "us-west", tags = ["bots"], destroy = false }
   Bot-us-east-2 = { region = "us-east", tags = ["bots"], destroy = false }
   Bot-ca-toronto-1 = { region = "ca-central", tags = ["bots"], destroy = false }
-  Bot-eu-west-1 = { region = "eu-west", tags = ["bots"], destroy = false }
+  Bot-eu-west-1 = { region = "gb-lon", tags = ["bots"], destroy = false }
   Bot-eu-central-1 = { region = "eu-central", tags = ["bots"], destroy = false }
 }
