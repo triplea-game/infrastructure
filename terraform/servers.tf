@@ -7,8 +7,8 @@ resource "linode_instance" "servers" {
   image  = each.value.image
 
   # Linode only persists a server's label and tags, so tags are the only way to
-  # carry extra attributes (bot_number, bot_city) through to the Ansible dynamic
-  # inventory, which decodes them back into host vars.
+  # carry extra attributes through to the Ansible dynamic inventory, which
+  # decodes them back into host vars.
   tags = concat(
     each.value.tags,
     each.value.bot_number != null ? ["botnum-${each.value.bot_number}"] : [],
