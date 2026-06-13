@@ -12,7 +12,7 @@ resource "linode_instance" "servers" {
   tags = concat(
     each.value.tags,
     each.value.bot_number != null ? ["botnum-${each.value.bot_number}"] : [],
-    each.value.bot_city != null ? ["botlocation-${each.value.bot_location}"] : [],
+    each.value.bot_location != null ? ["botlocation-${each.value.bot_location}"] : [],
   )
 
   metadata {
