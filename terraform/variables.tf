@@ -20,5 +20,9 @@ variable "servers" {
     image   = optional(string, "linode/ubuntu24.04")
     region  = string
     tags    = optional(list(string), [])
+    # Unique number for a bot server. Emitted as a "botnum-<n>" Linode tag and then read by ansible
+    bot_number = optional(number)
+    # Location of the bot server. Emitted as a "botlocation-<location>" Linode tag
+    bot_location = optional(string)
   }))
 }

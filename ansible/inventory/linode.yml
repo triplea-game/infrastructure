@@ -16,6 +16,10 @@ tags:
 compose:
   ansible_host: ipv4[0]
   hostname: label
+  # Extract metadata from tags set by Terraform (servers.tf): keep the matching tag, strip its prefix.
+  # Hosts without the tag resolve to 0 / '' respectively.
+  bot_number: "tags | select('match', '^botnum-') | map('regex_replace', '^botnum-', '') | first | default(0) | int"
+  bot_location: "tags | select('match', '^botcity-') | map('regex_replace', '^botlocation-', '') | first | default('')"
 
 # keyed_groups creates an Ansible host group for each Linode tag.
 # EG: a server tagged "Bot" becomes a member of the inventory group "Bot".

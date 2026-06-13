@@ -12,9 +12,9 @@ servers = {
   marti = { region = "us-east", tags = ["marti"] }
 
   # Servers can be deleted in two ways: (1) by removing the server line or (2) adding destroy flag: "destroy = true"
-  Bot01-California = { region = "us-west", tags = ["bots"], destroy = false }
-  Bot02-Jersey = { region = "us-east", tags = ["bots"], destroy = false }
-  Bot03-Toronto = { region = "ca-central", tags = ["bots"], destroy = false }
-  Bot04-London = { region = "gb-lon", tags = ["bots"], destroy = false }
-  Bot05-Frankfurt = { region = "eu-central", tags = ["bots"], destroy = false }
+  Bot01-us-west-1    = { region = "us-west", tags = ["bots"], destroy = false, bot_number = 1, bot_location = "California" }
+  Bot02-us-east-1    = { region = "us-east", tags = ["bots"], destroy = false, bot_number = 2, bot_location = "Jersey" }
+  Bot03-ca-central-1 = { region = "ca-central", tags = ["bots"], destroy = false, bot_number = 3, bot_location = "Toronto" }
+  Bot04-gb-lon-1     = { region = "gb-lon", tags = ["bots"], destroy = false, bot_number = 4, bot_location = "London" }
+  Bot05-eu-central-1 = { region = "eu-central", tags = ["bots"], destroy = false, bot_number = 5, bot_location = "Frankfurt" }
 }
