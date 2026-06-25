@@ -12,24 +12,8 @@ database_password: !vault |
 
 server_name: triplea_lobby_server_2_7
 database_port: 5432
-database_host: localhost
 
 database_name: "lobby_db"
 database_user: "lobby_user"
-flyway_image: "ghcr.io/triplea-game/lobby/flyway:latest"
 
-url_path: /lobby
-server_port: 8010
 docker_image: "ghcr.io/triplea-game/lobby/server:latest"
-
-service_exec_start: |
-  docker run \
-  --name {{ server_name }} \
-  --rm \
-  --network host \
-  -e HTTP_PORT="{{ server_port }}" \
-  -e DB_URL="{{ database_host }}:{{ database_port }}/{{ database_name }}" \
-  -e DATABASE_USER="{{ database_user }}" \
-  -e DATABASE_PASSWORD="{{ database_password }}" \
-  {{ docker_image }}
-service_exec_stop: docker stop {{ server_name }}

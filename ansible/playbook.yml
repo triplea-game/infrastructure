@@ -25,15 +25,10 @@
 - hosts: lobby
   tags: lobby
   roles:
-    ## Use the lobby to host backup files.
-    - backups_host
-    - {name: reverse_proxy/nginx, tags: nginx}
-    - {name: database/postgres, tags: database}
-    - smtp/postfix
+    - {name: nginx, tags: nginx}
     - lobby/nginx_conf
-    - database/postgres_database
-    - lobby/flyway_migrate
-    - service_systemctl_conf
+    - lobby/service
+    - lobby/db_backup
 
 - hosts: forums
   tags: forums
@@ -43,6 +38,6 @@
 - hosts: marti
   tags: marti
   roles:
-    - marti/nginx
-    - marti/app
+    - marti/nginx_conf
+    - marti/service
 

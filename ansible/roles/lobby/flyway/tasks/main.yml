@@ -1,8 +1,0 @@
-- name: deploy user - flyway migrate wrapper script
-  become: true
-  template:
-    src: run-flyway-migrate.sh.j2
-    dest: /usr/local/bin/run-flyway-migrate.sh
-    owner: root
-    group: root
-    mode: "0755"

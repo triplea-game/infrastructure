@@ -1,0 +1,44 @@
+services:
+  service:
+    image: {{ docker_image }}
+    ports:
+      - "127.0.0.1:8010:8010"
+    environment:
+      - HTTP_PORT=8010
+      - DB_URL=postgres18:{{ database_port }}/{{ database_name }}
+      - DATABASE_USER={{ database_user }}
+      - DATABASE_PASSWORD=${DB_PASSWORD}
+      - SMTP_HOST=postfix
+      - SMTP_PORT=25
+    depends_on:
+      postgres18:
+        condition: service_healthy
+      postfix:
+        condition: service_started
+    restart: unless-stopped
+  postgres18:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: {{ database_user }}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: {{ database_name }}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U {{ database_user }}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  postfix:
+    image: boky/postfix
+    environment:
+      - ALLOWED_SENDER_DOMAINS={{ lobby_hostname }}
+      - POSTFIX_myhostname={{ lobby_hostname }}
+      - DKIM_AUTOGENERATE=yes
+    volumes:
+      - dkim_keys:/etc/opendkim/keys
+    restart: unless-stopped
+volumes:
+  pgdata:
+  dkim_keys:

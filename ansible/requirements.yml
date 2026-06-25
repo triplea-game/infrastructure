@@ -1,4 +1,5 @@
 collections:
   # Provides the dynamic Linode inventory plugin used in inventory/linode.yml
   - name: community.general
+    version: "10.4.0"
 

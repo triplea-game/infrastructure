@@ -1,0 +1,4 @@
+lobby_working_directory: /opt/lobby
+
+# Public hostname; used for the postfix sender domain / HELO name and DKIM.
+lobby_hostname: prod.triplea-game.org

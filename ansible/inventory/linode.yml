@@ -11,6 +11,7 @@ tags:
   - bots
   - forums
   - marti
+  - lobby
 
 # compose exposes variables to ansible from dynamic values
 compose:

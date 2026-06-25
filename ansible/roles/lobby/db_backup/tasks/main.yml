@@ -1,0 +1,26 @@
+- name: create lobby db backup directory
+  become: true
+  file:
+    state: directory
+    path: "{{ lobby_db_backup_directory }}"
+    owner: lobby
+    group: lobby
+    mode: "0750"
+
+- name: deploy lobby db backup script
+  become: true
+  template:
+    src: backup-lobby-db.sh.j2
+    dest: "{{ lobby_working_directory }}/backup-lobby-db.sh"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: schedule daily lobby db backup cron job
+  become: true
+  cron:
+    name: triplea-lobby-db-backup
+    user: root
+    hour: "7"
+    minute: "0"
+    job: "{{ lobby_working_directory }}/backup-lobby-db.sh >> /var/log/triplea-lobby-db-backup.log 2>&1"

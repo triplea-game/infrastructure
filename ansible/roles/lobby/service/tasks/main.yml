@@ -1,9 +1,84 @@
-- name: deploy script /usr/local/bin/deploy-service.sh
+- name: create lobby group
   become: true
-  copy:
-    src: deploy-service.sh
-    dest: /usr/local/bin/deploy-service.sh
+  group:
+    name: lobby
+    state: present
+
+- name: create lobby user
+  become: true
+  user:
+    name: lobby
+    group: lobby
+    groups: docker
+    state: present
+    system: yes
+    create_home: no
+
+- name: create lobby working directory
+  become: true
+  file:
+    state: directory
+    mode: "0755"
+    owner: lobby
+    group: lobby
+    path: "{{ lobby_working_directory }}"
+
+- name: deploy docker-compose.yml
+  become: true
+  notify: restart_lobby
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ lobby_working_directory }}/docker-compose.yml"
+    mode: "0644"
+    owner: lobby
+    group: lobby
+
+- name: deploy .env
+  become: true
+  notify: restart_lobby
+  template:
+    src: .env.j2
+    dest: "{{ lobby_working_directory }}/.env"
+    mode: "0600"
+    owner: lobby
+    group: lobby
+
+- name: deploy lobby systemd service
+  become: true
+  notify: restart_lobby
+  register: lobby_unit_file
+  template:
+    src: lobby.service.j2
+    dest: /etc/systemd/system/lobby.service
     owner: root
     group: root
-    mode: "0755"
+    mode: "0644"
 
+- name: daemon-reload, enable and start the lobby service
+  become: true
+  systemd_service:
+    daemon_reload: true
+    name: lobby.service
+    enabled: true
+    state: started
+
+- name: configure user for CICD deployments - user named 'deploy'
+  block:
+    - name: deploy /usr/local/bin/deploy-lobby.sh
+      become: true
+      template:
+        src: deploy-lobby.sh.j2
+        dest: /usr/local/bin/deploy-lobby.sh
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: deploy sudoers entry for deploy user - /etc/sudoers.d/deploy-lobby
+      become: true
+      template:
+        src: deploy-lobby-sudoers.j2
+        dest: /etc/sudoers.d/deploy-lobby
+        owner: root
+        group: root
+        mode: "0440"
+        validate: /usr/sbin/visudo -cf %s

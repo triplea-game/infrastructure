@@ -1,0 +1,5 @@
+- name: restart_lobby
+  become: true
+  systemd_service:
+      name: lobby.service
+      state: restarted

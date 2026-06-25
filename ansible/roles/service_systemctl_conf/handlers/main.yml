@@ -1,6 +1,0 @@
-- name: restart_service
-  become: true
-  service:
-    name: "{{ server_name }}"
-    state: restarted
-

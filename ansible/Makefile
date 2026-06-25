@@ -24,19 +24,19 @@ show-hosts:
 	ansible-inventory -i inventory/linode.yml --graph
 
 ansible-galaxy-install:
-	ansible-galaxy collection install -r requirements.yml --force
+	ansible-galaxy collection install -r requirements.yml
 
 print:
 	@echo $(runAnsible) -U --check --diff $(prodInventory) $(playbook)
 
 diff plan: ansible-galaxy-install
-	$(runAnsible) --check --diff $(prodInventory) $(playbook)
+	$(runAnsible) --check --diff $(prodInventory) $(playbook) --limit lobby
 
 show:
 	@echo $(runAnsible) $(prodInventory) $(playbook)
 
 apply deploy: ansible-galaxy-install
-	$(runAnsible) $(prodInventory) $(playbook)
+	$(runAnsible) $(prodInventory) $(playbook) --limit lobby
 
 apply-as-ansible:  ansible-galaxy-install
 	SSH_USER=ansible make apply
