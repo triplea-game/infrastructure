@@ -1,0 +1,105 @@
+- name: create support group
+  become: true
+  group:
+    name: support
+    state: present
+
+- name: create support user
+  become: true
+  user:
+    name: support
+    group: support
+    groups: docker
+    state: present
+    system: yes
+    create_home: no
+
+- name: create support working directory
+  become: true
+  file:
+    state: directory
+    mode: "0755"
+    owner: support
+    group: support
+    path: "{{ support_working_directory }}"
+
+# SSH (port 22) is already allowed on every host by the system/firewall role
+# (rule: limit, port: ssh), so support-server is reachable like any other box.
+# Here we only open the app port, scoped to the lobby box's private IP, since
+# lobby's nginx is the sole thing that proxies in over the private network.
+- name: assert lobby's private IP is resolvable (source for the support port rule)
+  assert:
+    that:
+      - groups['lobby'] | default([]) | length > 0
+      - hostvars[groups['lobby'][0]].private_ip | default('') | length > 0
+    fail_msg: >-
+      Cannot determine lobby's private IP to scope the support firewall rule.
+      Ensure the lobby host is provisioned with private_ip = true.
+
+- name: allow lobby -> support app port (8010) over the private network
+  become: true
+  ufw:
+    rule: allow
+    from_ip: "{{ hostvars[groups['lobby'][0]].private_ip }}"
+    port: "8010"
+    proto: tcp
+
+- name: deploy docker-compose.yml
+  become: true
+  notify: restart_support
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ support_working_directory }}/docker-compose.yml"
+    mode: "0644"
+    owner: support
+    group: support
+
+- name: deploy .env
+  become: true
+  notify: restart_support
+  template:
+    src: .env.j2
+    dest: "{{ support_working_directory }}/.env"
+    mode: "0600"
+    owner: support
+    group: support
+
+- name: deploy support systemd service
+  become: true
+  notify: restart_support
+  register: support_unit_file
+  template:
+    src: support.service.j2
+    dest: /etc/systemd/system/support.service
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: daemon-reload, enable and start the support service
+  become: true
+  systemd_service:
+    daemon_reload: true
+    name: support.service
+    enabled: true
+    state: started
+
+- name: configure user for CICD deployments - user named 'deploy'
+  block:
+    - name: deploy /usr/local/bin/deploy-support.sh
+      become: true
+      template:
+        src: deploy-support.sh.j2
+        dest: /usr/local/bin/deploy-support.sh
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: deploy sudoers entry for deploy user - /etc/sudoers.d/deploy-support
+      become: true
+      template:
+        src: deploy-support-sudoers.j2
+        dest: /etc/sudoers.d/deploy-support
+        owner: root
+        group: root
+        mode: "0440"
+        validate: /usr/sbin/visudo -cf %s

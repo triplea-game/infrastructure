@@ -1,0 +1,38 @@
+- name: assert variables are set
+  assert:
+    that:
+      - server_name is defined
+
+- name: assert the support-server host and its private IP are resolvable
+  assert:
+    that:
+      - groups['support-server'] | default([]) | length > 0
+      - hostvars[groups['support-server'][0]].private_ip | default('') | length > 0
+    fail_msg: >-
+      No support-server host with a private IP found in inventory. Provision the
+      support-server Linode (with private_ip = true) before deploying lobby's
+      nginx, so this upstream can resolve its private address.
+
+- name: create dir /etc/nginx/include/
+  become: true
+  file:
+    path: /etc/nginx/include/
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: install nginx config to /etc/nginx/include/
+  become: true
+  notify: reload_nginx
+  template:
+    src: "{{ item.src }}"
+    dest: /etc/nginx/include/{{ item.target }}
+    mode: "0644"
+    owner: root
+    group: root
+  with_items:
+    - src: pre-server-support.conf
+      target: pre-server-support.conf
+    - src: server-support.conf
+      target: server-support.conf

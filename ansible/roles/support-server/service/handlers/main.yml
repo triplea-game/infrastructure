@@ -1,0 +1,5 @@
+- name: restart_support
+  become: true
+  systemd_service:
+      name: support.service
+      state: restarted

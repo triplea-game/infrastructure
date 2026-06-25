@@ -1,10 +1,11 @@
 resource "linode_instance" "servers" {
   for_each = { for k, v in var.servers : k => v if !v.destroy }
 
-  label  = each.key
-  region = each.value.region
-  type   = each.value.type
-  image  = each.value.image
+  label      = each.key
+  region     = each.value.region
+  type       = each.value.type
+  image      = each.value.image
+  private_ip = each.value.private_ip
 
   # Linode only persists a server's label and tags, so tags are the only way to
   # carry extra attributes through to the Ansible dynamic inventory, which

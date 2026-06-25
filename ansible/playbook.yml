@@ -27,8 +27,15 @@
   roles:
     - {name: nginx, tags: nginx}
     - lobby/nginx_conf
+    - support-server/nginx_conf
     - lobby/service
     - lobby/db_backup
+
+- hosts: support-server
+  tags: support
+  roles:
+    - support-server/service
+    - support-server/db_backup
 
 - hosts: forums
   tags: forums

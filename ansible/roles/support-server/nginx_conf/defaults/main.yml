@@ -1,0 +1,3 @@
+# HTTP port the support-server container listens on. Must match the port that
+# support-server/service docker-compose.yml.j2 publishes on the private IP.
+support_http_port: 8010

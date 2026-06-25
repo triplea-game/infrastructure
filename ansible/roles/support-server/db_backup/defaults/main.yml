@@ -1,0 +1,6 @@
+support_working_directory: /opt/support-server
+
+# Where the daily database backup is written. The same file is overwritten
+# on each run, so only the most recent day's backup is kept.
+support_db_backup_directory: "{{ support_working_directory }}/backups"
+support_db_backup_file: support_db.sql.gz

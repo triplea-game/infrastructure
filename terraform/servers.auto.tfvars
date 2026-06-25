@@ -1,6 +1,12 @@
 servers = {
   # Lobby server
-  lobby = { region = "us-east", tags = ["lobby"], destroy = false }
+  # private_ip: lobby's nginx fronts prod.triplea-game.org and proxies to the
+  # support-server over the same-DC private network.
+  lobby = { region = "us-east", tags = ["lobby"], destroy = false, private_ip = true }
+
+  # Support server (Quarkus). Own $5 box, same region as lobby so the lobby
+  # nginx -> support proxy hop stays on the private network (sub-ms latency).
+  support-server = { region = "us-east", tags = ["support-server"], destroy = false, private_ip = true }
 
   # Forums
   # Also a placeholder right now with the 'destroy = true', pre-existing server not under TF control
