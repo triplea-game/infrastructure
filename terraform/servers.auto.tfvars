@@ -1,8 +1,6 @@
 servers = {
   # Lobby server
-  # Mostly a placeholder right now with the 'destroy = true'
-  # The lobby server is a pre-existing server, we will be upgrading it in place
-  lobby = { region = "us-east", tags = ["lobby"], destroy = true }
+  lobby = { region = "us-east", tags = ["lobby"], destroy = false }
 
   # Forums
   # Also a placeholder right now with the 'destroy = true', pre-existing server not under TF control
