@@ -1,10 +1,26 @@
+- name: create marti group
+  become: true
+  group:
+    name: marti
+    state: present
+
+- name: create marti user
+  become: true
+  user:
+    name: marti
+    group: marti
+    groups: docker
+    state: present
+    system: yes
+    create_home: no
+
 - name: create marti working directory
   become: true
   file:
     state: directory
     mode: "0755"
-    owner: root
-    group: root
+    owner: marti
+    group: marti
     path: "{{ marti_working_directory }}"
 
 - name: create keys directory
@@ -12,8 +28,8 @@
   file:
     state: directory
     mode: "0755"
-    owner: root
-    group: root
+    owner: marti
+    group: marti
     path: "{{ marti_working_directory }}/keys"
 
 - name: generate RSA private key (first deploy only)
@@ -26,9 +42,9 @@
   become: true
   file:
     path: "{{ marti_working_directory }}/keys/privkey.pem"
-    mode: "0444"
-    owner: root
-    group: root
+    mode: "0440"
+    owner: marti
+    group: marti
 
 - name: generate RSA public key (first deploy only)
   become: true
@@ -45,8 +61,8 @@
   file:
     path: "{{ marti_working_directory }}/keys/pubkey.pem"
     mode: "0444"
-    owner: root
-    group: root
+    owner: marti
+    group: marti
 
 - name: deploy docker-compose.yml
   become: true
@@ -54,8 +70,8 @@
     src: docker-compose.yml.j2
     dest: "{{ marti_working_directory }}/docker-compose.yml"
     mode: "0644"
-    owner: root
-    group: root
+    owner: marti
+    group: marti
 
 - name: deploy config.json
   become: true
@@ -63,8 +79,8 @@
     src: config.json.j2
     dest: "{{ marti_working_directory }}/config.json"
     mode: "0644"
-    owner: root
-    group: root
+    owner: marti
+    group: marti
 
 - name: deploy .env
   become: true
@@ -72,8 +88,8 @@
     src: .env.j2
     dest: "{{ marti_working_directory }}/.env"
     mode: "0600"
-    owner: root
-    group: root
+    owner: marti
+    group: marti
 
 - name: deploy marti systemd service
   notify: restart_marti
@@ -88,7 +104,6 @@
 
 - name: daemon-reload and enable marti service
   become: true
-  when: sysctl_file.changed
   systemd_service:
     daemon_reload: true
     name: marti.service
@@ -102,8 +117,8 @@
       template:
         src: deploy-marti.sh.j2
         dest: "{{ marti_working_directory }}/deploy-marti.sh"
-        owner: root
-        group: root
+        owner: marti
+        group: marti
         mode: "0755"
 
     - name: deploy sudoers entry for deploy user - /etc/sudoers.d/deploy-marti
