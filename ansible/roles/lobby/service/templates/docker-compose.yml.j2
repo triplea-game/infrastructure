@@ -10,6 +10,8 @@ services:
       - DATABASE_PASSWORD=${DB_PASSWORD}
       - SMTP_HOST=postfix
       - SMTP_PORT=25
+      - SEND_EMAILS_ENABLED=true
+      - EMAIL_FROM=no-reply@{{ lobby_mail_domain }}
     depends_on:
       postgres18:
         condition: service_healthy
@@ -33,8 +35,8 @@ services:
   postfix:
     image: boky/postfix
     environment:
-      - ALLOWED_SENDER_DOMAINS={{ lobby_hostname }}
-      - POSTFIX_myhostname={{ lobby_hostname }}
+      - ALLOWED_SENDER_DOMAINS={{ lobby_mail_domain }}
+      - POSTFIX_myhostname={{ lobby_mail_domain }}
       - DKIM_AUTOGENERATE=yes
     volumes:
       - dkim_keys:/etc/opendkim/keys

@@ -1,7 +1,12 @@
 lobby_working_directory: /opt/lobby
 
-# Public hostname; used for the postfix sender domain / HELO name and DKIM.
+# Public hostname for the web service (nginx / lobby URL).
 lobby_hostname: prod.triplea-game.org
+# Dedicated mail domain: the From/envelope domain, postfix HELO name, the
+# DKIM signing domain, and the SPF/PTR target. Kept separate from the web
+# hostname so outbound mail aligns on its own subdomain (mirrors the dice
+# server's use of dice.triplea-game.org).
+lobby_mail_domain: lobby.triplea-game.org
 database_port: 5432
 database_name: "lobby_db"
 database_user: "lobby_user"
