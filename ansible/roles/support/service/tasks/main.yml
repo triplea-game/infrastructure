@@ -90,8 +90,8 @@
       template:
         src: deploy-support.sh.j2
         dest: "{{ support_working_directory }}/deploy-support.sh"
-        owner: root
-        group: root
+        owner: support
+        group: support
         mode: "0755"
 
     - name: deploy sudoers entry for deploy user - /etc/sudoers.d/deploy-support
