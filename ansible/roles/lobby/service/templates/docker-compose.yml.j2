@@ -1,6 +1,6 @@
 services:
   service:
-    image: {{ docker_image }}
+    image: ghcr.io/triplea-game/lobby/server:latest
     ports:
       - "127.0.0.1:8010:8010"
     environment:
@@ -25,7 +25,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U {{ database_user }}"]
+      test: ["CMD-SHELL", "pg_isready -U {{ database_user }} -d {{ database_name }}"]
       interval: 5s
       timeout: 5s
       retries: 5

@@ -24,7 +24,7 @@
     path: "{{ support_working_directory }}"
 
 # SSH (port 22) is already allowed on every host by the system/firewall role
-# (rule: limit, port: ssh), so support-server is reachable like any other box.
+# (rule: limit, port: ssh), so support is reachable like any other box.
 # Here we only open the app port, scoped to the lobby box's private IP, since
 # lobby's nginx is the sole thing that proxies in over the private network.
 - name: assert lobby's private IP is resolvable (source for the support port rule)

@@ -22,20 +22,21 @@
   roles:
     - bot
 
+# support uses the NGINX on the lobby host for reverse proxy
+- hosts: support
+  tags: support
+  roles:
+    - support/service
+    - support/db_backup
+
 - hosts: lobby
   tags: lobby
   roles:
     - {name: nginx, tags: nginx}
     - lobby/nginx_conf
-    - support-server/nginx_conf
+    - support/nginx_conf
     - lobby/service
     - lobby/db_backup
-
-- hosts: support-server
-  tags: support
-  roles:
-    - support-server/service
-    - support-server/db_backup
 
 - hosts: forums
   tags: forums
@@ -45,6 +46,7 @@
 - hosts: marti
   tags: marti
   roles:
+    # note: this marti/nginx_conf is not like the lobby or support server, it's a full standalone NGINX config
     - marti/nginx_conf
     - marti/service
 

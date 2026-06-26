@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# Daily backup of the lobby database. Runs pg_dump inside the postgres
+# Daily backup of the support database. Runs pg_dump inside the postgres
 # container and writes a gzipped plain-SQL dump, overwriting the previous
 # day's backup so only the most recent copy is retained.
 
 set -euo pipefail
 
-BACKUP_FILE="{{ lobby_db_backup_directory }}/{{ lobby_db_backup_file }}"
+BACKUP_FILE="{{ support_db_backup_directory }}/{{ support_db_backup_file }}"
 TMP_FILE="$BACKUP_FILE.tmp"
 
 # Dump to a temp file first so a failed/partial dump never clobbers a good backup.
-docker compose -f "{{ lobby_working_directory }}/docker-compose.yml" exec -T postgres18 \
+docker compose -f "{{ support_working_directory }}/docker-compose.yml" exec -T postgres18 \
   pg_dump -U {{ database_user }} {{ database_name }} | gzip > "$TMP_FILE"
 
 mv -f "$TMP_FILE" "$BACKUP_FILE"

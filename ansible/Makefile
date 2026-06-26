@@ -30,13 +30,13 @@ print:
 	@echo $(runAnsible) -U --check --diff $(prodInventory) $(playbook)
 
 diff plan: ansible-galaxy-install
-	$(runAnsible) --check --diff $(prodInventory) $(playbook) --limit lobby
+	$(runAnsible) --check --diff $(prodInventory) $(playbook)
 
 show:
 	@echo $(runAnsible) $(prodInventory) $(playbook)
 
 apply deploy: ansible-galaxy-install
-	$(runAnsible) $(prodInventory) $(playbook) --limit lobby
+	$(runAnsible) $(prodInventory) $(playbook)
 
 apply-as-ansible:  ansible-galaxy-install
 	SSH_USER=ansible make apply

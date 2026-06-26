@@ -1,16 +1,11 @@
-- name: assert variables are set
+- name: assert the support host and its private IP are resolvable
   assert:
     that:
-      - server_name is defined
-
-- name: assert the support-server host and its private IP are resolvable
-  assert:
-    that:
-      - groups['support-server'] | default([]) | length > 0
-      - hostvars[groups['support-server'][0]].private_ip | default('') | length > 0
+      - groups['support'] | default([]) | length > 0
+      - hostvars[groups['support'][0]].private_ip | default('') | length > 0
     fail_msg: >-
-      No support-server host with a private IP found in inventory. Provision the
-      support-server Linode (with private_ip = true) before deploying lobby's
+      No support host with a private IP found in inventory. Provision the
+      support Linode (with private_ip = true) before deploying lobby's
       nginx, so this upstream can resolve its private address.
 
 - name: create dir /etc/nginx/include/

@@ -1,4 +1,4 @@
-support_working_directory: /opt/support-server
+support_working_directory: /opt/support
 
 # Where the daily database backup is written. The same file is overwritten
 # on each run, so only the most recent day's backup is kept.

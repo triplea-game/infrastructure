@@ -12,7 +12,7 @@ tags:
   - forums
   - marti
   - lobby
-  - support-server
+  - support
 
 # compose exposes variables to ansible from dynamic values
 compose:
@@ -22,7 +22,7 @@ compose:
   ansible_host: "ipv4 | reject('match', '^192\\.168\\.') | first"
   hostname: label
   # Same-datacenter private IP (Linode assigns from 192.168.0.0/17). Used for
-  # internal box-to-box traffic, e.g. lobby's nginx proxying to support-server.
+  # internal box-to-box traffic, e.g. lobby's nginx proxying to support.
   # Empty string for hosts that have no private IP.
   private_ip: "ipv4 | select('match', '^192\\.168\\.') | first | default('')"
   # Extract metadata from tags set by Terraform (servers.tf): keep the matching tag, strip its prefix.
