@@ -40,8 +40,8 @@
     src: .env.j2
     dest: "{{ lobby_working_directory }}/.env"
     mode: "0600"
-    owner: lobby
-    group: lobby
+    owner: root
+    group: root
 
 - name: deploy lobby systemd service
   become: true
