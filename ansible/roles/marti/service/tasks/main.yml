@@ -97,11 +97,11 @@
 
 - name: configure user for CICD deployments - user named 'deploy'
   block:
-    - name: deploy /usr/local/bin/deploy-marti.sh
+    - name: deploy deploy-marti.sh
       become: true
       template:
         src: deploy-marti.sh.j2
-        dest: /usr/local/bin/deploy-marti.sh
+        dest: "{{ marti_working_directory }}/deploy-marti.sh"
         owner: root
         group: root
         mode: "0755"

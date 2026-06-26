@@ -85,11 +85,11 @@
 
 - name: configure user for CICD deployments - user named 'deploy'
   block:
-    - name: deploy /usr/local/bin/deploy-support.sh
+    - name: deploy deploy-support.sh
       become: true
       template:
         src: deploy-support.sh.j2
-        dest: /usr/local/bin/deploy-support.sh
+        dest: "{{ support_working_directory }}/deploy-support.sh"
         owner: root
         group: root
         mode: "0755"
