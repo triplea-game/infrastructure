@@ -42,7 +42,7 @@
   become: true
   file:
     path: "{{ marti_working_directory }}/keys/privkey.pem"
-    mode: "0440"
+    mode: "0444"
     owner: marti
     group: marti
 
