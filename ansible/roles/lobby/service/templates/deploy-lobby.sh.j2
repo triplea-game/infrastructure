@@ -3,5 +3,5 @@
 set -euo pipefail
 
 cd {{ lobby_working_directory }}
-docker compose pull server
-docker compose up -d --no-deps server
+docker compose pull service
+docker compose up -d --no-deps service
