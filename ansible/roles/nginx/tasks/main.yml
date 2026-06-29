@@ -30,10 +30,16 @@
     state: started
     enabled: true
 
+# 80 is opened alongside 443 so the Certbot-managed port-80 server block in
+# prod.default.conf can issue its HTTP->HTTPS 301. Without it, inbound :80 is
+# dropped and a bare http:// URL times out instead of redirecting.
 - name: allow firewall ports
   become: true
   ufw:
     rule: allow
-    port: 443
+    port: "{{ item }}"
     proto: tcp
+  loop:
+    - "80"
+    - "443"
 

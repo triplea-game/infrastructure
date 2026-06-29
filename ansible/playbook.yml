@@ -34,6 +34,9 @@
   roles:
     - {name: nginx, tags: nginx}
     - lobby/nginx_conf
+    # oauth2-proxy is deployed on the lobby host (next to nginx, on loopback) so
+    # the /support auth subrequest is local; bring it up before nginx routes to it.
+    - {name: support/oauth2_proxy, tags: oauth2_proxy}
     - support/nginx_conf
     - lobby/service
     - lobby/db_backup

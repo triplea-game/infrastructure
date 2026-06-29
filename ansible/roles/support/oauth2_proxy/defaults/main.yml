@@ -1,0 +1,61 @@
+# oauth2-proxy runs on the LOBBY host (co-located with nginx), bound to
+# loopback 127.0.0.1:4180. nginx performs an auth_request subrequest against it
+# and forwards *sanitized* X-Auth-* identity headers to the support backend.
+#
+# This mirrors the local docker-compose.auth.yml overlay in the support-server
+# repo, with production values: secure cookies (TLS terminates at nginx) and the
+# real prod callback URL.
+
+oauth2_proxy_working_directory: /opt/oauth2-proxy
+oauth2_proxy_image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+oauth2_proxy_listen_address: 127.0.0.1:4180
+
+# Public URL nginx serves; oauth2-proxy redirects back here after GitHub login.
+oauth2_proxy_redirect_url: https://prod.triplea-game.org/oauth2/callback
+oauth2_proxy_whitelist_domain: prod.triplea-game.org
+
+# <org>:<team-slug> whose members are MapAdmins (write access). MUST match the
+# support app's app.auth.map-admin-group. The prod support container does not
+# set GITHUB_ADMIN_TEAM, so the app uses its default of this same value — keep
+# them in sync or the proxy gate and the app check will drift.
+oauth2_proxy_github_team: "triplea-maps:mapadmins"
+
+# --- Secrets (MUST be vault-encrypted before deploy) --------------------------
+#
+#   TRIPLEA_ANSIBLE_VAULT_PASSWORD=... \
+#     ansible-vault encrypt_string --vault-id ./vault-password.sh \
+#     'the-secret-value' --name 'oauth2_proxy_client_secret'
+#
+# and paste the resulting `!vault |` block in place of the "VAULT_TODO" string
+# (see database_password in roles/support/service/defaults/main.yml for the
+# exact on-disk format).
+#
+# - client id/secret: from a GitHub OAuth App whose Authorization callback URL
+#   is oauth2_proxy_redirect_url above (GitHub -> Settings -> Developer settings
+#   -> OAuth Apps). Register a dedicated PROD app for this.
+# - cookie secret: 32 random bytes, url-safe base64. Generate with:
+#     python3 -c 'import os,base64;print(base64.urlsafe_b64encode(os.urandom(32)).decode())'
+oauth2_proxy_client_id: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  61383065343166316139383933343130663864393665643030623838303765346634353062376238
+  3361303539356232356261653663346336623634383761350a393466303039613838333437306536
+  30633831663633313533653830633230393436666137383861653236376132653534393237306637
+  3865326630656461660a386466316564626135326662326432343464363961613733313836343830
+  31316535353762316165313332656165396465363032393635316635633538653637
+oauth2_proxy_client_secret: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  64623334623934323433623131623431303933666264303132386164633561353831636339356166
+  3938323265663635356434313466343864373231323834380a376338313162636136613364343335
+  66653064646433663437326362623136666636353161313136653933393332626434393962333232
+  3662363165366161300a346436663730623638396539623237306237393432663365343930613233
+  34376236666365313833623939383961346338653037396338363566663265303537313030373034
+  3065653138646533393938323038336337323133353436623433
+oauth2_proxy_cookie_secret: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  33306533666263303733363662653335353339333733346361623531653631326437636461383966
+  3761353437323438333030646530333166386138303439380a363138336331323362643536363964
+  36616337343231363365386362616564366266376237396231336365346636633231616239313937
+  3865626435376536630a333966363039373966373563353061663338303132636139393466373461
+  32643964343265306566663864653332353936653363323430306235376562653439313737613132
+  6431323630336665643432313039396339343130313534653439
+
