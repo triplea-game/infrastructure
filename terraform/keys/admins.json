@@ -8,7 +8,8 @@
   {
     "name": "dan",
     "ssh_keys": [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIENZoW92mNwtkry/yDGSQB51Ap7Jo2wsVON1l5Sk7nJt dan@desk"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIENZoW92mNwtkry/yDGSQB51Ap7Jo2wsVON1l5Sk7nJt dan@desk",
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMDOz3m/JqxHNQeKsXMYmzQcLUFodKE6r+Tp4xyKAgOI dan@dan-xps" 
     ]
   }
 ]
