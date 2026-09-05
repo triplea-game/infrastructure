@@ -1,3 +1,59 @@
+# Swapfile gives the 1GB bot Nanodes an OOM cushion — headroom so a memory spike
+# spills to disk before the host tips into the OOM-killer.
+- name: create swapfile
+  become: true
+  command:
+    cmd: "fallocate -l {{ bot_swapfile_size }} {{ bot_swapfile_path }}"
+    creates: "{{ bot_swapfile_path }}"
+  register: bot_swapfile
+
+- name: secure swapfile permissions
+  become: true
+  file:
+    path: "{{ bot_swapfile_path }}"
+    owner: root
+    group: root
+    mode: "0600"
+
+# mkswap and swapon only on first creation; re-running mkswap on an active swap fails.
+- name: format swapfile
+  become: true
+  command: "mkswap {{ bot_swapfile_path }}"
+  when: bot_swapfile.changed
+  changed_when: true
+
+- name: persist swapfile in fstab
+  become: true
+  lineinfile:
+    path: /etc/fstab
+    regexp: "^{{ bot_swapfile_path }} "
+    line: "{{ bot_swapfile_path }} none swap sw 0 0"
+    state: present
+
+- name: activate swapfile
+  become: true
+  command: "swapon {{ bot_swapfile_path }}"
+  when: bot_swapfile.changed
+  changed_when: true
+
+# Keep swap as an emergency cushion rather than routine paging, so healthy bots
+# stay in RAM and only a memory spike reaches disk.
+- name: configure swappiness
+  become: true
+  copy:
+    dest: /etc/sysctl.d/60-bot-swappiness.conf
+    content: "vm.swappiness={{ bot_swappiness }}\n"
+    owner: root
+    group: root
+    mode: "0644"
+  register: bot_swappiness_conf
+
+- name: apply swappiness
+  become: true
+  command: "sysctl --system"
+  when: bot_swappiness_conf.changed
+  changed_when: true
+
 - name: create service group {bot}
   become: true
   group:
@@ -52,6 +108,7 @@
     mode: "644"
     owner: root
     group: "{{ admin_group }}"
+  notify: restart bots
 
 - name: pull latest bot docker image
   become: true

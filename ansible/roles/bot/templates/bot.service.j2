@@ -5,9 +5,15 @@ Documentation=
 [Service]
 User=bot
 Group=bot
+# --memory caps each bot at its container cgroup, so a runaway bot is killed by the
+# container's cgroup limit and restarted alone (Restart=always) rather than the
+# host-wide OOM-killer wedging the whole 1GB host; --memory-swap lets it spill to
+# the swapfile before that.
 ExecStart=docker run \
    --rm \
    --network host \
+   --memory={{ bot_container_memory }} \
+   --memory-swap={{ bot_container_memory_swap }} \
    --pull missing \
    --env BOT_PORT_NUMBER=40%i \
    --env LOBBY_URI=https://prod.triplea-game.org \
