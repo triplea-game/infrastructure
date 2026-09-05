@@ -20,7 +20,7 @@ services:
       # port 4567, but the port is not reachable from outside the server.
       - "127.0.0.1:4567:4567"
     volumes:
-      - {{ forums_working_directory }}/config.json:/opt/config/config.json:ro
+      - {{ forums_working_directory }}/config.json:/opt/config/config.json
       - {{ forums_working_directory }}/uploads:/usr/src/app/public/uploads
     depends_on:
       - mongodb
