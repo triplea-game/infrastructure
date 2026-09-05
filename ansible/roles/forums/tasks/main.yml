@@ -24,8 +24,10 @@
     src: config.json.j2
     dest: "{{ forums_working_directory }}/config.json"
     mode: "0644"
-    owner: root
-    group: root
+    # nodebb runs as uid 1001 and rewrites config.json during 'nodebb upgrade'
+    # migrations, so the container user must own it to write.
+    owner: "1001"
+    group: "1001"
 
 - name: deploy templates
   become: true
