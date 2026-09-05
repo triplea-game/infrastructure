@@ -37,16 +37,16 @@ Ansible manages:
 | `LINODE_TOKEN` | Terraform (`terraform/Makefile`) | Local shell / CI secret | Linode Personal Access Token to provision/manage servers | [Linode Cloud Manager](https://cloud.linode.com/profile/tokens) → Create token |
 | `LINODE_ACCESS_TOKEN` | Ansible dynamic inventory (`inventory/linode.yml`) | Local shell / CI secret | Separate Linode token used by the Ansible Linode inventory plugin to discover servers | Same as above — can be the same token value as `LINODE_TOKEN` |
 | `TRIPLEA_ANSIBLE_VAULT_PASSWORD` | Ansible (`ansible/Makefile`) | Local shell / CI secret | Password to decrypt Ansible Vault secrets in playbooks | Shared secret — ask a maintainer |
-| `DEPLOY_INFRASTRUCTURE_USER_PRIVATE_SSH_KEY` | GitHub Actions | GitHub Actions secret | Private SSH key for the `deploy-infrastructure` service account | Generate with `ssh-keygen`, store private half here, public half in `playbook.yml` |
+| `INFRASTRUCTURE_SSH_PRIVATE_KEY` | GitHub Actions | GitHub Actions secret | Private SSH key for the `deploy-infrastructure` service account | Generate with `ssh-keygen`, store private half here, public half in `playbook.yml` |
 
 **GitHub Actions secrets** (configure at Settings → Secrets → Actions):
 - `LINODE_TOKEN`
 - `LINODE_ACCESS_TOKEN`
 - `TRIPLEA_ANSIBLE_VAULT_PASSWORD`
-- `DEPLOY_INFRASTRUCTURE_USER_PRIVATE_SSH_KEY`
+- `INFRASTRUCTURE_SSH_PRIVATE_KEY`
 
 > **Local runs via `run.sh`:** your personal SSH key (already on servers) + `TRIPLEA_ANSIBLE_VAULT_PASSWORD` + `LINODE_TOKEN` + `LINODE_ACCESS_TOKEN`.
-> For **freshly provisioned servers**, SSH in as `admins@<ip>` — your key is injected at provisioning time via `terraform/keys/admins.pub`. See [SSH access on freshly provisioned servers](#ssh-access-on-freshly-provisioned-servers).
+> For **freshly provisioned servers**, SSH in as `<your-username>@<ip>` (your named account from `admins.json`) — your key is injected at provisioning time via `terraform/keys/admins.json`. See [SSH access on freshly provisioned servers](#ssh-access-on-freshly-provisioned-servers).
 >
 > **Terraform only:** `LINODE_TOKEN` (or `TF_VAR_linode_token`).
 >
@@ -87,8 +87,8 @@ The file format is a JSON array:
 This means the local bootstrap flow for a freshly provisioned server is simply:
 
 ```bash
-# 1. SSH in as the bootstrap user (your key is already there from cloud-init)
-ssh admins@<new-server-ip>   # verify it's up
+# 1. SSH in as yourself — cloud-init created a per-admin account named after your admins.json "name"; your key is already there
+ssh <your-username>@<new-server-ip>   # verify it's up
 
 # 2. Run Ansible to create all personal accounts and fully configure the server
 APPLY=1 ./run.sh --limit <new-server-ip> --tags system
@@ -102,7 +102,7 @@ To add a new admin maintainer:
 
 1. **Add their entry** to `terraform/keys/admins.json` — a `{"name": "username", "ssh_keys": [...]}` object.
 2. Open a PR. On merge, CI/CD will:
-   - Terraform picks up the new key in `admins.pub` for any *future* server provisioning (existing servers are unaffected — cloud-init only runs once).
+   - Terraform picks up the new key in `admins.json` for any *future* server provisioning (existing servers are unaffected — cloud-init only runs once).
    - Ansible runs and creates the personal account on all existing servers.
 
 > **Removing an admin:** remove their entry from `admins.json` in the same PR.
@@ -114,7 +114,7 @@ To add a new admin maintainer:
    ```bash
    APPLY=1 ./run.sh --limit <new-server-ip> --tags system
    ```
-   You can SSH in as `admins@<ip>` immediately after provisioning since your key was injected by cloud-init.
+   You can SSH in as `<your-username>@<ip>` (your named account from `admins.json`) immediately after provisioning since your key was injected by cloud-init.
 
 ### Bootstrapping an existing server (root password access only)
 
@@ -251,7 +251,7 @@ Ansible runs after Terraform (`needs: terraform`) so newly provisioned servers e
 | `LINODE_TOKEN` | Terraform — provision/destroy Linode servers |
 | `LINODE_ACCESS_TOKEN` | Ansible dynamic inventory — discover servers via Linode API |
 | `TRIPLEA_ANSIBLE_VAULT_PASSWORD` | Decrypt Ansible Vault secrets |
-| `DEPLOY_INFRASTRUCTURE_USER_PRIVATE_SSH_KEY` | SSH private key for the `deploy-infrastructure` service account |
+| `INFRASTRUCTURE_SSH_PRIVATE_KEY` | SSH private key for the `deploy-infrastructure` service account |
 
 ### Rotating the Ansible SSH key
 
@@ -259,7 +259,7 @@ Ansible runs after Terraform (`needs: terraform`) so newly provisioned servers e
 ssh-keygen -f ~/.ssh/ansible  # no passphrase
 ```
 
-1. Update the **private key** in [GitHub Actions secrets](https://github.com/triplea-game/infrastructure/settings/secrets/actions) → `SSH_PRIVATE_KEY`
+1. Update the **private key** in [GitHub Actions secrets](https://github.com/triplea-game/infrastructure/settings/secrets/actions) → `INFRASTRUCTURE_SSH_PRIVATE_KEY`
 2. Update the **public key** in `playbook.yml` under the `deploy-infrastructure` user entry
 3. Ensure you have your own SSH access before rotating — rotating breaks CI/CD until the new key is deployed
 
