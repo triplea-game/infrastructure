@@ -111,30 +111,35 @@ bot tags):
 ansible-inventory -i inventory/linode.yml --graph --vars
 ```
 
+The `--list` JSON wraps values as `{"__ansible_unsafe": "..."}`, so the `jq`
+below unwraps with a small `raw` helper — keep it when adapting.
+
 ### Single-server services (lobby, marti, forums, support)
 
 Each is one server in its own Linode-tag group. `support` is the maps/support
 server. Pull its IP directly (group name = the tag; confirm with `--graph`):
 
 ```
-ansible-inventory -i inventory/linode.yml --list \
-  | jq -r '.lobby.hosts[0] as $h | ._meta.hostvars[$h].ansible_host'
+ansible-inventory -i inventory/linode.yml --list | jq -r '
+  def raw: if type=="object" then .__ansible_unsafe else . end;
+  .lobby.hosts[0] as $h | ._meta.hostvars[$h].ansible_host | raw'
 ```
 
 ### Bots (resolve by BOT_NAME, e.g. `Bot_401_London`)
 
-A bot server is tagged `botnum-<n>` + `botlocation-<loc>`; the inventory
-exposes these as `bot_number` / `bot_location`. Each server runs instances
-`bot@01`, `bot@02`, … A `BOT_NAME` is `Bot_<bot_number><instance>_<location>`,
-so `Bot_401_London` = location `London`, and `401` = bot_number `4` + instance
-`01`. To resolve:
+There are several bot servers (one per location), each tagged `botnum-<n>` +
+`botlocation-<loc>`; the inventory exposes these as `bot_number` /
+`bot_location`. Each server runs instances `bot@01`, `bot@02`, … A `BOT_NAME`
+is `Bot_<bot_number><instance>_<location>`, so `Bot_401_London` = location
+`London`, and `401` = bot_number `4` + instance `01`. To resolve:
 
 ```
 # 1. Get that location's server IP and bot_number:
 ansible-inventory -i inventory/linode.yml --list | jq -r '
+  def raw: if type=="object" then .__ansible_unsafe else . end;
   ._meta.hostvars | to_entries[]
-  | select(.value.bot_location=="London")
-  | "ip=\(.value.ansible_host) bot_number=\(.value.bot_number)"'
+  | select((.value.bot_location|raw)=="London")
+  | "ip=\(.value.ansible_host|raw) bot_number=\(.value.bot_number|raw)"'
 # 2. Strip the bot_number off the middle digits to get the instance:
 #    "401" - bot_number 4 -> instance "01"   (keep leading zeros!)
 # 3. Fetch:

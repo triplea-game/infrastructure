@@ -26,6 +26,11 @@ set -euo pipefail
 # (must be a read-only account — see infrastructure roles/system/read_only_account).
 readonly SSH_USER="${TRIPLEA_RO_USER:-read-only}"
 
+# Private key for that account. Pinned with IdentitiesOnly so a loaded agent
+# with other keys can't trip the server's MaxAuthTries. Convention default;
+# override with TRIPLEA_RO_KEY. If the file is absent, fall back to agent/config.
+readonly SSH_KEY="${TRIPLEA_RO_KEY:-$HOME/.ssh/triplea-read-only}"
+
 usage() {
   echo "usage: pull-logs.sh <lobby|marti|support|forums|botN> <host> [--since W] [--until W] [--lines N] [--grep P] [--priority P]" >&2
   exit 2
@@ -98,5 +103,7 @@ build_remote() {
   fi
 }
 
-exec ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new \
-  "${SSH_USER}@${HOST}" "$(build_remote)"
+ssh_opts=(-o BatchMode=yes -o StrictHostKeyChecking=accept-new)
+[[ -f "$SSH_KEY" ]] && ssh_opts+=(-i "$SSH_KEY" -o IdentitiesOnly=yes)
+
+exec ssh "${ssh_opts[@]}" "${SSH_USER}@${HOST}" "$(build_remote)"
