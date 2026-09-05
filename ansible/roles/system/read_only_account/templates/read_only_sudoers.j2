@@ -1,0 +1,11 @@
+# Managed by Ansible - do not edit manually
+# {{ read_only_user.name }} may ONLY read container logs. No other sudo rights.
+# The trailing '*' matches the log flags (--no-color --tail N --since ...);
+# sudo compares argv directly, so no shell metacharacters can smuggle in.
+Cmnd_Alias TRIPLEA_READ_LOGS = \
+    /usr/bin/docker compose -f /opt/lobby/docker-compose.yml logs *, \
+    /usr/bin/docker compose -f /opt/triplea-marti/docker-compose.yml logs *, \
+    /usr/bin/docker compose -f /opt/support/docker-compose.yml logs *
+
+{{ read_only_user.name }} ALL=(root) NOPASSWD: TRIPLEA_READ_LOGS
+Defaults:{{ read_only_user.name }} !requiretty

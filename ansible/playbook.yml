@@ -7,6 +7,7 @@
     - name: system/admin_user
       vars:
         admin_users: "{{ lookup('file', playbook_dir + '/../terraform/keys/admins.json') | from_json }}"
+    - system/read_only_account
     - name: system/apt_packages
       tags: apt
     - system/docker

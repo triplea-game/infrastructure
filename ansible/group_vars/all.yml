@@ -10,3 +10,12 @@ deploy_user:
   name: deploy
   ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJZwah7g0w5b9FjBtW9+psAWuF/dlrIq213C49L8sR1R deploy@triplea"
 
+# Low-privilege, read-only account for agent/debugging access, provisioned by
+# the system/read_only_account role. Today it grants log reads only (journald
+# via adm/systemd-journal groups; docker logs via a narrow sudoers rule); the
+# generic name leaves room to add other read-only grants (e.g. R/O DB) later.
+# No write access. This account is for LLM use.
+read_only_user:
+  name: read-only
+  ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMDs3/DJcB3Wu3hbtxqbq/4oaqd9Oxw5VJ93favomFUW dan@desk"
+
