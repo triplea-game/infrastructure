@@ -15,6 +15,7 @@ jobs:
   terraform:
     name: Terraform ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && 'apply' || 'plan' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       TF_IN_AUTOMATION: true
       TF_VAR_linode_token: ${{ secrets.LINODE_TOKEN }}
@@ -45,6 +46,7 @@ jobs:
   ansible:
     name: Ansible ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && 'apply' || 'diff' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: terraform
     env:
       TRIPLEA_ANSIBLE_VAULT_PASSWORD: ${{ secrets.TRIPLEA_ANSIBLE_VAULT_PASSWORD }}
