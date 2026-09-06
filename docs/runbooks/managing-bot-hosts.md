@@ -79,7 +79,7 @@ job `needs: terraform` in `.github/workflows/infrastructure.yml`).
 2. **Ansible** (add only) configures the new box once the dynamic inventory
    discovers it by tag: `APPLY=1 ./run.sh --limit <new-ip> --tags system`, then
    the bot role (`--limit <ip>` or `--limit bots --tags bot`). Optionally seed
-   the bot map with `./update_bots.sh`. Needs `LINODE_ACCESS_TOKEN` and
+   the bot map with `./update_bots.sh`. Needs `LINODE_TOKEN` and
    `TRIPLEA_ANSIBLE_VAULT_PASSWORD`.
 
 ## If automation is unavailable

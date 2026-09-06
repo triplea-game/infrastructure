@@ -74,9 +74,8 @@ to running servers only needs the Ansible/`system` path.
 - **Manual, all servers:** from the repo root,
   `APPLY=1 ./run.sh --tags system`. The `admin_user` role is under tag `system`
   with `hosts: all`, so this applies the admin everywhere. Requires the
-  environment: `TRIPLEA_ANSIBLE_VAULT_PASSWORD`, `LINODE_TOKEN` (or
-  `LINODE_ACCESS_TOKEN`), and either your own SSH key already on the servers or
-  `SSH_USER=ansible`.
+  environment: `TRIPLEA_ANSIBLE_VAULT_PASSWORD`, `LINODE_TOKEN`, and either your
+  own SSH key already on the servers or `SSH_USER=ansible`.
 - **Brand-new server:** after Terraform provisions it,
   `APPLY=1 ./run.sh --limit <ip> --tags system` creates the account (its key is
   already injected by cloud-init).
