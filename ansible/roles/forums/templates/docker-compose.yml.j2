@@ -13,6 +13,21 @@ services:
       - postgres_data:/var/lib/postgresql
     networks:
       - forums_internal
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # The official image's entrypoint runs as root to fix up PGDATA before
+    # gosu-ing down to 'postgres': CHOWN and FOWNER for the chown/chmod,
+    # DAC_OVERRIDE to traverse the 0700 data directory as root, SETUID and
+    # SETGID for the gosu switch. Dropping any of these either aborts startup
+    # on an existing data directory or silently skips the permission fixup.
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
     logging:
       driver: journald
       options:
@@ -32,7 +47,15 @@ services:
     depends_on:
       - postgres
     networks:
+      # 'forums_internal' carries the Postgres connection; 'egress' carries
+      # NodeBB's outbound traffic — mail, link previews, ACP plugin installs.
       - forums_internal
+      - egress
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 1024
     logging:
       driver: journald
       options:
@@ -42,5 +65,8 @@ volumes:
   postgres_data:
 
 networks:
+  # Marking this internal denies Postgres a route off the host; NodeBB reaches
+  # the internet over 'egress' instead.
   forums_internal:
-
+    internal: true
+  egress:

@@ -6,6 +6,12 @@ to `rrsync -wo`, so the remote paths in the script are relative to the backup
 directory rather than absolute (see the `lobby/forums_backup_target` role).
 TODO: Overall, we are missing 'nginx' configuration.
 
+Both services drop every Linux capability bar the five the Postgres image needs
+to set up its data directory and drop privileges. `postgres` sits on an
+internal-only network and so has no route off the host; `nodebb` additionally
+joins an `egress` network, which its outbound traffic — mail, link previews, ACP
+plugin installs — depends on.
+
 The forums Linode is **not** managed by Terraform (`servers.auto.tfvars` marks it
 `destroy = true`, pre-existing), so its kernel is set only in the Linode Manager.
 
