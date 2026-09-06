@@ -18,7 +18,7 @@ services:
       - DB_URL=postgres18:5432/{{ database_name }}
       - DATABASE_USER={{ database_user }}
       - DATABASE_PASSWORD=${DB_PASSWORD}
-      - GITHUB_API_TOKEN={{ github_api_token }}
+      - GITHUB_API_TOKEN=${GITHUB_API_TOKEN}
       - MAP_INDEXING_ENABLED=true
       - MAP_INDEXING_PERIOD_MINUTES=60
     depends_on:
