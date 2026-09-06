@@ -4,3 +4,11 @@
   ansible.builtin.systemd_service:
     name: support.service
     state: restarted
+
+# A reload is a full stop/start of ufw-init, which is what re-runs
+# 'after.rules' through iptables-restore; adding a rule with the ufw module
+# only restores 'user.rules' and would leave DOCKER-USER stale.
+- name: Reload_ufw
+  become: true
+  community.general.ufw:
+    state: reloaded
