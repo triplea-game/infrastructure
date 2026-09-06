@@ -40,15 +40,19 @@
   loop_control:
     label: "{{ item.name }}"
 
-- name: SSH keys - add authorized keys for admin users
+# 'admins.json' is the single source of truth for admin access, so the file is written
+# exclusively: a key placed by hand or left over from an older bootstrap must not outlive
+# its removal from that file.
+- name: SSH keys - authorize exactly the keys listed for each admin user
   become: true
   ansible.posix.authorized_key:
-    user: "{{ item.0.name }}"
-    key: "{{ item.1 }}"
+    user: "{{ item.name }}"
+    key: "{{ item.ssh_keys | join('\n') }}"
+    exclusive: true
     state: present
-  loop: "{{ admin_users | subelements('ssh_keys') }}"
+  loop: "{{ admin_users }}"
   loop_control:
-    label: "{{ item.0.name }}"
+    label: "{{ item.name }}"
 
 # Deploy service account - limited to docker pull and service restarts only
 - name: Create user for deployment named 'deploy'

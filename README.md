@@ -118,13 +118,19 @@ To add a new admin maintainer:
 
 ### Bootstrapping an existing server (root password access only)
 
-If you only have root password access, manually create the ansible service account first:
+If you only have root password access, manually create the ansible service account first.
+Take the key from `terraform/keys/admins.json` — this README is public, so keys are never
+hardcoded in it:
+
+```bash
+# from a checkout of this repo, print the key to paste on the server
+jq -r '.[] | select(.name=="ansible") | .ssh_keys[]' terraform/keys/admins.json
+```
 
 ```bash
 useradd ansible
 mkdir -p /home/ansible/.ssh
-echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINAUjUJsoqE4NEEnv8Hov06Kn6CNhSDheGRxm7HbLaG9 ansible@triplea" \
-  > /home/ansible/.ssh/authorized_keys
+echo "<the key printed above>" > /home/ansible/.ssh/authorized_keys
 chmod 700 /home/ansible/.ssh
 chmod 600 /home/ansible/.ssh/authorized_keys
 chown -R ansible:ansible /home/ansible
