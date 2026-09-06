@@ -1,0 +1,9 @@
+# Explicit resolvers pinned into systemd-resolved so name resolution never
+# depends on Linode DHCP handing one out. Public anycast resolvers, reachable
+# from every host; override per group in group_vars if a host needs vendor DNS.
+dns_servers:
+  - 1.1.1.1 # Cloudflare
+  - 8.8.8.8 # Google
+dns_fallback_servers:
+  - 1.0.0.1 # Cloudflare secondary
+  - 8.8.4.4 # Google secondary

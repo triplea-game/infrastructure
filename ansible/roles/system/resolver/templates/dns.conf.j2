@@ -1,0 +1,6 @@
+# Managed by Ansible (system/resolver role) — do not edit on the host.
+# Pins resolvers so DNS never depends on a DHCP-delivered nameserver, which is
+# how the forums host lost all resolution after a reboot (every name failed).
+[Resolve]
+DNS={{ dns_servers | join(' ') }}
+FallbackDNS={{ dns_fallback_servers | join(' ') }}

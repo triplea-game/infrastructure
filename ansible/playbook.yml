@@ -8,6 +8,9 @@
     DEBIAN_FRONTEND: noninteractive
     NEEDRESTART_MODE: a
   roles:
+    # first, so DNS is guaranteed before apt, docker, or anything else that
+    # reaches the network — a missing resolver otherwise fails the whole apply.
+    - system/resolver
     - name: system/admin_user
       vars:
         admin_users: "{{ lookup('file', playbook_dir + '/../terraform/keys/admins.json') | from_json }}"
