@@ -14,6 +14,13 @@ services:
       postfix:
         condition: service_started
     restart: unless-stopped
+    # Cap the default json-file driver; without this these logs grow unbounded
+    # (unlike the forums host, which routes containers to the capped journald).
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
   postgres:
     image: postgres:16
     environment:
@@ -28,6 +35,11 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
   postfix:
     image: boky/postfix
     environment:
@@ -37,6 +49,11 @@ services:
     volumes:
       - dkim_keys:/etc/opendkim/keys
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 volumes:
   pgdata:
   dkim_keys:

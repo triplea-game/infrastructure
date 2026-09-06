@@ -1,0 +1,10 @@
+/var/log/triplea-lobby-db-backup.log
+{
+    weekly
+    rotate 8
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}

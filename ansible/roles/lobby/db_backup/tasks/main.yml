@@ -25,3 +25,12 @@
     hour: "7"
     minute: "0"
     job: "{{ lobby_working_directory }}/backup-lobby-db.sh >> /var/log/triplea-lobby-db-backup.log 2>&1"
+
+- name: Deploy logrotate config for the lobby db backup log
+  become: true
+  ansible.builtin.copy:
+    src: logrotate-lobby-db-backup
+    dest: /etc/logrotate.d/triplea-lobby-db-backup
+    owner: root
+    group: root
+    mode: "0644"

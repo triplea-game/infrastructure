@@ -11,6 +11,12 @@ rsync -az -e "ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-n
   forums-backup@prod.triplea-game.org:/opt/backups/forums/
 rm -f "$BACKUP_DIR/$BACKUP_FILE"
 
+# The remote keeps every dated dump; prune the ones past the retention window.
+# -maxdepth 1 + the dump glob leave the sibling uploads/ mirror untouched.
+ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new \
+  forums-backup@prod.triplea-game.org \
+  "find /opt/backups/forums -maxdepth 1 -type f -name 'triplea_forums_db_backup_*.sql.gz' -mtime +{{ forums_backup_retention_days }} -delete"
+
 rsync -az --delete -e "ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new" \
   "{{ nodebb_uploads_directory }}/" \
   forums-backup@prod.triplea-game.org:/opt/backups/forums/uploads/

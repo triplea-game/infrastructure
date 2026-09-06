@@ -43,6 +43,22 @@
     name: docker
     state: present
 
+# Every service updates by pulling a new ':latest', orphaning the prior image
+# as dangling layers that nothing ever reclaims — worst on the 1GB bot Nanodes.
+# Reclaims dangling images, stopped containers, unused networks, and build
+# cache; never '-a' and never '--volumes', so live images and Postgres data
+# volumes are untouched. Output goes to syslog (journald/rsyslog, already
+# capped) rather than a fresh unbounded log file.
+- name: Schedule weekly docker prune to reclaim dangling images and build cache
+  become: true
+  ansible.builtin.cron:
+    name: docker-system-prune
+    user: root
+    weekday: "0"
+    hour: "4"
+    minute: "30"
+    job: "docker system prune -f 2>&1 | logger -t docker-prune"
+
 # - name: sudoless docker commands
 #  become: true
 #  user:

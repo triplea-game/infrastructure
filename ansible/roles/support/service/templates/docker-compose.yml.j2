@@ -17,6 +17,13 @@ services:
       postgres18:
         condition: service_healthy
     restart: unless-stopped
+    # Cap the default json-file driver; without this these logs grow unbounded
+    # (unlike the forums host, which routes containers to the capped journald).
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
   postgres18:
     image: postgres:18
     environment:
@@ -31,5 +38,10 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 volumes:
   pgdata:
