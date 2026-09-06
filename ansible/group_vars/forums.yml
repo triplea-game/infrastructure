@@ -1,0 +1,6 @@
+# A broken third-party apt source on the forums host must not abort the
+# cross-service apply that also deploys lobby, marti, bots, and support. This
+# opt-in tolerates that host's apt failures while every other host stays strict.
+# Safety net only: the sources themselves are repaired in the system roles, so
+# this should stay dormant.
+apt_upgrade_nonfatal: true

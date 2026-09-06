@@ -21,6 +21,11 @@
 - name: Apt update
   become: true
   tags: apt
+  register: docker_apt_update
+  # A host that opts in via 'apt_upgrade_nonfatal' has a known-broken apt source;
+  # its cache refresh must not abort the cross-service apply. Mirrors the guard on
+  # the upgrade task in the 'apt_packages' role.
+  ignore_errors: "{{ apt_upgrade_nonfatal | default(false) }}"
   ansible.builtin.apt:
     update_cache: true
 
