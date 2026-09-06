@@ -47,8 +47,11 @@ The `read-only` account is provisioned by Ansible — see
 a different read-only account with `TRIPLEA_RO_USER`. Its key is offered by
 `ssh-agent` or an `IdentityFile` in your `~/.ssh/config`.
 
-Resolving IPs (below) needs `LINODE_ACCESS_TOKEN`. If it is not set, get it before
-starting rather than guessing an address.
+Resolving IPs (below) needs a Linode PAT in the environment. The inventory plugin
+(`inventory/linode.yml`) reads `LINODE_TOKEN`, while `LINODE_ACCESS_TOKEN` is the
+name used elsewhere in this repo — the two can be the same PAT, so export both
+(alias one to the other) to be safe. If neither is set, get it before starting
+rather than guessing an address.
 
 ## Targets and where their logs live
 

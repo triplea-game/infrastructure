@@ -45,7 +45,8 @@ Run from this directory: `./pull-logs.sh <service> <host> [flags]`. Valid
 services: `lobby`, `marti`, `bot<N>` (eg `bot01`), `forums`, `support`. The SSH
 user defaults to the `read-only` account. **Resolve the host IP first** — the
 recipes are in the runbook ("Resolving the server address"); IP resolution needs
-`LINODE_ACCESS_TOKEN`.
+a Linode PAT — the inventory reads `LINODE_TOKEN`, which can share one value with
+`LINODE_ACCESS_TOKEN` (export both, aliased). See the runbook for the detail.
 
 ```
 ./pull-logs.sh lobby <lobby-ip> --since "2 hours ago" --grep ERROR --lines 500
