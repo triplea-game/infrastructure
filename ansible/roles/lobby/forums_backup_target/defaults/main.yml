@@ -7,8 +7,9 @@ forums_backup_user: forums-backup
 forums_backup_directory: /opt/backups/forums
 
 # How long received DB dumps are kept in forums_backup_directory before the
-# retention cron prunes them; the uploads mirror is excluded (rsync --delete
-# already tracks the source, so it needs no age-based pruning).
+# retention cron prunes them; the uploads mirror is excluded — it has no
+# pruning yet (see backup.sh.j2's rsync comment), so it grows unboundedly
+# until a retention pass for that directory is added.
 forums_backup_retention_days: 30
 
 # Public half of the vaulted 'nodebb_private_key' that the 'forums' role deploys

@@ -22,8 +22,7 @@
     name: "{{ forums_backup_user }}"
     shell: /bin/bash
     create_home: true
-    append: true
-    groups: "{{ forums_backup_user }}"
+    group: "{{ forums_backup_user }}"
 
 # The account keeps an interactive shell because sshd runs the forced command
 # through the login shell; nologin would break every push.
@@ -49,7 +48,9 @@
 
 # The forums host ships a fresh dated dump nightly and never deletes the
 # received copies, so they accumulate here indefinitely. -maxdepth 1 + the dump
-# glob leave the sibling uploads/ mirror untouched.
+# glob leave the sibling uploads/ mirror untouched. The 'triplea_forums_db_backup_*'
+# glob must stay in sync with the one backup.sh.j2 generates on the forums host —
+# a filename-pattern change there needs the same change here.
 - name: Forums backup - prune received dumps past the retention window
   become: true
   ansible.builtin.cron:

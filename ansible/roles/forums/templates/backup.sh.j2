@@ -29,6 +29,13 @@ rsync -az -e "ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-n
   forums-backup@prod.triplea-game.org:/
 rm -f "$BACKUP_DIR/$BACKUP_FILE"
 
-rsync -az --delete -e "ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new" \
+# No --delete: a compromised, corrupted, or accidentally-wiped source would
+# otherwise propagate the deletion to the only other copy on the next nightly
+# run, destroying the offsite backup along with the original. The mirror
+# accumulates files the source has since removed; nothing prunes it yet — a
+# retention pass for this directory (mirroring the dump-retention cron in
+# forums_backup_target) is a follow-up, not added here to avoid inventing
+# untested pruning logic against live backup data.
+rsync -az -e "ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new" \
   "{{ nodebb_uploads_directory }}/" \
   forums-backup@prod.triplea-game.org:/uploads/

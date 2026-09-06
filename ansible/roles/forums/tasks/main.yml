@@ -101,6 +101,17 @@
 
 - name: Configure Forums Backup
   block:
+    - name: Assert the lobby host (receiver for the offsite backup) is in inventory
+      ansible.builtin.assert:
+        that:
+          - groups['lobby'] | default([]) | length > 0
+        fail_msg: >-
+          No lobby host found in inventory. backup.sh rsyncs nightly to
+          forums-backup@prod.triplea-game.org, provisioned by the lobby host's
+          forums_backup_target role; a --limit forums apply against an
+          inventory without a lobby host would deploy a cron doomed to fail
+          every night.
+
     - name: Deploy backup-user private key
       become: true
       ansible.builtin.template:

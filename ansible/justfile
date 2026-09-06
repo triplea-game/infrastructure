@@ -42,6 +42,7 @@ galaxy-install:
 # Lint gate — must pass with zero findings before an apply.
 verify: galaxy-install
     ansible-lint
+    uv run --with pyyaml ./check-notify-handlers.sh
 
 # Preview changes against production (check + diff, no changes made).
 diff: galaxy-install

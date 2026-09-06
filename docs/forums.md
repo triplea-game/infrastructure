@@ -26,7 +26,7 @@ nodebb-1  | 2026-05-02T22:11:11.471Z [4567/100] - info: 🔗 Canonical URL: http
 
 ```
 docker compose -f '/opt/triplea-forums/docker-compose.yml' logs nodebb
-docker compose -f '/opt/triplea-forums/docker-compose.yml' logs mongodb
+docker compose -f '/opt/triplea-forums/docker-compose.yml' logs postgres
 ```
 
 ## Restart
