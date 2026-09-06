@@ -15,6 +15,24 @@
     system: true
     create_home: false
 
+- name: Look up the marti account
+  ansible.builtin.getent:
+    database: passwd
+    key: marti
+    fail_key: false
+
+# The compose stack runs as this uid/gid so the signing key can stay owner-only.
+# 'getent' is read-only and so also reports under --check; on a first-ever deploy
+# in check mode the account does not exist yet and the lookup yields nothing, so
+# fall back to the account name to keep the compose template renderable for the
+# diff.
+- name: Record the marti uid and gid
+  vars:
+    marti_passwd_entry: "{{ ansible_facts.getent_passwd['marti'] | default(['x', 'marti', 'marti'], true) }}"
+  ansible.builtin.set_fact:
+    marti_uid: "{{ marti_passwd_entry[1] }}"
+    marti_gid: "{{ marti_passwd_entry[2] }}"
+
 - name: Create marti working directory
   become: true
   ansible.builtin.file:
@@ -28,7 +46,7 @@
   become: true
   ansible.builtin.file:
     state: directory
-    mode: "0755"
+    mode: "0750"
     owner: marti
     group: marti
     path: "{{ marti_working_directory }}/keys"
@@ -43,7 +61,7 @@
   become: true
   ansible.builtin.file:
     path: "{{ marti_working_directory }}/keys/privkey.pem"
-    mode: "0444"
+    mode: "0400"
     owner: marti
     group: marti
 
@@ -66,6 +84,7 @@
     group: marti
 
 - name: Deploy docker-compose.yml
+  notify: Restart_marti
   become: true
   ansible.builtin.template:
     src: docker-compose.yml.j2

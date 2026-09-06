@@ -9,6 +9,10 @@ x-logging: &default-logging
 services:
   app:
     image: {{ marti_image }}
+    # Runs as the host 'marti' account rather than the image's own 'appuser',
+    # whose system uid is assigned inside the image and is not knowable from the
+    # host; the mounted signing key is owner-only to marti.
+    user: "{{ marti_uid }}:{{ marti_gid }}"
     ports:
       - "127.0.0.1:{{ marti_port }}:{{ marti_port }}"
     volumes:
