@@ -1,6 +1,11 @@
 [Unit]
 Description=TripleA Bot %i
 Documentation=
+# The bot exits after every game by design (EXIT_ON_GAME_END=true), so restarts are
+# routine; disable systemd's default 5-starts-in-10s limit so a fast-exiting bot —
+# eg one that keeps exiting because the lobby is unreachable — keeps retrying instead
+# of being parked in the failed state until a hand-restart.
+StartLimitIntervalSec=0
 
 [Service]
 User=bot
@@ -28,6 +33,8 @@ ExecStart=docker run \
    ghcr.io/triplea-game/bot:latest
 ExecStop=docker stop bot%i
 Restart=always
+# Back off between restarts so a crash-looping bot does not saturate the host.
+RestartSec=15
 SyslogIdentifier=bot%i
 
 [Install]
