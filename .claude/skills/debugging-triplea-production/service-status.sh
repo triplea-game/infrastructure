@@ -29,15 +29,18 @@ usage() {
   exit 2
 }
 
-# Resolve an allowlisted bot to its systemd unit. Scoped to bot units because
-# they are systemd-native and readable without sudo; the docker-compose services
+# Resolve a bot instance to its systemd unit. The argument is the per-host
+# systemd instance (bot@01..bot@03), matching pull-logs.sh — not the lobby-facing
+# BOT_NAME. A lobby name like 'Bot_503' is host bot_number 5 plus instance 03, so
+# it targets bot@03 on that host: `service-status.sh bot03 <host-5-ip>`. Bots are
+# systemd-native and their status reads without sudo; the docker-compose services
 # (lobby/marti/support) and forums would need a `docker compose ps` sudo grant,
 # which is a separate server-side decision.
 resolve_unit() {
   case "$1" in
-    bot[0-9]|bot[0-9][0-9]|bot[0-9][0-9][0-9])
+    bot[0-9]|bot[0-9][0-9])
              UNIT="${1/bot/bot@}.service" ;;
-    *) echo "service-status: unsupported service '$1' (bots only: bot0-bot999)" >&2; exit 2 ;;
+    *) echo "service-status: unsupported service '$1' (bot instance, eg bot03)" >&2; exit 2 ;;
   esac
 }
 
