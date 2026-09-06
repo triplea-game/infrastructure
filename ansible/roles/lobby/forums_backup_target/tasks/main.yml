@@ -35,3 +35,15 @@
   loop:
     - "{{ forums_backup_directory }}"
     - "{{ forums_backup_directory }}/uploads"
+
+# The forums host ships a fresh dated dump nightly and never deletes the
+# received copies, so they accumulate here indefinitely. -maxdepth 1 + the dump
+# glob leave the sibling uploads/ mirror untouched.
+- name: Forums backup - prune received dumps past the retention window
+  become: true
+  ansible.builtin.cron:
+    name: forums-backup-prune
+    user: root
+    hour: "8"
+    minute: "0"
+    job: "find {{ forums_backup_directory }} -maxdepth 1 -type f -name 'triplea_forums_db_backup_*.sql.gz' -mtime +{{ forums_backup_retention_days }} -delete"

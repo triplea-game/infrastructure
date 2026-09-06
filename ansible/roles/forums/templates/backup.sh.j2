@@ -4,18 +4,23 @@ set -euo pipefail
 
 BACKUP_DIR="{{ forums_working_directory }}"
 BACKUP_FILE="triplea_forums_db_backup_$(date +%Y%m%d-%H%M%S).sql.gz"
+
+# A failed rsync aborts the script (set -e) before the rm below, so its dated
+# dump lingers here and, across a sustained outage, stacks up at ~100MB each.
+# A successful run rm's its own dump, so any dump present at the start of a run
+# is a stranded leftover; the +60min floor keeps this from racing a dump a
+# concurrent run is mid-write. -maxdepth 1 + the dump glob keep the rest of the
+# working dir untouched. Retention of the shipped copies is separate and lives
+# on the lobby host in the forums_backup_target role.
+find "$BACKUP_DIR" -maxdepth 1 -type f -name 'triplea_forums_db_backup_*.sql.gz' \
+  -mmin +60 -delete
+
 docker compose -f "{{ nodebb_docker_compose_path }}" exec -T postgres \
   pg_dump -U nodebb -d nodebb | gzip > "$BACKUP_DIR/$BACKUP_FILE"
 rsync -az -e "ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new" \
   "$BACKUP_DIR/$BACKUP_FILE" \
   forums-backup@prod.triplea-game.org:/opt/backups/forums/
 rm -f "$BACKUP_DIR/$BACKUP_FILE"
-
-# The remote keeps every dated dump; prune the ones past the retention window.
-# -maxdepth 1 + the dump glob leave the sibling uploads/ mirror untouched.
-ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new \
-  forums-backup@prod.triplea-game.org \
-  "find /opt/backups/forums -maxdepth 1 -type f -name 'triplea_forums_db_backup_*.sql.gz' -mtime +{{ forums_backup_retention_days }} -delete"
 
 rsync -az --delete -e "ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new" \
   "{{ nodebb_uploads_directory }}/" \

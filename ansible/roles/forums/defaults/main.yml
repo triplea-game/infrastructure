@@ -7,10 +7,6 @@ nodebb_docker_compose_path: "{{ forums_working_directory }}/docker-compose.yml"
 # public key stored on the backups-host
 backup_ssh_key_path: "/root/.ssh/backup-user_key"
 
-# Dated DB dumps are shipped to /opt/backups/forums on the lobby host, which
-# otherwise keeps them forever; the backup script prunes dumps older than this.
-forums_backup_retention_days: 30
-
 # NodeBB's Postgres password (mongo->postgres migration).
 nodebb_postgres_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
