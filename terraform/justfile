@@ -1,0 +1,53 @@
+# Terraform recipes — Linode server provisioning. Recipes run from terraform/.
+#
+# LINODE_TOKEN (or TF_VAR_linode_token) must be set for anything that reaches
+# Linode; terraform reads it via TF_VAR_linode_token.
+
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+export TF_VAR_linode_token := env_var_or_default("TF_VAR_linode_token", env_var_or_default("LINODE_TOKEN", ""))
+
+alias diff := plan
+alias format := fmt
+alias format-check := fmt-check
+
+# Show available recipes.
+default:
+    @just --list
+
+# Fail early when no Linode token is set, rather than deep inside a provider call.
+_require-token:
+    @test -n "${TF_VAR_linode_token}" || { echo "Error: set TF_VAR_linode_token or LINODE_TOKEN before running" >&2; exit 1; }
+
+init: _require-token
+    terraform init -upgrade
+
+validate: _require-token
+    terraform validate
+
+# Preview changes; -lock=false keeps a read-only preview from blocking on a state lock.
+plan: _require-token
+    terraform plan -input=false -lock=false
+
+# Apply with interactive confirmation.
+apply: _require-token
+    terraform apply -input=false
+
+# Apply without prompting — used by CI on main.
+apply-now: _require-token
+    terraform apply -auto-approve
+
+destroy: _require-token
+    terraform destroy -auto-approve
+
+# Format all terraform files in place.
+fmt:
+    terraform fmt -recursive
+
+# Fail if any terraform file is not formatted.
+fmt-check:
+    #!/usr/bin/env bash
+    if [ -n "$(terraform fmt -recursive -check)" ]; then
+      echo "Run 'just fmt' to fix formatting" >&2
+      exit 1
+    fi

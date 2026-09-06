@@ -74,7 +74,7 @@ Order is always **Terraform first, then Ansible** — CI enforces it (the ansibl
 job `needs: terraform` in `.github/workflows/infrastructure.yml`).
 
 1. **Terraform** creates or destroys the VM: open a PR and let CI apply on merge,
-   or run manually — `cd terraform && make plan` then `make apply` (needs
+   or run manually — `cd terraform && just plan` then `just apply` (needs
    `LINODE_TOKEN` / `TF_VAR_linode_token`).
 2. **Ansible** (add only) configures the new box once the dynamic inventory
    discovers it by tag: `APPLY=1 ./run.sh --limit <new-ip> --tags system`, then

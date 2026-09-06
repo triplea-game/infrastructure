@@ -26,22 +26,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
+      - uses: extractions/setup-just@v2
 
       - name: Terraform Init
-        run: make init
+        run: just init
 
       - name: Terraform Validate
-        run: make validate
+        run: just validate
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
-        run: make plan
+        run: just plan
 
       - name: Terraform Apply
         if: >
           (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
           && github.ref == 'refs/heads/main'
-        run: make apply-now
+        run: just apply-now
 
   ansible:
     name: Ansible ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && 'apply' || 'diff' }}
@@ -61,18 +62,23 @@ jobs:
           ssh-private-key: ${{ secrets.INFRASTRUCTURE_SSH_PRIVATE_KEY }}
 
       - uses: astral-sh/setup-uv@v5
+      - uses: extractions/setup-just@v2
 
-      - name: Install Ansible + galaxy deps
+      - name: Install Ansible + ansible-lint
         run: |
-          make install-ansible
+          just install-ansible
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # Lint gate — runs on every event, so a lint failure blocks the apply below.
+      - name: Ansible Lint (verify)
+        run: just verify
 
       - name: Ansible Diff (PR preview)
         if: github.event_name == 'pull_request'
-        run: SSH_USER=ansible make diff
+        run: SSH_USER=ansible just diff
 
       - name: Ansible Apply
         if: >
           (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
           && github.ref == 'refs/heads/main'
-        run: SSH_USER=ansible make apply
+        run: SSH_USER=ansible just apply

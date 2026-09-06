@@ -38,7 +38,7 @@ operator with a pointer to `docs/runbooks/managing-bot-hosts.md` for applying
 
 ## Never
 
-- Never run `terraform apply` / `make apply`, `ansible-playbook` /
+- Never run `terraform apply` / `just apply`, `ansible-playbook` /
   `APPLY=1 ./run.sh`, or any mutating terraform/ansible command — even to
   "just plan-and-apply." Applying is the human/CI step.
 - Never merge the PR to trigger CI's apply — that's the operator's call.

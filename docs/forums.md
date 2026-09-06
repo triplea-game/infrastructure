@@ -5,7 +5,7 @@
 - Update the package.json in: ansible/roles/forums/node-bb/install/package.json
   - EG: https://github.com/NodeBB/NodeBB/blob/master/install/package.json
 - Run a redeployment:
-  - `cd ansible; make apply`
+  - `cd ansible; just apply`
 - SSH to the server and restart:
   - `sudo systemctl restart forums`
 

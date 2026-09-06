@@ -70,7 +70,7 @@ to running servers only needs the Ansible/`system` path.
 
 - **Normal path (CI):** open a PR to `main`. On merge, CI
   (`.github/workflows/infrastructure.yml`) runs `terraform apply` and then
-  `SSH_USER=ansible make apply`.
+  `SSH_USER=ansible just apply`.
 - **Manual, all servers:** from the repo root,
   `APPLY=1 ./run.sh --tags system`. The `admin_user` role is under tag `system`
   with `hosts: all`, so this applies the admin everywhere. Requires the

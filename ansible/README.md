@@ -9,5 +9,5 @@ LINODE_TOKEN
 
 uv tool install --with-executables-from ansible-core,ansible-lint,linode_api4 ansible
 
-SSH_USER=ansible make diff
+SSH_USER=ansible just diff
 

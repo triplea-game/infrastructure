@@ -34,9 +34,9 @@ Ansible manages:
 
 | Variable | Used By | Where set | Purpose | How to obtain |
 |---|---|---|---|---|
-| `LINODE_TOKEN` | Terraform (`terraform/Makefile`) | Local shell / CI secret | Linode Personal Access Token to provision/manage servers | [Linode Cloud Manager](https://cloud.linode.com/profile/tokens) → Create token |
+| `LINODE_TOKEN` | Terraform (`terraform/justfile`) | Local shell / CI secret | Linode Personal Access Token to provision/manage servers | [Linode Cloud Manager](https://cloud.linode.com/profile/tokens) → Create token |
 | `LINODE_ACCESS_TOKEN` | Ansible dynamic inventory (`inventory/linode.yml`) | Local shell / CI secret | Separate Linode token used by the Ansible Linode inventory plugin to discover servers | Same as above — can be the same token value as `LINODE_TOKEN` |
-| `TRIPLEA_ANSIBLE_VAULT_PASSWORD` | Ansible (`ansible/Makefile`) | Local shell / CI secret | Password to decrypt Ansible Vault secrets in playbooks | Shared secret — ask a maintainer |
+| `TRIPLEA_ANSIBLE_VAULT_PASSWORD` | Ansible (`ansible/justfile`) | Local shell / CI secret | Password to decrypt Ansible Vault secrets in playbooks | Shared secret — ask a maintainer |
 | `INFRASTRUCTURE_SSH_PRIVATE_KEY` | GitHub Actions | GitHub Actions secret | Private SSH key for the `deploy-infrastructure` service account | Generate with `ssh-keygen`, store private half here, public half in `playbook.yml` |
 
 **GitHub Actions secrets** (configure at Settings → Secrets → Actions):
@@ -160,20 +160,23 @@ APPLY=1 ./run.sh --limit [IP] --tags system
 ./run.sh --verbose
 ```
 
-### Using the Ansible Makefile (inside `ansible/`)
+### Using the Ansible justfile (inside `ansible/`)
 
 ```bash
+# Lint gate (must pass before an apply)
+just verify
+
 # Preview (check + diff)
-make diff
+just diff
 
 # Apply
-make apply
+just apply
 
 # Apply as the ansible service account
-make apply-as-ansible
+just apply-as-ansible
 
 # Update all bot maps
-make update-bots
+just update-bots
 ```
 
 ### Installing Ansible
@@ -191,7 +194,7 @@ ansible-galaxy collection install -r ansible/requirements.yml --force
 
 ## Running Terraform
 
-Terraform manages Linode server provisioning. All commands run from the `terraform/` directory via `make`.
+Terraform manages Linode server provisioning. All commands run from the `terraform/` directory via `just`.
 
 **Prerequisite:** `LINODE_TOKEN` must be set.
 
@@ -199,10 +202,10 @@ Terraform manages Linode server provisioning. All commands run from the `terrafo
 export LINODE_TOKEN=<your-linode-pat>
 cd terraform/
 
-make init      # Initialize providers
-make validate  # Validate configuration
-make plan      # Preview changes
-make apply     # Apply changes (interactive confirmation)
+just init      # Initialize providers
+just validate  # Validate configuration
+just plan      # Preview changes
+just apply     # Apply changes (interactive confirmation)
 ```
 
 Server definitions live in `terraform/servers.auto.tfvars`. SSH public keys used during provisioning are in `terraform/keys/`.
@@ -238,9 +241,9 @@ Workflow: `.github/workflows/infrastructure.yml`
 
 | Trigger | Terraform | Ansible |
 |---|---|---|
-| Pull Request | `make plan` (preview) | `make diff` (check + diff) |
-| Push to `master` | `make apply-now` | `make apply` |
-| Manual `workflow_dispatch` on `master` | `make apply-now` | `make apply` |
+| Pull Request | `just plan` (preview) | `just verify` (lint) then `just diff` (check + diff) |
+| Push to `main` | `just apply-now` | `just verify` (lint) then `just apply` |
+| Manual `workflow_dispatch` on `main` | `just apply-now` | `just verify` (lint) then `just apply` |
 
 Ansible runs after Terraform (`needs: terraform`) so newly provisioned servers exist before configuration is applied.
 

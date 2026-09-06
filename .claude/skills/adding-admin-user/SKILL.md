@@ -46,7 +46,7 @@ with a pointer to `docs/runbooks/adding-admin-user.md` for applying.
 
 ## Never
 
-- Never run `terraform apply`, `ansible-playbook`, `make apply`, or
+- Never run `terraform apply`, `ansible-playbook`, `just apply`, or
   `APPLY=1 ./run.sh` — applying is the human/CI step.
 - Never push or merge to trigger a CI apply.
 - Never edit any file other than `terraform/keys/admins.json`.

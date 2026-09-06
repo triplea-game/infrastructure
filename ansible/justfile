@@ -1,0 +1,68 @@
+# Ansible recipes — configuration management for the TripleA fleet. Recipes run
+# from ansible/.
+#
+# Env:
+#   SSH_USER                        remote user for the connection (defaults to $USER)
+#   TRIPLEA_ANSIBLE_VAULT_PASSWORD  vault password, consumed by vault-password.sh
+
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+ssh_user := env_var_or_default("SSH_USER", env_var_or_default("USER", ""))
+run_ansible := 'ANSIBLE_CONFIG=./ansible.cfg ansible-playbook --vault-password-file ./vault-password.sh -e ansible_user=' + ssh_user
+prod_inventory := '--inventory inventory/linode.yml'
+playbook := 'playbook.yml'
+
+alias plan := diff
+alias deploy := apply
+
+# Show available recipes.
+default:
+    @just --list
+
+# Install ansible-core (+ inventory deps) and ansible-lint as uv tools.
+install-ansible:
+    uv tool install ansible-core --with ansible --with linode_api4
+    uv tool install ansible-lint
+
+# Fail unless the vault password is present in the environment.
+deps:
+    test -n "${TRIPLEA_ANSIBLE_VAULT_PASSWORD}"
+
+# Print the resolved inventory as a host graph.
+show-hosts:
+    ansible-inventory -i inventory/linode.yml --graph
+
+# Install the galaxy collections the playbook and lint depend on.
+galaxy-install:
+    ansible-galaxy collection install -r requirements.yml
+
+# The galaxy-install dep runs first so ansible-lint's syntax-check can resolve
+# collection modules such as community.general.ufw and ansible.posix.authorized_key.
+
+# Lint gate — must pass with zero findings before an apply.
+verify: galaxy-install
+    ansible-lint
+
+# Preview changes against production (check + diff, no changes made).
+diff: galaxy-install
+    {{run_ansible}} --check --diff {{prod_inventory}} {{playbook}}
+
+# Apply changes to production.
+apply: galaxy-install
+    {{run_ansible}} {{prod_inventory}} {{playbook}}
+
+# Apply as the 'ansible' service account.
+apply-as-ansible:
+    SSH_USER=ansible just apply
+
+# Trigger a map re-download across all bot hosts.
+update-bots:
+    ANSIBLE_CONFIG=./ansible.cfg ansible bots -a 'sudo /home/admin/download-all-maps' --inventory inventory/linode.yml --verbose
+
+# Echo the apply command without running it (debugging the invocation).
+show:
+    @echo {{run_ansible}} {{prod_inventory}} {{playbook}}
+
+# Echo the diff command without running it.
+print:
+    @echo {{run_ansible}} --check --diff {{prod_inventory}} {{playbook}}
