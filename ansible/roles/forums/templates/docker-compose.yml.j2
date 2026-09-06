@@ -1,13 +1,16 @@
 services:
   postgres:
-    image: postgres:16
+    image: postgres:18
     restart: unless-stopped
     environment:
       POSTGRES_USER: nodebb
       POSTGRES_PASSWORD: "{{ nodebb_postgres_password }}"
       POSTGRES_DB: nodebb
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # postgres:18 moved PGDATA under this mount point; the data lives in a
+      # subdirectory. Mounting at /var/lib/postgresql/data (the pre-18 path)
+      # aborts startup. Matches the lobby/support roles, also on postgres:18.
+      - postgres_data:/var/lib/postgresql
     networks:
       - forums_internal
     logging:

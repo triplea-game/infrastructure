@@ -6,9 +6,16 @@ nodebb_docker_compose_path: "{{ forums_working_directory }}/docker-compose.yml"
 # public key stored on the backups-host
 backup_ssh_key_path: "/root/.ssh/backup-user_key"
 
-# NodeBB's Postgres password (mongo->postgres migration). Replace this placeholder with a
-# vaulted value before apply: ansible-vault encrypt_string <pw> --name nodebb_postgres_password
-nodebb_postgres_password: "CHANGEME_vault_before_apply"  # TODO(dan): replace with !vault ciphertext
+# NodeBB's Postgres password (mongo->postgres migration).
+nodebb_postgres_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          36643130383632306630373566633539333862616234383738313234376137376362383534356532
+          3862666264393432656666666132306465393764313630650a326138646262343561613262656430
+          35393838376639373765636533626637613734636135306561303630636461333337623235333364
+          3039643761623636640a303465363332313131633338396634336632346462613833323431623436
+          36393932316437373961323634343234396331346133643330653430356534303633646664383039
+          32343464633962363062383637333062356439336333326637643533373231616331626561343232
+          313865396231353964316535323031343166
 
 nodebb_secret: !vault |
   $ANSIBLE_VAULT;1.1;AES256
