@@ -20,6 +20,9 @@ concurrency:
 jobs:
   terraform:
     name: Terraform ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && 'apply' || 'plan' }}
+    # Dependabot PRs run without repo secrets, so the Linode token is empty and
+    # every terraform recipe trips the _require-token guard; skip them entirely.
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -52,6 +55,7 @@ jobs:
 
   ansible:
     name: Ansible ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && 'apply' || 'diff' }}
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: terraform
