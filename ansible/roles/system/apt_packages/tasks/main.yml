@@ -1,4 +1,39 @@
 ---
+# The discontinued 'webupd8team/java' PPA (Oracle Java 8 installer, trusty era)
+# survived on at least the forums host as a live source signed by an rsa1024
+# key in the legacy 'trusted.gpg' keyring. A legacy-keyring key is trusted for
+# every source, not just its own, so it stays a trust anchor until removed; it
+# is also what broke 'apt-get update' there. Idempotent and a no-op on hosts
+# that never had it.
+- name: Find sources files for the dead 'webupd8team/java' PPA
+  become: true
+  ansible.builtin.find:
+    paths: /etc/apt/sources.list.d
+    patterns: "*webupd8team*"
+  register: webupd8team_sources
+
+- name: Remove sources files for the dead 'webupd8team/java' PPA
+  become: true
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ webupd8team_sources.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Remove any 'webupd8team/java' line from /etc/apt/sources.list
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/apt/sources.list
+    regexp: 'ppa\.launchpad\.net/webupd8team/java'
+    state: absent
+
+- name: Remove the 'webupd8team/java' signing key from the legacy keyring
+  become: true
+  ansible.builtin.apt_key:
+    id: 7B2C3B0889BF5709A105D03AC2518248EEA14886
+    state: absent
+
 - name: Update and upgrade apt packages
   become: true
   check_mode: false
