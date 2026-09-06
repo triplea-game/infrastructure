@@ -132,13 +132,16 @@
 
 - name: Configure user for CICD deployments - user named 'deploy'
   block:
+    # Root-owned rather than marti-owned: the sudoers Cmnd_Alias lets 'deploy'
+    # run this as 'marti', so 'marti' needs execute on it but must not be able
+    # to edit what 'deploy' will run.
     - name: Deploy deploy-marti.sh
       become: true
       ansible.builtin.template:
         src: deploy-marti.sh.j2
         dest: "{{ marti_working_directory }}/deploy-marti.sh"
-        owner: marti
-        group: marti
+        owner: root
+        group: root
         mode: "0755"
 
     - name: Deploy sudoers entry for deploy user - /etc/sudoers.d/deploy-marti

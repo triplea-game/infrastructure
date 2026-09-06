@@ -34,23 +34,21 @@ Ansible manages:
 
 | Variable | Used By | Where set | Purpose | How to obtain |
 |---|---|---|---|---|
-| `LINODE_TOKEN` | Terraform (`terraform/justfile`) | Local shell / CI secret | Linode Personal Access Token to provision/manage servers | [Linode Cloud Manager](https://cloud.linode.com/profile/tokens) → Create token |
-| `LINODE_ACCESS_TOKEN` | Ansible dynamic inventory (`inventory/linode.yml`) | Local shell / CI secret | Separate Linode token used by the Ansible Linode inventory plugin to discover servers | Same as above — can be the same token value as `LINODE_TOKEN` |
+| `LINODE_TOKEN` | Terraform (`terraform/justfile`) and the Ansible dynamic inventory (`inventory/linode.yml`) | Local shell / CI secret | Linode Personal Access Token to provision/manage servers and to discover them for Ansible | [Linode Cloud Manager](https://cloud.linode.com/profile/tokens) → Create token |
 | `TRIPLEA_ANSIBLE_VAULT_PASSWORD` | Ansible (`ansible/justfile`) | Local shell / CI secret | Password to decrypt Ansible Vault secrets in playbooks | Shared secret — ask a maintainer |
 | `INFRASTRUCTURE_SSH_PRIVATE_KEY` | GitHub Actions | GitHub Actions secret | Private SSH key for the `deploy-infrastructure` service account | Generate with `ssh-keygen`, store private half here, public half in `playbook.yml` |
 
 **GitHub Actions secrets** (configure at Settings → Secrets → Actions):
 - `LINODE_TOKEN`
-- `LINODE_ACCESS_TOKEN`
 - `TRIPLEA_ANSIBLE_VAULT_PASSWORD`
 - `INFRASTRUCTURE_SSH_PRIVATE_KEY`
 
-> **Local runs via `run.sh`:** your personal SSH key (already on servers) + `TRIPLEA_ANSIBLE_VAULT_PASSWORD` + `LINODE_TOKEN` + `LINODE_ACCESS_TOKEN`.
+> **Local runs via `run.sh`:** your personal SSH key (already on servers) + `TRIPLEA_ANSIBLE_VAULT_PASSWORD` + `LINODE_TOKEN`.
 > For **freshly provisioned servers**, SSH in as `<your-username>@<ip>` (your named account from `admins.json`) — your key is injected at provisioning time via `terraform/keys/admins.json`. See [SSH access on freshly provisioned servers](#ssh-access-on-freshly-provisioned-servers).
 >
 > **Terraform only:** `LINODE_TOKEN` (or `TF_VAR_linode_token`).
 >
-> **Ansible only:** `TRIPLEA_ANSIBLE_VAULT_PASSWORD` + `LINODE_ACCESS_TOKEN`.
+> **Ansible only:** `TRIPLEA_ANSIBLE_VAULT_PASSWORD` + `LINODE_TOKEN`.
 
 ---
 
@@ -257,8 +255,7 @@ Ansible runs after Terraform (`needs: terraform`) so newly provisioned servers e
 
 | Secret | Purpose |
 |---|---|
-| `LINODE_TOKEN` | Terraform — provision/destroy Linode servers |
-| `LINODE_ACCESS_TOKEN` | Ansible dynamic inventory — discover servers via Linode API |
+| `LINODE_TOKEN` | Terraform — provision/destroy Linode servers; Ansible dynamic inventory — discover servers via Linode API |
 | `TRIPLEA_ANSIBLE_VAULT_PASSWORD` | Decrypt Ansible Vault secrets |
 | `INFRASTRUCTURE_SSH_PRIVATE_KEY` | SSH private key for the `deploy-infrastructure` service account |
 

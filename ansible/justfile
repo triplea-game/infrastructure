@@ -56,9 +56,11 @@ apply: galaxy-install
 apply-as-ansible:
     SSH_USER=ansible just apply
 
-# Trigger a map re-download across all bot hosts.
+# Trigger a map re-download across all bot hosts, out of band with the daily
+# cron the 'bot' role installs. Runs as the 'bot' user, as that cron does, so
+# the downloaded maps keep the ownership the bot containers expect.
 update-bots:
-    ANSIBLE_CONFIG=./ansible.cfg ansible bots -a 'sudo /home/admin/download-all-maps' --inventory inventory/linode.yml --verbose
+    ANSIBLE_CONFIG=./ansible.cfg ansible bots -e ansible_user={{ssh_user}} --become --become-user bot --module-name ansible.builtin.command --args 'python3 /opt/bot/download_maps.py' {{prod_inventory}} --verbose
 
 # Echo the apply command without running it (debugging the invocation).
 show:

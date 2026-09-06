@@ -86,13 +86,16 @@
 
 - name: Configure user for CICD deployments - user named 'deploy'
   block:
+    # Root-owned rather than support-owned: the sudoers Cmnd_Alias lets
+    # 'deploy' run this as 'support', so 'support' needs execute on it but must
+    # not be able to edit what 'deploy' will run.
     - name: Deploy deploy-support.sh
       become: true
       ansible.builtin.template:
         src: deploy-support.sh.j2
         dest: "{{ support_working_directory }}/deploy-support.sh"
-        owner: support
-        group: support
+        owner: root
+        group: root
         mode: "0755"
 
     - name: Deploy sudoers entry for deploy user - /etc/sudoers.d/deploy-support
