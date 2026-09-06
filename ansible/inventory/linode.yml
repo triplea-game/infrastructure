@@ -1,3 +1,4 @@
+---
 # Dynamic inventory plugin for Linode.
 # Requires the community.general.linode plugin (see requirements.yml).
 # Requires LINODE_TOKEN environment variable before running Ansible.

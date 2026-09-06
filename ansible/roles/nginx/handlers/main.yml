@@ -1,5 +1,6 @@
-- name: reload_nginx
+---
+- name: Reload_nginx
   become: true
-  service:
+  ansible.builtin.service:
     name: nginx
     state: reloaded

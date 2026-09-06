@@ -1,27 +1,28 @@
-- name: ensure admin user group & docker user group exist
+---
+- name: Ensure admin user group & docker user group exist
   become: true
-  group:
+  ansible.builtin.group:
     name: "{{ item }}"
     state: present
   with_items:
     - "{{ admin_group }}"
     - docker
 
-- name: create admin user groups
+- name: Create admin user groups
   become: true
-  group:
+  ansible.builtin.group:
     name: "{{ item.name }}"
   with_items: "{{ admin_users }}"
   loop_control:
     label: "{{ item.name }}"
 
-- name: create admin user accounts
+- name: Create admin user accounts
   become: true
-  user:
+  ansible.builtin.user:
     name: "{{ item.name }}"
     shell: /bin/bash
-    create_home: yes
-    append: yes
+    create_home: true
+    append: true
     groups: "{{ item.name }},{{ admin_group }},docker"
   with_items: "{{ admin_users }}"
   loop_control:
@@ -29,7 +30,7 @@
 
 - name: Deployer sudo permissions file - /etc/sudoers.d/[admin-user]
   become: true
-  template:
+  ansible.builtin.template:
     src: sudoer_file.sudo
     dest: "/etc/sudoers.d/{{ item.name }}"
     owner: root
@@ -41,7 +42,7 @@
 
 - name: SSH keys - add authorized keys for admin users
   become: true
-  authorized_key:
+  ansible.posix.authorized_key:
     user: "{{ item.0.name }}"
     key: "{{ item.1 }}"
     state: present
@@ -50,45 +51,44 @@
     label: "{{ item.0.name }}"
 
 # Deploy service account - limited to docker pull and service restarts only
-- name: create user for deployment named 'deploy'
+- name: Create user for deployment named 'deploy'
   block:
-    - name: deploy user - create group
+    - name: Deploy user - create group
       become: true
-      group:
+      ansible.builtin.group:
         name: "{{ deploy_user.name }}"
         state: present
 
-    - name: deploy user - create account
+    - name: Deploy user - create account
       become: true
-      user:
+      ansible.builtin.user:
         name: "{{ deploy_user.name }}"
         shell: /bin/bash
-        create_home: yes
+        create_home: true
         groups: "{{ deploy_user.name }}"
-        append: yes
+        append: true
 
-    - name: deploy user - sudoers file
+    - name: Deploy user - sudoers file
       become: true
-      template:
+      ansible.builtin.template:
         src: deploy_sudoer_file.sudo
         dest: "/etc/sudoers.d/{{ deploy_user.name }}"
         owner: root
         group: root
         mode: "0440"
 
-    - name: deploy user - SSH directory
+    - name: Deploy user - SSH directory
       become: true
-      file:
+      ansible.builtin.file:
         path: "/home/{{ deploy_user.name }}/.ssh/"
         state: directory
         mode: "700"
         owner: "{{ deploy_user.name }}"
         group: "{{ deploy_user.name }}"
 
-    - name: deploy user - authorized_keys
+    - name: Deploy user - authorized_keys
       become: true
-      authorized_key:
+      ansible.posix.authorized_key:
         user: "{{ deploy_user.name }}"
         state: present
         key: "{{ deploy_user.ssh_key }}"
-

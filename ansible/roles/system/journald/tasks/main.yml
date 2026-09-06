@@ -1,9 +1,10 @@
-- name: deploy journald config
-  notify: restart_journald
+---
+- name: Deploy journald config
+  notify: Restart_journald
   become: true
-  copy:
+  ansible.builtin.copy:
     src: journald.conf
     dest: /etc/systemd/journald.conf
-    mode: 644
+    mode: "0644"
     owner: root
     group: root

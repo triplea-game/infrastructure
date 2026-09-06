@@ -1,16 +1,17 @@
-- name: create dir /etc/nginx/include/
+---
+- name: Create dir /etc/nginx/include/
   become: true
-  file:
+  ansible.builtin.file:
     path: /etc/nginx/include/
     state: directory
     owner: root
     group: root
     mode: "0755"
 
-- name: install nginx config to /etc/nginx/include/
+- name: Install nginx config to /etc/nginx/include/
   become: true
-  notify: reload_nginx
-  template:
+  notify: Reload_nginx
+  ansible.builtin.template:
     src: "{{ item.src }}"
     dest: /etc/nginx/include/{{ item.target }}
     mode: "0644"

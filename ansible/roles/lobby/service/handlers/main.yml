@@ -1,5 +1,6 @@
-- name: restart_lobby
+---
+- name: Restart_lobby
   become: true
-  systemd_service:
-      name: lobby.service
-      state: restarted
+  ansible.builtin.systemd_service:
+    name: lobby.service
+    state: restarted

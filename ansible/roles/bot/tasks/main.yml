@@ -1,46 +1,47 @@
+---
 # Swapfile gives the 1GB bot Nanodes an OOM cushion — headroom so a memory spike
 # spills to disk before the host tips into the OOM-killer.
-- name: create swapfile
+- name: Create swapfile
   become: true
-  command:
+  ansible.builtin.command:
     cmd: "fallocate -l {{ bot_swapfile_size }} {{ bot_swapfile_path }}"
     creates: "{{ bot_swapfile_path }}"
   register: bot_swapfile
 
-- name: secure swapfile permissions
+- name: Secure swapfile permissions
   become: true
-  file:
+  ansible.builtin.file:
     path: "{{ bot_swapfile_path }}"
     owner: root
     group: root
     mode: "0600"
 
 # mkswap and swapon only on first creation; re-running mkswap on an active swap fails.
-- name: format swapfile
+- name: Format swapfile
   become: true
-  command: "mkswap {{ bot_swapfile_path }}"
+  ansible.builtin.command: "mkswap {{ bot_swapfile_path }}"
   when: bot_swapfile.changed
   changed_when: true
 
-- name: persist swapfile in fstab
+- name: Persist swapfile in fstab
   become: true
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/fstab
     regexp: "^{{ bot_swapfile_path }} "
     line: "{{ bot_swapfile_path }} none swap sw 0 0"
     state: present
 
-- name: activate swapfile
+- name: Activate swapfile
   become: true
-  command: "swapon {{ bot_swapfile_path }}"
+  ansible.builtin.command: "swapon {{ bot_swapfile_path }}"
   when: bot_swapfile.changed
   changed_when: true
 
 # Keep swap as an emergency cushion rather than routine paging, so healthy bots
 # stay in RAM and only a memory spike reaches disk.
-- name: configure swappiness
+- name: Configure swappiness
   become: true
-  copy:
+  ansible.builtin.copy:
     dest: /etc/sysctl.d/60-bot-swappiness.conf
     content: "vm.swappiness={{ bot_swappiness }}\n"
     owner: root
@@ -48,30 +49,30 @@
     mode: "0644"
   register: bot_swappiness_conf
 
-- name: apply swappiness
+- name: Apply swappiness
   become: true
-  command: "sysctl --system"
+  ansible.builtin.command: "sysctl --system"
   when: bot_swappiness_conf.changed
   changed_when: true
 
-- name: create service group {bot}
+- name: Create service group {bot}
   become: true
-  group:
+  ansible.builtin.group:
     name: "bot"
     state: present
 
-- name: create service user {bot}
+- name: Create service user {bot}
   become: true
-  user:
+  ansible.builtin.user:
     name: "bot"
     groups: "bot,docker"
     uid: "999"
-    create_home: no
-    system: yes
+    create_home: false
+    system: true
 
-- name: create folders
+- name: Create folders
   become: true
-  file:
+  ansible.builtin.file:
     state: directory
     path: "{{ item }}"
     mode: "0755"
@@ -83,52 +84,52 @@
     - "{{ bot_maps_folder }}"
     - "/var/log/bot/"
 
-- name: deploy scripts
+- name: Deploy scripts
   become: true
-  template:
+  ansible.builtin.template:
     src: "download_maps.py.j2"
     dest: "/opt/bot/download_maps.py"
     owner: "bot"
     group: "{{ admin_group }}"
     mode: "0755"
 
-- name: create cronjob to download maps daily
+- name: Create cronjob to download maps daily
   become: true
-  cron:
+  ansible.builtin.cron:
     name: "bot-download-maps"
     special_time: daily
     job: python3 /opt/bot/download_maps.py > /var/log/bot/map-download.log 2>&1
     user: bot
 
-- name: install systemd service script
+- name: Install systemd service script
   become: true
-  template:
+  ansible.builtin.template:
     src: bot.service.j2
     dest: /lib/systemd/system/bot@.service
     mode: "644"
     owner: root
     group: "{{ admin_group }}"
-  notify: restart bots
+  notify: Restart bots
 
-- name: pull latest bot docker image
+- name: Pull latest bot docker image
   become: true
-  shell: docker pull ghcr.io/triplea-game/bot:latest
+  ansible.builtin.command: docker pull ghcr.io/triplea-game/bot:latest
   register: docker_pull_result
   changed_when: "'Status: Downloaded newer image' in docker_pull_result.stdout"
 
-- name: allow ports
+- name: Allow ports
   become: true
-  ufw:
+  community.general.ufw:
     rule: allow
     port: "{{ item.port }}"
     proto: tcp
   with_items: "{{ bot_instances }}"
 
-- name: enable and ensure bots are started
+- name: Enable and ensure bots are started
   become: true
-  service:
+  ansible.builtin.service:
     name: "bot@{{ item.number }}"
     state: started
-    enabled: yes
-    daemon_reload: yes
+    enabled: true
+    daemon_reload: true
   with_items: "{{ bot_instances }}"

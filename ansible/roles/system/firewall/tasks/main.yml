@@ -1,11 +1,11 @@
-
+---
 - name: UFW deny incoming by default
   become: true
   retries: 12
   delay: 5
   register: result
   until: result is not failed
-  ufw:
+  community.general.ufw:
     default: deny
     direction: incoming
 
@@ -15,17 +15,17 @@
   delay: 5
   register: result
   until: result is not failed
-  ufw:
+  community.general.ufw:
     default: allow
     direction: outgoing
 
-- name: turn on ssh rate limiting
+- name: Turn on ssh rate limiting
   become: true
   retries: 12
   delay: 5
   register: result
   until: result is not failed
-  ufw:
+  community.general.ufw:
     rule: limit
     port: ssh
     proto: tcp
@@ -36,5 +36,5 @@
   delay: 5
   register: result
   until: result is not failed
-  ufw:
+  community.general.ufw:
     state: enabled

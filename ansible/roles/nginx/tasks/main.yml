@@ -1,31 +1,32 @@
-- name: apt install nginx
+---
+- name: Apt install nginx
   become: true
-  apt:
+  ansible.builtin.apt:
     name: nginx
     state: present
 
-- name: deploy /etc/nginx/sites-enabled/default default nginx sites_enabled config
+- name: Deploy /etc/nginx/sites-enabled/default default nginx sites_enabled config
   become: true
-  notify: reload_nginx
-  template:
+  notify: Reload_nginx
+  ansible.builtin.template:
     src: "prod.default.conf"
     dest: "/etc/nginx/sites-enabled/default"
     owner: root
     group: root
     mode: "0644"
 
-- name: create /etc/nginx/include/ folder
+- name: Create /etc/nginx/include/ folder
   become: true
-  file:
+  ansible.builtin.file:
     state: directory
     path: /etc/nginx/include/
     owner: root
     group: root
     mode: "0755"
 
-- name: ensure nginx is started
+- name: Ensure nginx is started
   become: true
-  systemd:
+  ansible.builtin.systemd:
     name: nginx
     state: started
     enabled: true
@@ -33,13 +34,12 @@
 # 80 is opened alongside 443 so the Certbot-managed port-80 server block in
 # prod.default.conf can issue its HTTP->HTTPS 301. Without it, inbound :80 is
 # dropped and a bare http:// URL times out instead of redirecting.
-- name: allow firewall ports
+- name: Allow firewall ports
   become: true
-  ufw:
+  community.general.ufw:
     rule: allow
     port: "{{ item }}"
     proto: tcp
   loop:
     - "80"
     - "443"
-

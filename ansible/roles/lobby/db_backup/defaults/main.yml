@@ -1,3 +1,4 @@
+---
 # Directory the lobby docker-compose project lives in (matches lobby/service role).
 lobby_working_directory: /opt/lobby
 

@@ -1,5 +1,6 @@
-- name: assert the support host and its private IP are resolvable
-  assert:
+---
+- name: Assert the support host and its private IP are resolvable
+  ansible.builtin.assert:
     that:
       - groups['support'] | default([]) | length > 0
       - hostvars[groups['support'][0]].private_ip | default('') | length > 0
@@ -8,19 +9,19 @@
       support Linode (with private_ip = true) before deploying lobby's
       nginx, so this upstream can resolve its private address.
 
-- name: create dir /etc/nginx/include/
+- name: Create dir /etc/nginx/include/
   become: true
-  file:
+  ansible.builtin.file:
     path: /etc/nginx/include/
     state: directory
     owner: root
     group: root
     mode: "0755"
 
-- name: install nginx config to /etc/nginx/include/
+- name: Install nginx config to /etc/nginx/include/
   become: true
-  notify: reload_nginx
-  template:
+  notify: Reload_nginx
+  ansible.builtin.template:
     src: "{{ item.src }}"
     dest: /etc/nginx/include/{{ item.target }}
     mode: "0644"

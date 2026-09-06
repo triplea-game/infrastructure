@@ -1,3 +1,4 @@
+---
 # oauth2-proxy runs on the LOBBY host (co-located with nginx), bound to
 # loopback 127.0.0.1:4180. nginx performs an auth_request subrequest against it
 # and forwards *sanitized* X-Auth-* identity headers to the support backend.
@@ -58,4 +59,3 @@ oauth2_proxy_cookie_secret: !vault |
   3865626435376536630a333966363039373966373563353061663338303132636139393466373461
   32643964343265306566663864653332353936653363323430306235376562653439313737613132
   6431323630336665643432313039396339343130313534653439
-

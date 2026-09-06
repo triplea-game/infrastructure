@@ -1,5 +1,6 @@
-- name: restart_marti
+---
+- name: Restart_marti
   become: true
-  systemd_service:
-      name: marti.service
-      state: restarted
+  ansible.builtin.systemd_service:
+    name: marti.service
+    state: restarted

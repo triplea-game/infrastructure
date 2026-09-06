@@ -1,3 +1,4 @@
+---
 lobby_working_directory: /opt/lobby
 
 # Public hostname for the web service (nginx / lobby URL).
@@ -10,7 +11,7 @@ lobby_mail_domain: lobby.triplea-game.org
 database_port: 5432
 database_name: "lobby_db"
 database_user: "lobby_user"
-database_password: !vault |
+database_password: !vault |-
   $ANSIBLE_VAULT;1.1;AES256
   64336166636636343330663935383339363337313233333664333134346237306364386430633437
   3236386138623863353330316436333964366335396439310a313132613436663263363832663834

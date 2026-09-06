@@ -1,3 +1,4 @@
+---
 support_working_directory: /opt/support
 
 # Where the daily database backup is written. The same file is overwritten

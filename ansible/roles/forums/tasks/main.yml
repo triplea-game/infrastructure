@@ -1,15 +1,16 @@
+---
 # Clone the repo to the server's app directory
-#sudo git clone https://github.com/triplea-project/forums.git /srv/triplea-forums
+# sudo git clone https://github.com/triplea-project/forums.git /srv/triplea-forums
 
-  # Create the data directories that docker-compose.yml mounts
+# Create the data directories that docker-compose.yml mounts
 
-  # Copy the example config to the host path that docker-compose.yml mounts
-#sudo cp /srv/triplea-forums/node-bb/example/config.json /opt/triplea-forums/config.json
-#sudo nano /opt/triplea-forums/config.json
+# Copy the example config to the host path that docker-compose.yml mounts
+# sudo cp /srv/triplea-forums/node-bb/example/config.json /opt/triplea-forums/config.json
+# sudo nano /opt/triplea-forums/config.json
 
-- name: create triplea-forums directory
+- name: Create triplea-forums directory
   become: true
-  file:
+  ansible.builtin.file:
     state: directory
     mode: "0755"
     owner: root
@@ -18,9 +19,9 @@
   with_items:
     - "{{ forums_working_directory }}"
 
-- name: deploy config.json file
+- name: Deploy config.json file
   become: true
-  template:
+  ansible.builtin.template:
     src: config.json.j2
     dest: "{{ forums_working_directory }}/config.json"
     mode: "0644"
@@ -29,22 +30,21 @@
     owner: "1001"
     group: "1001"
 
-- name: deploy templates
+- name: Deploy templates
   become: true
-  template:
-      src: "{{ item.src }}"
-      dest: "{{ item.dest }}"
-      mode: "0644"
-      owner: root
-      group: root
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+    owner: root
+    group: root
   with_items:
     - src: docker-compose.yml.j2
       dest: "{{ nodebb_docker_compose_path }}"
 
-
-- name: create directories
+- name: Create directories
   become: true
-  file:
+  ansible.builtin.file:
     state: directory
     mode: "0755"
     owner: 1001
@@ -59,36 +59,36 @@
     - uploads/sounds
     - uploads/system
 
-- name: deploy systemctl service file for forums
+- name: Deploy systemctl service file for forums
   become: true
-  template:
+  ansible.builtin.template:
     src: forums.service.j2
     dest: /etc/systemd/system/forums.service
     owner: root
     group: admin
     mode: "0644"
 
-- name: daemon-reload and enable forums service
+- name: Daemon-reload and enable forums service
   become: true
-  systemd_service:
+  ansible.builtin.systemd_service:
     daemon_reload: true
     name: forums.service
     enabled: true
 
 - name: Configure Forums Deployment User - deploy-user
   block:
-    - name: deploy /usr/local/bin/deploy-forums.sh
+    - name: Deploy /usr/local/bin/deploy-forums.sh
       become: true
-      template:
+      ansible.builtin.template:
         src: deploy-forums.sh.j2
         dest: /usr/local/bin/deploy-forums.sh
         owner: root
         group: root
         mode: "0755"
 
-    - name: deploy sudoers entry for deploy user - /etc/sudoers.d/deploy-forums
+    - name: Deploy sudoers entry for deploy user - /etc/sudoers.d/deploy-forums
       become: true
-      template:
+      ansible.builtin.template:
         src: deploy-forums-sudoers.j2
         dest: /etc/sudoers.d/deploy-forums
         owner: root
@@ -98,9 +98,9 @@
 
 - name: Configure Forums Backup
   block:
-    - name: deploy backup-user private key
+    - name: Deploy backup-user private key
       become: true
-      template:
+      ansible.builtin.template:
         src: backup_user_private_key.j2
         dest: "{{ backup_ssh_key_path }}"
         owner: root
@@ -108,7 +108,7 @@
         mode: "0600"
     - name: Deploy backup script
       become: true
-      template:
+      ansible.builtin.template:
         src: backup.sh.j2
         dest: "{{ forums_working_directory }}/backup.sh"
         owner: root
@@ -116,7 +116,7 @@
         mode: "0755"
     - name: Schedule nightly backup cron job
       become: true
-      cron:
+      ansible.builtin.cron:
         name: triplea-forums-backup
         user: root
         hour: "7"
@@ -125,7 +125,7 @@
 
 - name: Deploy logrotate config for forums and nodebb logs
   become: true
-  copy:
+  ansible.builtin.copy:
     src: logrotate-forums
     dest: /etc/logrotate.d/forums
     owner: root

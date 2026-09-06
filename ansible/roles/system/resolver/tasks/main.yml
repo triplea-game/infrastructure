@@ -1,38 +1,38 @@
-- name: ensure systemd-resolved drop-in directory exists
+- name: Ensure systemd-resolved drop-in directory exists
   become: true
-  file:
+  ansible.builtin.file:
     path: /etc/systemd/resolved.conf.d
     state: directory
-    mode: 0755
+    mode: "0755"
     owner: root
     group: root
 
-- name: pin DNS servers in systemd-resolved
+- name: Pin DNS servers in systemd-resolved
   become: true
-  notify: restart_resolved
-  template:
+  notify: Restart resolved
+  ansible.builtin.template:
     src: dns.conf.j2
     dest: /etc/systemd/resolved.conf.d/10-triplea-dns.conf
-    mode: 0644
+    mode: "0644"
     owner: root
     group: root
 
 # On Ubuntu Noble the pinned servers only take effect when '/etc/resolv.conf'
 # points at the resolved stub; a clobbered or static resolv.conf is a common
 # way DNS silently breaks after a reboot.
-- name: point /etc/resolv.conf at the systemd-resolved stub
+- name: Point /etc/resolv.conf at the systemd-resolved stub
   become: true
-  notify: restart_resolved
-  file:
+  notify: Restart resolved
+  ansible.builtin.file:
     path: /etc/resolv.conf
     src: /run/systemd/resolve/stub-resolv.conf
     state: link
     force: true
     follow: false
 
-- name: ensure systemd-resolved is enabled and running
+- name: Ensure systemd-resolved is enabled and running
   become: true
-  service:
+  ansible.builtin.service:
     name: systemd-resolved
     enabled: true
     state: started

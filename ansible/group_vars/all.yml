@@ -1,3 +1,4 @@
+---
 # These variables are used across multiple roles.
 # Other than these variables, roles should be fully self-contained.
 
@@ -18,4 +19,3 @@ deploy_user:
 read_only_user:
   name: read-only
   ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMDs3/DJcB3Wu3hbtxqbq/4oaqd9Oxw5VJ93favomFUW dan@desk"
-

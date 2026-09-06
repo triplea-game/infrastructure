@@ -1,3 +1,4 @@
+---
 - name: Update and upgrade apt packages
   become: true
   check_mode: false
@@ -7,15 +8,15 @@
   # not abort the cross-service apply; every other host stays strict and fails
   # loud, matching the critical-singleton rule in playbook.yml.
   ignore_errors: "{{ apt_upgrade_nonfatal | default(false) }}"
-  apt:
-    upgrade: yes
-    update_cache: yes
+  ansible.builtin.apt:
+    upgrade: true
+    update_cache: true
     cache_valid_time: 86400 # One day, only updates if caches are older than this.
     autoremove: true
 
-- name: apt install standard utilities and packages
+- name: Apt install standard utilities and packages
   become: true
-  apt:
+  ansible.builtin.apt:
     state: present
     name:
       - fail2ban

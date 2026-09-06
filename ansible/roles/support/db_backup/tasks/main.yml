@@ -1,24 +1,25 @@
-- name: create support db backup directory
+---
+- name: Create support db backup directory
   become: true
-  file:
+  ansible.builtin.file:
     state: directory
     path: "{{ support_db_backup_directory }}"
     owner: support
     group: support
     mode: "0750"
 
-- name: deploy support db backup script
+- name: Deploy support db backup script
   become: true
-  template:
+  ansible.builtin.template:
     src: backup-support-db.sh.j2
     dest: "{{ support_working_directory }}/backup-support-db.sh"
     owner: root
     group: root
     mode: "0755"
 
-- name: schedule daily support db backup cron job
+- name: Schedule daily support db backup cron job
   become: true
-  cron:
+  ansible.builtin.cron:
     name: triplea-support-db-backup
     user: root
     hour: "7"

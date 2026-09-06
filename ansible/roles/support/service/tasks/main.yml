@@ -1,22 +1,23 @@
-- name: create support group
+---
+- name: Create support group
   become: true
-  group:
+  ansible.builtin.group:
     name: support
     state: present
 
-- name: create support user
+- name: Create support user
   become: true
-  user:
+  ansible.builtin.user:
     name: support
     group: support
     groups: docker
     state: present
-    system: yes
-    create_home: no
+    system: true
+    create_home: false
 
-- name: create support working directory
+- name: Create support working directory
   become: true
-  file:
+  ansible.builtin.file:
     state: directory
     mode: "0755"
     owner: support
@@ -27,8 +28,8 @@
 # (rule: limit, port: ssh), so support is reachable like any other box.
 # Here we only open the app port, scoped to the lobby box's private IP, since
 # lobby's nginx is the sole thing that proxies in over the private network.
-- name: assert lobby's private IP is resolvable (source for the support port rule)
-  assert:
+- name: Assert lobby's private IP is resolvable (source for the support port rule)
+  ansible.builtin.assert:
     that:
       - groups['lobby'] | default([]) | length > 0
       - hostvars[groups['lobby'][0]].private_ip | default('') | length > 0
@@ -36,67 +37,67 @@
       Cannot determine lobby's private IP to scope the support firewall rule.
       Ensure the lobby host is provisioned with private_ip = true.
 
-- name: allow lobby -> support app port (8010) over the private network
+- name: Allow lobby -> support app port (8010) over the private network
   become: true
-  ufw:
+  community.general.ufw:
     rule: allow
     from_ip: "{{ hostvars[groups['lobby'][0]].private_ip }}"
     port: "8010"
     proto: tcp
 
-- name: deploy docker-compose.yml
+- name: Deploy docker-compose.yml
   become: true
-  notify: restart_support
-  template:
+  notify: Restart_support
+  ansible.builtin.template:
     src: docker-compose.yml.j2
     dest: "{{ support_working_directory }}/docker-compose.yml"
     mode: "0644"
     owner: support
     group: support
 
-- name: deploy .env
+- name: Deploy .env
   become: true
-  notify: restart_support
-  template:
+  notify: Restart_support
+  ansible.builtin.template:
     src: .env.j2
     dest: "{{ support_working_directory }}/.env"
     mode: "0600"
     owner: support
     group: support
 
-- name: deploy support systemd service
+- name: Deploy support systemd service
   become: true
-  notify: restart_support
+  notify: Restart_support
   register: support_unit_file
-  template:
+  ansible.builtin.template:
     src: support.service.j2
     dest: /etc/systemd/system/support.service
     owner: root
     group: root
     mode: "0644"
 
-- name: daemon-reload, enable and start the support service
+- name: Daemon-reload, enable and start the support service
   become: true
-  systemd_service:
+  ansible.builtin.systemd_service:
     daemon_reload: true
     name: support.service
     enabled: true
     state: started
 
-- name: configure user for CICD deployments - user named 'deploy'
+- name: Configure user for CICD deployments - user named 'deploy'
   block:
-    - name: deploy deploy-support.sh
+    - name: Deploy deploy-support.sh
       become: true
-      template:
+      ansible.builtin.template:
         src: deploy-support.sh.j2
         dest: "{{ support_working_directory }}/deploy-support.sh"
         owner: support
         group: support
         mode: "0755"
 
-    - name: deploy sudoers entry for deploy user - /etc/sudoers.d/deploy-support
+    - name: Deploy sudoers entry for deploy user - /etc/sudoers.d/deploy-support
       become: true
-      template:
+      ansible.builtin.template:
         src: deploy-support-sudoers.j2
         dest: /etc/sudoers.d/deploy-support
         owner: root

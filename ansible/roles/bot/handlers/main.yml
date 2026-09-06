@@ -1,11 +1,12 @@
+---
 # Bounces running bots when bot@.service changes; state: started + daemon_reload
 # only re-reads unit files, it does not re-exec the container, so a changed unit
 # would otherwise sit latent until the next crash. Restart drops any in-progress
 # hosted game — acceptable churn for picking up new cgroup caps.
-- name: restart bots
+- name: Restart bots
   become: true
-  service:
+  ansible.builtin.service:
     name: "bot@{{ item.number }}"
     state: restarted
-    daemon_reload: yes
+    daemon_reload: true
   with_items: "{{ bot_instances }}"
