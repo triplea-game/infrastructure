@@ -1,15 +1,15 @@
 {
   "url": "https://forums.triplea-game.org",
   "secret": "{{  nodebb_secret }}",
-  "database": "mongo",
+  "database": "postgres",
   "port": 4567,
   "trust_proxy": true,
-  "mongo": {
-    "host": "mongodb",
-    "port": "27017",
-    "username": "",
-    "password": "",
+  "postgres": {
+    "host": "postgres",
+    "port": "5432",
+    "username": "nodebb",
+    "password": "{{ nodebb_postgres_password }}",
     "database": "nodebb",
-    "uri": ""
+    "ssl": false
   }
 }

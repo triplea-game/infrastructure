@@ -1,15 +1,19 @@
 services:
-  mongodb:
-    image: mongo:8.0.21
+  postgres:
+    image: postgres:16
     restart: unless-stopped
+    environment:
+      POSTGRES_USER: nodebb
+      POSTGRES_PASSWORD: "{{ nodebb_postgres_password }}"
+      POSTGRES_DB: nodebb
     volumes:
-      - mongodb_data:/data/db
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - forums_internal
     logging:
       driver: journald
       options:
-        tag: forums-mongodb
+        tag: forums-postgres
 
   nodebb:
     image: ghcr.io/triplea-game/forums/nodebb:latest
@@ -23,7 +27,7 @@ services:
       - {{ forums_working_directory }}/config.json:/opt/config/config.json
       - {{ forums_working_directory }}/uploads:/usr/src/app/public/uploads
     depends_on:
-      - mongodb
+      - postgres
     networks:
       - forums_internal
     logging:
@@ -32,7 +36,7 @@ services:
         tag: forums-nodebb
 
 volumes:
-  mongodb_data:
+  postgres_data:
 
 networks:
   forums_internal:
