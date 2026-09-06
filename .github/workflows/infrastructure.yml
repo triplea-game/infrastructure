@@ -67,7 +67,7 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.INFRASTRUCTURE_SSH_PRIVATE_KEY }}
 
-      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5.4.2
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
       - uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6  # v2.0.0
 
       - name: Install Ansible + ansible-lint
