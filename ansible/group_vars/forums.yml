@@ -1,0 +1,5 @@
+# The forum host's 'apt-get update' is broken since the Mongo->Postgres switch
+# (a stale third-party source fails the cache refresh); tolerate its apt
+# failure so it can't block deploying lobby, marti, bots, or support. Drop this
+# once the host's apt sources are repaired.
+apt_upgrade_nonfatal: true

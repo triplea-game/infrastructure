@@ -2,6 +2,11 @@
   become: true
   check_mode: false
   changed_when: false
+  register: apt_upgrade
+  # A broken apt source on a host that opts in via 'apt_upgrade_nonfatal' must
+  # not abort the cross-service apply; every other host stays strict and fails
+  # loud, matching the critical-singleton rule in playbook.yml.
+  ignore_errors: "{{ apt_upgrade_nonfatal | default(false) }}"
   apt:
     upgrade: yes
     update_cache: yes
