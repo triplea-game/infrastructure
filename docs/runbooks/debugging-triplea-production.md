@@ -143,6 +143,28 @@ If a location has more than one bot server (different `bot_number`s), match on t
 `bot_number` that prefixes the middle digits, not on location alone. Then pass the
 resolved IP as the `<host>` argument to the wrapper.
 
+## Checking service status (bots)
+
+Alongside logs, `service-status.sh` reports a bot's `systemctl status` — whether
+the unit is active, its last exit, and a short journal tail — read-only, through
+the same `read-only` account, with no start/stop/restart path:
+
+```
+./service-status.sh bot03 <bot-ip> --lines 20
+```
+
+The argument is the **systemd instance** (`bot@01`..`bot@03`), the same numbering
+`pull-logs.sh` uses — not the lobby `BOT_NAME`. Decompose a name first, exactly as
+above: `Bot_503` is bot_number 5 + instance 03, so it is `bot@03` on bot_number
+5's server — `./service-status.sh bot03 <server-5-ip>`. `--lines` caps the journal
+tail (default 10, max 200). Status reads without sudo — the account's
+systemd-journal membership already covers the journal tail — so it needs no
+server-side grant beyond the existing read-only account.
+
+Only bots are supported: the docker-compose services (lobby, marti, support) and
+forums have no per-instance systemd unit, and `docker compose ps` would need its
+own sudoers grant — a separate, deliberate change.
+
 ## Investigation workflow
 
 1. Confirm scope: which service, what symptom, what time window.

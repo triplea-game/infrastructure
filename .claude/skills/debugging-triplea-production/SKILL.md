@@ -15,15 +15,16 @@ prerequisites, workflow, and PII handling — is the source of truth in the runb
 
 ## The two hard rules
 
-1. **The only way you access a production server is by running the wrapper**
-   (`pull-logs.sh`). Never run `ssh`, `journalctl`, `docker`, `psql`, `ansible`,
-   or `terraform` against production directly — not to "just check," not because
-   a flag is missing. If the wrapper can't get what you need, stop and tell the
+1. **The only way you access a production server is by running a sanctioned
+   wrapper** — `pull-logs.sh` (logs) or `service-status.sh` (bot `systemctl
+   status`). Never run `ssh`, `journalctl`, `docker`, `psql`, `ansible`, or
+   `terraform` against production directly — not to "just check," not because a
+   flag is missing. If a wrapper can't get what you need, stop and tell the
    operator which flag is missing.
-2. **Never modify `pull-logs.sh`** as part of an investigation. It is a reviewed,
-   version-controlled tool; changing it is a separate, deliberate task. The hard
-   safety gate is the read-only server account, which can do nothing but read
-   logs; the wrapper is the sanctioned interface to it.
+2. **Never modify the wrappers** as part of an investigation. They are reviewed,
+   version-controlled tools; changing one is a separate, deliberate task. The hard
+   safety gate is the read-only server account, which can do nothing but read logs
+   and unit status; the wrappers are the sanctioned interface to it.
 
 ## Never (destructive / out of scope)
 
@@ -55,6 +56,16 @@ Flags (all optional; the wrapper rejects anything else): `--since`, `--until`,
 (journald only). Time semantics differ by backend — journald (`bot*`, `forums`)
 take `"2 hours ago"` / ISO; docker (`lobby`, `marti`, `support`) want `2h` /
 RFC3339. See the runbook for targets, backends, and the full workflow.
+
+## Service status (bots)
+
+`./service-status.sh <botN> <host> [--lines N]` reports a bot's `systemctl
+status` (active/failed, last exit, short journal tail) — read-only, same
+`read-only` account, no start/stop/restart. Bots only. The argument is the
+systemd instance (`bot@01`..`bot@03`), the same numbering `pull-logs.sh` uses —
+not the lobby `BOT_NAME`: `Bot_503` is bot_number 5 + instance 03, ie
+`./service-status.sh bot03 <server-5-ip>`. `--lines` caps the journal tail
+(default 10, max 200).
 
 ## Workflow (short)
 
