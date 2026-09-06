@@ -55,4 +55,3 @@ fi
 if [[ "${APPLY-}" != "1" ]]; then
   printCheckMode
 fi
-

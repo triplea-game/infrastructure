@@ -33,4 +33,3 @@ docker compose -f '/opt/triplea-forums/docker-compose.yml' logs mongodb
 ```
 sudo systemctl restart forums
 ```
-

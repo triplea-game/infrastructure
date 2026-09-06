@@ -217,7 +217,7 @@ Server definitions live in `terraform/servers.auto.tfvars`. SSH public keys used
 Sensitive values in playbooks are encrypted with [Ansible Vault](https://docs.ansible.com/ansible/latest/vault_guide/vault_encrypting_content.html).
 
 cd work/triplea-project/infrastructure/ansible
-cat [file-with-secret] | ansible-vault encrypt_string --name [ansible-var-name] --vault-password-file vault-password.sh 
+cat [file-with-secret] | ansible-vault encrypt_string --name [ansible-var-name] --vault-password-file vault-password.sh
 ```
 
 Encrypt a single variable value:
@@ -308,4 +308,3 @@ The `deploy` user is a limited service account used for automated deployments. I
 3. The deploy pipeline connects as `deploy` via SSH and runs `sudo /usr/local/bin/deploy-marti.sh` directly.
 
 **Important:** Ansible's `become: true` must NOT be used for this task. `become` escalates to a root shell via a Python bootstrap, which is not covered by the sudoers rule. The `sudo` call must reference the exact script path from the command line so it matches the `NOPASSWD` entry.
-
