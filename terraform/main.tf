@@ -15,7 +15,7 @@ terraform {
     # Linode provider for managing cloud infrastructure (VMs, networking, etc.).
     linode = {
       source  = "linode/linode"
-      version = "3.0.0"
+      version = "4.4.0"
     }
     # Local provider for writing files (e.g. generated Ansible inventory).
     local = {
