@@ -1,5 +1,9 @@
 - hosts: all
   tags: system
+  # Bots are disposable and often mid-restart (OOM recycle); an unreachable one
+  # must not fail the whole apply. Critical singletons stay strict via their own
+  # dedicated plays below, which have no ignore_unreachable and so still fail loud.
+  ignore_unreachable: true
   environment:
     DEBIAN_FRONTEND: noninteractive
     NEEDRESTART_MODE: a
@@ -20,6 +24,7 @@
 
 - hosts: bots
   tags: [ bots, bot ]
+  ignore_unreachable: true
   roles:
     - bot
 
