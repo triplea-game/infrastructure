@@ -5,6 +5,8 @@ repos:
       - id: check-merge-conflict
         stages: [pre-push]
       - id: check-yaml
+        # --unsafe: syntax-only check; skips constructing custom tags like ansible-vault's '!vault'
+        args: [--unsafe]
         stages: [pre-push]
       - id: end-of-file-fixer
         stages: [pre-push]
