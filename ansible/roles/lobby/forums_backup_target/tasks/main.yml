@@ -2,6 +2,14 @@
 # Receiving side of the forums offsite backup: the forums host rsyncs its
 # database dumps and uploads here as forums_backup_user, authenticating with the
 # private half of forums_backup_public_key (see the 'forums' role's backup.sh.j2).
+# That key is confined to a write-only rsync rooted at forums_backup_directory,
+# so a compromised forums host cannot shell in or read anything back.
+- name: Forums backup - install rsync for the rrsync forced command
+  become: true
+  ansible.builtin.apt:
+    name: rsync
+    state: present
+
 - name: Forums backup - create group
   become: true
   ansible.builtin.group:
@@ -17,11 +25,14 @@
     append: true
     groups: "{{ forums_backup_user }}"
 
+# The account keeps an interactive shell because sshd runs the forced command
+# through the login shell; nologin would break every push.
 - name: Forums backup - authorize the forums host key
   become: true
   ansible.posix.authorized_key:
     user: "{{ forums_backup_user }}"
     key: "{{ forums_backup_public_key }}"
+    key_options: 'restrict,command="rrsync -wo {{ forums_backup_directory }}"'
     state: present
 
 - name: Forums backup - create destination directories

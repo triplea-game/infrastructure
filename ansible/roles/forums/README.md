@@ -1,6 +1,9 @@
 Sets up the forums that runs as a nodebb server via docker compose, backed by
 Postgres 18. The compose stack is two services: `postgres` and `nodebb`.
-`backup.sh.j2` backs up the database with `pg_dump`.
+`backup.sh.j2` backs up the database with `pg_dump` and rsyncs the dump plus the
+uploads mirror to the lobby host as `forums-backup`. That key is confined there
+to `rrsync -wo`, so the remote paths in the script are relative to the backup
+directory rather than absolute (see the `lobby/forums_backup_target` role).
 TODO: Overall, we are missing 'nginx' configuration.
 
 The forums Linode is **not** managed by Terraform (`servers.auto.tfvars` marks it

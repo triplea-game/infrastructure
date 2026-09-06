@@ -1,5 +1,9 @@
 ---
 forums_backup_user: forums-backup
+
+# Destination for the received backups, and also the root of the 'rrsync -wo'
+# forced command the sending key is pinned to; the sender's remote paths are
+# relative to it, so moving this directory changes what ':/' means on the wire.
 forums_backup_directory: /opt/backups/forums
 
 # How long received DB dumps are kept in forums_backup_directory before the
@@ -10,4 +14,5 @@ forums_backup_retention_days: 30
 # Public half of the vaulted 'nodebb_private_key' that the 'forums' role deploys
 # to the forums host; that host authenticates here as forums_backup_user over ssh
 # to rsync its database dumps and uploads (see the forums role's 'backup.sh.j2').
+# Authorized under an rrsync forced command, never as a plain login key.
 forums_backup_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAE6Sr1ibMZnujm6Ndu+1ObSANq9iqzrPoq/L3DfaCRY forums-backup"

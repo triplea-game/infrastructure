@@ -3,8 +3,9 @@ forums_working_directory: /opt/triplea-forums
 
 nodebb_uploads_directory: "{{ forums_working_directory }}/uploads"
 nodebb_docker_compose_path: "{{ forums_working_directory }}/docker-compose.yml"
-# where we store the private key for the 'backup user', they have their
-# public key stored on the backups-host
+# Private key 'backup.sh' pushes with; the lobby host authorizes its public half
+# under an 'rrsync -wo' forced command, so it grants a write-only rsync into the
+# backup directory and nothing more (see the 'lobby/forums_backup_target' role).
 backup_ssh_key_path: "/root/.ssh/backup-user_key"
 
 # NodeBB's Postgres password (mongo->postgres migration).

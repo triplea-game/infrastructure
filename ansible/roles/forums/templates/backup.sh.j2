@@ -21,11 +21,14 @@ find "$BACKUP_DIR" -maxdepth 1 -type f -name 'triplea_forums_db_backup_*.sql.gz'
 
 docker compose -f "{{ nodebb_docker_compose_path }}" exec -T postgres \
   pg_dump -U nodebb -d nodebb | gzip > "$BACKUP_DIR/$BACKUP_FILE"
+# The remote paths below are anchored at the root of the 'rrsync -wo' jail the
+# lobby host pins this key to, not at /, so ':/' means the backup directory the
+# forums_backup_target role owns. rrsync rejects a path containing '..'.
 rsync -az -e "ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new" \
   "$BACKUP_DIR/$BACKUP_FILE" \
-  forums-backup@prod.triplea-game.org:/opt/backups/forums/
+  forums-backup@prod.triplea-game.org:/
 rm -f "$BACKUP_DIR/$BACKUP_FILE"
 
 rsync -az --delete -e "ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new" \
   "{{ nodebb_uploads_directory }}/" \
-  forums-backup@prod.triplea-game.org:/opt/backups/forums/uploads/
+  forums-backup@prod.triplea-game.org:/uploads/
