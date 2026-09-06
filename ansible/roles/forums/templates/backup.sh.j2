@@ -21,21 +21,10 @@ find "$BACKUP_DIR" -maxdepth 1 -type f -name 'triplea_forums_db_backup_*.sql.gz'
 
 docker compose -f "{{ nodebb_docker_compose_path }}" exec -T postgres \
   pg_dump -U nodebb -d nodebb | gzip > "$BACKUP_DIR/$BACKUP_FILE"
-# The remote paths below are anchored at the root of the 'rrsync -wo' jail the
+# The remote path below is anchored at the root of the 'rrsync -wo' jail the
 # lobby host pins this key to, not at /, so ':/' means the backup directory the
 # forums_backup_target role owns. rrsync rejects a path containing '..'.
 rsync -az -e "ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new" \
   "$BACKUP_DIR/$BACKUP_FILE" \
   forums-backup@prod.triplea-game.org:/
 rm -f "$BACKUP_DIR/$BACKUP_FILE"
-
-# No --delete: a compromised, corrupted, or accidentally-wiped source would
-# otherwise propagate the deletion to the only other copy on the next nightly
-# run, destroying the offsite backup along with the original. The mirror
-# accumulates files the source has since removed; nothing prunes it yet — a
-# retention pass for this directory (mirroring the dump-retention cron in
-# forums_backup_target) is a follow-up, not added here to avoid inventing
-# untested pruning logic against live backup data.
-rsync -az -e "ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new" \
-  "{{ nodebb_uploads_directory }}/" \
-  forums-backup@prod.triplea-game.org:/uploads/

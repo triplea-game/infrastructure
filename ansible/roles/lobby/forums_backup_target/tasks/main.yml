@@ -1,7 +1,7 @@
 ---
 # Receiving side of the forums offsite backup: the forums host rsyncs its
-# database dumps and uploads here as forums_backup_user, authenticating with the
-# private half of forums_backup_public_key (see the 'forums' role's backup.sh.j2).
+# database dumps here as forums_backup_user, authenticating with the private
+# half of forums_backup_public_key (see the 'forums' role's backup.sh.j2).
 # That key is confined to a write-only rsync rooted at forums_backup_directory,
 # so a compromised forums host cannot shell in or read anything back.
 - name: Forums backup - install rsync for the rrsync forced command
@@ -34,21 +34,17 @@
     key_options: 'restrict,command="rrsync -wo {{ forums_backup_directory }}"'
     state: present
 
-- name: Forums backup - create destination directories
+- name: Forums backup - create destination directory
   become: true
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: "{{ forums_backup_directory }}"
     state: directory
     owner: "{{ forums_backup_user }}"
     group: "{{ forums_backup_user }}"
     mode: "0750"
-  loop:
-    - "{{ forums_backup_directory }}"
-    - "{{ forums_backup_directory }}/uploads"
 
 # The forums host ships a fresh dated dump nightly and never deletes the
-# received copies, so they accumulate here indefinitely. -maxdepth 1 + the dump
-# glob leave the sibling uploads/ mirror untouched. The 'triplea_forums_db_backup_*'
+# received copies, so they accumulate here indefinitely. The 'triplea_forums_db_backup_*'
 # glob must stay in sync with the one backup.sh.j2 generates on the forums host —
 # a filename-pattern change there needs the same change here.
 - name: Forums backup - prune received dumps past the retention window

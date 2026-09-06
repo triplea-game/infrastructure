@@ -1,7 +1,6 @@
 ---
 forums_working_directory: /opt/triplea-forums
 
-nodebb_uploads_directory: "{{ forums_working_directory }}/uploads"
 nodebb_docker_compose_path: "{{ forums_working_directory }}/docker-compose.yml"
 
 # nginx vhost (tasks/nginx.yml)
