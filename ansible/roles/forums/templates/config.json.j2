@@ -3,7 +3,11 @@
   "secret": "{{  nodebb_secret }}",
   "database": "postgres",
   "port": 4567,
-  "trust_proxy": true,
+{# Trusts exactly one hop, the nginx on this host: Express then reads the
+   right-most X-Forwarded-For entry, the one nginx records from $remote_addr, so
+   a client cannot spoof the IP behind the ACP blacklist, spam-be-gone and the
+   registration rate limits. #}
+  "trust_proxy": 1,
   "postgres": {
     "host": "postgres",
     "port": "5432",
