@@ -1,0 +1,19 @@
+---
+# ansible-lint config for the TripleA infrastructure playbooks.
+# 'just verify' gates CI on this passing with zero findings before an apply.
+#
+# No 'profile' is set, so the full default rule set is enforced (fqcn, name,
+# yaml, etc.); only the rules below are skipped.
+
+# Rules deferred for now, each with intended follow-up. These are skipped rather
+# than fixed because clearing them is risky churn on live infrastructure, not a
+# mechanical edit — and the gate stays meaningful for everything else.
+skip_list:
+  # TODO: prefix role variables (eg: forums_, service_) and update every
+  #       reference before enabling — touches templates and cross-role vars.
+  - var-naming[no-role-prefix]
+  # TODO: convert the changed_when-guarded tasks to real handlers where that fits.
+  - no-handler
+  # TODO: the roles list uses 'name:' with subdir role paths (eg: system/admin_user);
+  #       switching to 'role:' is a runtime-semantics change to verify on a live apply.
+  - schema[playbook]

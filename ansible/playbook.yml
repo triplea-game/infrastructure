@@ -1,4 +1,6 @@
-- hosts: all
+---
+- name: Base system configuration (all hosts)
+  hosts: all
   tags: system
   # Bots are disposable and often mid-restart (OOM recycle); an unreachable one
   # must not fail the whole apply. Critical singletons stay strict via their own
@@ -25,40 +27,44 @@
     # will take effect & the system will be in a clean/ready state for further host-specific deployments.
     - system/hostname
 
-- hosts: bots
-  tags: [ bots, bot ]
+- name: Configure bot hosts
+  hosts: bots
+  tags: [bots, bot]
   ignore_unreachable: true
   roles:
     - bot
 
 # support uses the NGINX on the lobby host for reverse proxy
-- hosts: support
+- name: Configure support server
+  hosts: support
   tags: support
   roles:
     - support/service
     - support/db_backup
 
-- hosts: lobby
+- name: Configure lobby server
+  hosts: lobby
   tags: lobby
   roles:
-    - {name: nginx, tags: nginx}
+    - { name: nginx, tags: nginx }
     - lobby/nginx_conf
     # oauth2-proxy is deployed on the lobby host (next to nginx, on loopback) so
     # the /support auth subrequest is local; bring it up before nginx routes to it.
-    - {name: support/oauth2_proxy, tags: oauth2_proxy}
+    - { name: support/oauth2_proxy, tags: oauth2_proxy }
     - support/nginx_conf
     - lobby/service
     - lobby/db_backup
 
-- hosts: forums
+- name: Configure forums server
+  hosts: forums
   tags: forums
   roles:
     - forums
 
-- hosts: marti
+- name: Configure marti dice server
+  hosts: marti
   tags: marti
   roles:
     # note: this marti/nginx_conf is not like the lobby or support server, it's a full standalone NGINX config
     - marti/nginx_conf
     - marti/service
-
