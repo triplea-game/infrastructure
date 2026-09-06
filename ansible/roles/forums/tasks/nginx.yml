@@ -114,3 +114,23 @@
     - { name: OpenSSH }
   loop_control:
     label: "{{ item }}"
+
+# Left over from a mail server this host no longer runs: 'ss -ltnp' shows
+# nothing listening on any of them (578 is a mistyped 587). The forum only
+# sends mail, so nothing inbound is needed.
+- name: Remove the inbound mail rules nothing listens on
+  become: true
+  community.general.ufw:
+    rule: allow
+    delete: true
+    port: "{{ item.port | default(omit) }}"
+    name: "{{ item.name | default(omit) }}"
+  loop:
+    - { name: Postfix }
+    - { port: "25" }
+    - { port: "143" }
+    - { port: "993" }
+    - { port: "587" }
+    - { port: "578" }
+  loop_control:
+    label: "{{ item }}"
