@@ -1,0 +1,22 @@
+# Managed by Ansible (forums role) - do not edit on the host.
+# Shared by every location that proxies to NodeBB; nginx does not inherit
+# proxy_pass into nested locations, so the rate-limited ones include this too.
+
+proxy_pass http://127.0.0.1:{{ nodebb_port }};
+proxy_redirect off;
+
+proxy_set_header Host $http_host;
+proxy_set_header X-Real-IP $remote_addr;
+# Overwritten rather than appended: NodeBB runs with trust_proxy 1 and reads
+# the last X-Forwarded-For entry, so this header must never carry a value a
+# client sent.
+proxy_set_header X-Forwarded-For $remote_addr;
+proxy_set_header X-Forwarded-Proto $scheme;
+
+# Socket.IO
+proxy_http_version 1.1;
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection "upgrade";
+
+# NodeBB has an independent max upload size setting
+client_max_body_size {{ forums_max_body_size }};

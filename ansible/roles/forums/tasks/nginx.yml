@@ -1,0 +1,116 @@
+---
+# nginx terminates TLS for the forums and proxies to NodeBB on loopback. The
+# certificate is issued by hand with certbot (see README); this only manages the
+# vhost, the proxy snippet, and the firewall rules that belong to it.
+- name: Install nginx
+  become: true
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+
+- name: Create /etc/nginx/include/
+  become: true
+  ansible.builtin.file:
+    path: /etc/nginx/include/
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy the NodeBB proxy snippet
+  become: true
+  notify: Reload_nginx
+  ansible.builtin.template:
+    src: nginx-forums-proxy.conf.j2
+    dest: /etc/nginx/include/forums-proxy.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Deploy the forums vhost
+  become: true
+  notify: Reload_nginx
+  ansible.builtin.template:
+    src: nginx-forums.conf.j2
+    dest: "/etc/nginx/sites-available/{{ forums_hostname }}.conf"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Enable the forums vhost
+  become: true
+  notify: Reload_nginx
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ forums_hostname }}.conf"
+    dest: "/etc/nginx/sites-enabled/{{ forums_hostname }}.conf"
+    state: link
+
+# A second site file for the same server_name silently wins or loses on file
+# order, so the hand-written vhost this template replaces must go. 'just diff'
+# lists what this would remove before an apply.
+- name: Find site files other than the managed vhost
+  become: true
+  ansible.builtin.find:
+    paths: /etc/nginx/sites-enabled
+    file_type: any
+    excludes: "{{ forums_hostname }}.conf"
+  register: forums_other_sites
+
+- name: Remove site files other than the managed vhost
+  become: true
+  notify: Reload_nginx
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ forums_other_sites.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+# Runs before the reload handler fires, so a bad render fails the play while
+# nginx is still serving the previous config.
+- name: Validate the nginx configuration
+  become: true
+  ansible.builtin.command:
+    cmd: nginx -t
+  changed_when: false
+
+- name: Ensure nginx is started and enabled
+  become: true
+  ansible.builtin.systemd_service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Allow firewall ports 80 and 443
+  become: true
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "80"
+    - "443"
+
+# NodeBB publishes 4567 on loopback only, so this rule was a foot-gun waiting
+# for a compose edit to expose the app past TLS and nginx.
+- name: Remove the firewall rule exposing NodeBB's port
+  become: true
+  community.general.ufw:
+    rule: allow
+    port: "4567"
+    delete: true
+
+# ufw is first-match: these hand-added allows sat ahead of the 'limit 22/tcp'
+# rule from system/firewall, so the SSH rate limit never fired.
+- name: Remove the SSH allow rules that shadow the rate limit
+  become: true
+  community.general.ufw:
+    rule: allow
+    delete: true
+    port: "{{ item.port | default(omit) }}"
+    name: "{{ item.name | default(omit) }}"
+  loop:
+    - { port: "22" }
+    - { name: OpenSSH }
+  loop_control:
+    label: "{{ item }}"

@@ -137,6 +137,9 @@
         minute: "0"
         job: "{{ forums_working_directory }}/backup.sh >> /var/log/triplea-forums-backup.log 2>&1"
 
+- name: Configure nginx and its firewall rules
+  ansible.builtin.import_tasks: nginx.yml
+
 - name: Deploy logrotate config for forums and nodebb logs
   become: true
   ansible.builtin.copy:
