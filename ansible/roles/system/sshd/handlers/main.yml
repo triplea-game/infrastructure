@@ -1,0 +1,8 @@
+---
+# Reload, not restart: the unit is socket-activated, so a restart would drop
+# every live session for a config change that only affects new ones.
+- name: Reload_sshd
+  become: true
+  ansible.builtin.service:
+    name: ssh
+    state: reloaded

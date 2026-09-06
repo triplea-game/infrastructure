@@ -17,6 +17,9 @@
       vars:
         admin_users: "{{ lookup('file', playbook_dir + '/../terraform/keys/admins.json') | from_json }}"
     - system/read_only_account
+    # after the account roles: their keys must be authorized before password
+    # authentication is switched off.
+    - system/sshd
     - name: system/apt_packages
       tags: apt
     - system/docker

@@ -1,0 +1,30 @@
+---
+# Owns the fleet's sshd policy. Terraform-provisioned hosts pick up
+# 'ssh_pwauth: false' from terraform/cloudinit.tpl, but the forums host predates
+# terraform and gets no cloud-init guarantee; every account across the fleet
+# (admins, deploy, read-only, forums-backup) is key-only, so password auth is
+# turned off everywhere from one place. Lockout risk is low: the handler reloads
+# rather than restarts, so established sessions survive, and system/admin_user
+# and system/read_only_account run earlier in the same play, so the keys are
+# already in place before this takes effect.
+- name: Deploy sshd hardening drop-in
+  become: true
+  register: sshd_drop_in
+  ansible.builtin.copy:
+    src: 10-triplea.conf
+    dest: /etc/ssh/sshd_config.d/10-triplea.conf
+    owner: root
+    group: root
+    mode: "0644"
+    # '-f %s' checks the candidate file's syntax in isolation; a semantic check
+    # needs the whole config, which the next task does once it is installed.
+    validate: /usr/sbin/sshd -t -f %s
+
+# Guards the reload: if the merged config is bad, this fails and the handler
+# never fires, leaving the running sshd on its last good config.
+- name: Validate merged sshd config
+  become: true
+  when: sshd_drop_in.changed
+  changed_when: false
+  notify: Reload_sshd
+  ansible.builtin.command: /usr/sbin/sshd -t
