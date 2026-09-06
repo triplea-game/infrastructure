@@ -1,0 +1,13 @@
+version: 2
+
+updates:
+  # Actions are SHA-pinned in the workflow; without this the pins never move.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: terraform
+    directory: /terraform
+    schedule:
+      interval: weekly

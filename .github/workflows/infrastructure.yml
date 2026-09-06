@@ -7,9 +7,15 @@ on:
     branches: [main]
   workflow_dispatch:  # manual run on any branch — treated as apply if on main
 
+# Actions are pinned to commit SHAs, not tags: a moved tag would run attacker
+# code with the fleet SSH key and the Linode/vault secrets below.
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Cancelling a PR preview is harmless; cancelling an apply on main is not.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   terraform:
@@ -24,9 +30,9 @@ jobs:
       run:
         working-directory: terraform/
     steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
-      - uses: extractions/setup-just@v2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd  # v3.1.2
+      - uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6  # v2.0.0
 
       - name: Terraform Init
         run: just init
@@ -56,13 +62,13 @@ jobs:
       run:
         working-directory: ansible/
     steps:
-      - uses: actions/checkout@v4
-      - uses: webfactory/ssh-agent@v0.9.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: webfactory/ssh-agent@dc588b651fe13675774614f8e6a936a468676387  # v0.9.0
         with:
           ssh-private-key: ${{ secrets.INFRASTRUCTURE_SSH_PRIVATE_KEY }}
 
-      - uses: astral-sh/setup-uv@v5
-      - uses: extractions/setup-just@v2
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5.4.2
+      - uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6  # v2.0.0
 
       - name: Install Ansible + ansible-lint
         run: |
