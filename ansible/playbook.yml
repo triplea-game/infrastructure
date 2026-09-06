@@ -54,6 +54,8 @@
     - support/nginx_conf
     - lobby/service
     - lobby/db_backup
+    # receiving side for the forums host's offsite backup rsync (forums role)
+    - lobby/forums_backup_target
 
 - name: Configure forums server
   hosts: forums

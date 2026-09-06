@@ -1,0 +1,37 @@
+---
+# Receiving side of the forums offsite backup: the forums host rsyncs its
+# database dumps and uploads here as forums_backup_user, authenticating with the
+# private half of forums_backup_public_key (see the 'forums' role's backup.sh.j2).
+- name: Forums backup - create group
+  become: true
+  ansible.builtin.group:
+    name: "{{ forums_backup_user }}"
+    state: present
+
+- name: Forums backup - create receiving account
+  become: true
+  ansible.builtin.user:
+    name: "{{ forums_backup_user }}"
+    shell: /bin/bash
+    create_home: true
+    append: true
+    groups: "{{ forums_backup_user }}"
+
+- name: Forums backup - authorize the forums host key
+  become: true
+  ansible.posix.authorized_key:
+    user: "{{ forums_backup_user }}"
+    key: "{{ forums_backup_public_key }}"
+    state: present
+
+- name: Forums backup - create destination directories
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ forums_backup_user }}"
+    group: "{{ forums_backup_user }}"
+    mode: "0750"
+  loop:
+    - "{{ forums_backup_directory }}"
+    - "{{ forums_backup_directory }}/uploads"

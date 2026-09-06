@@ -1,0 +1,8 @@
+---
+forums_backup_user: forums-backup
+forums_backup_directory: /opt/backups/forums
+
+# Public half of the vaulted 'nodebb_private_key' that the 'forums' role deploys
+# to the forums host; that host authenticates here as forums_backup_user over ssh
+# to rsync its database dumps and uploads (see the forums role's 'backup.sh.j2').
+forums_backup_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAE6Sr1ibMZnujm6Ndu+1ObSANq9iqzrPoq/L3DfaCRY forums-backup"
