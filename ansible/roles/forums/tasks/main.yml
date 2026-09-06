@@ -24,9 +24,10 @@
   ansible.builtin.template:
     src: config.json.j2
     dest: "{{ forums_working_directory }}/config.json"
-    mode: "0644"
-    # nodebb runs as uid 1001 and rewrites config.json during 'nodebb upgrade'
-    # migrations, so the container user must own it to write.
+    # Holds the nodebb session secret and the Postgres password, so it stays
+    # owner-only; nodebb runs as uid 1001 and rewrites config.json during
+    # 'nodebb upgrade' migrations, so 1001 still reads and writes it.
+    mode: "0600"
     owner: "1001"
     group: "1001"
 
@@ -35,7 +36,9 @@
   ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
-    mode: "0644"
+    # docker-compose.yml embeds POSTGRES_PASSWORD; every reader is root —
+    # 'forums.service', 'deploy-forums.sh' under sudo, and root's backup cron.
+    mode: "0640"
     owner: root
     group: root
   with_items:

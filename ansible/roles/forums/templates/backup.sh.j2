@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+# The dump carries password hashes, emails and the session store, and it sits
+# in a world-readable directory until rsync ships it — keep it owner-only.
+umask 077
+
 BACKUP_DIR="{{ forums_working_directory }}"
 BACKUP_FILE="triplea_forums_db_backup_$(date +%Y%m%d-%H%M%S).sql.gz"
 
