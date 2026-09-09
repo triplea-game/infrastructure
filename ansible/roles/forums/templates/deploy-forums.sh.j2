@@ -4,4 +4,8 @@ set -euo pipefail
 
 cd /opt/triplea-forums
 docker compose pull nodebb
-docker compose up -d --no-deps nodebb
+# Full 'up' rather than '--no-deps nodebb' so a change to Postgres or the shared
+# network reconciles here; '--no-deps' cannot recreate a network Postgres still
+# holds open, which wedges the deploy. Compose is declarative — a routine image
+# push still only recreates nodebb.
+docker compose up -d
