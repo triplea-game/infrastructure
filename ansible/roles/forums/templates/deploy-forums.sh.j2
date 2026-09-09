@@ -24,10 +24,16 @@ fi
 
 docker compose pull nodebb
 # Full 'up' rather than '--no-deps nodebb' so a change to Postgres or the shared
-# network reconciles here; '--no-deps' cannot recreate a network Postgres still
-# holds open, which wedges the deploy. Compose is declarative — a routine image
-# push still only recreates nodebb.
-docker compose up -d
+# network reconciles here. Even a full 'up' wedges mid-run ('has active
+# endpoints') when a network definition changes and Postgres still holds an
+# endpoint on the old network, so fall back to a full 'down'/'up', which releases
+# every network before rebuilding. The fallback briefly stops the whole stack, so
+# it runs only when the in-place 'up' fails; a routine image push recreates only
+# nodebb and stays zero-downtime.
+if ! docker compose up -d; then
+  docker compose down
+  docker compose up -d
+fi
 
 # 'up -d' returns once the container starts, not once it serves, so a crash-loop
 # (unreachable DB, failed upgrade) would otherwise deploy silently. Poll until
