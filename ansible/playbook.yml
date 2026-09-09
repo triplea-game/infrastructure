@@ -43,6 +43,9 @@
   tags: support
   roles:
     - support/service
+    # nginx + Let's Encrypt TLS front so lobby reaches support over public DNS
+    # (support.triplea-game.org) rather than the flat Linode private IP.
+    - { name: support/public_nginx, tags: [nginx, public_nginx] }
     - support/db_backup
 
 - name: Configure lobby server

@@ -1,0 +1,66 @@
+---
+- name: Install nginx
+  become: true
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+
+- name: Remove default nginx site
+  become: true
+  notify: Reload_nginx
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Deploy support vhost config
+  become: true
+  notify: Reload_nginx
+  ansible.builtin.template:
+    src: support.triplea-game.org.conf.j2
+    dest: /etc/nginx/sites-available/support.triplea-game.org.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Enable support vhost
+  become: true
+  notify: Reload_nginx
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/support.triplea-game.org.conf
+    dest: /etc/nginx/sites-enabled/support.triplea-game.org.conf
+    state: link
+
+# ACME http-01 (initial issue and renewals) needs port 80 reachable from Let's
+# Encrypt's validators, so it stays open to the world.
+- name: Open firewall port 80 (ACME http-01)
+  become: true
+  community.general.ufw:
+    rule: allow
+    port: "80"
+    proto: tcp
+
+# 443 carries the X-Auth-* identity headers the support app trusts, so it is
+# scoped to lobby's public IP: lobby's nginx (which sanitizes those headers) is
+# the only legitimate caller, and an open 443 would be forgeable MapAdmin.
+- name: Assert lobby's public IP is resolvable (source for the 443 rule)
+  ansible.builtin.assert:
+    that:
+      - groups['lobby'] | default([]) | length > 0
+      - hostvars[groups['lobby'][0]].ansible_host | default('') | length > 0
+    fail_msg: >-
+      Cannot determine lobby's public IP to scope the support 443 firewall rule.
+
+- name: Allow lobby -> support HTTPS (443)
+  become: true
+  community.general.ufw:
+    rule: allow
+    from_ip: "{{ hostvars[groups['lobby'][0]].ansible_host }}"
+    port: "443"
+    proto: tcp
+
+- name: Ensure nginx is started and enabled
+  become: true
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: true
