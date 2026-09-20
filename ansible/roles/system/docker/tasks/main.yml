@@ -42,6 +42,41 @@
   environment:
     DEBIAN_FRONTEND: noninteractive
 
+# live-restore lets running containers survive a dockerd restart/reload instead
+# of being torn down with the daemon. Without it, any docker restart — a version
+# upgrade, or needrestart bouncing the service after a library upgrade — kills
+# every container on the host at once; on bot hosts that drops all live games.
+- name: Configure docker daemon (live-restore)
+  become: true
+  ansible.builtin.copy:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload docker
+
+# Keep the container runtime out of needrestart's automatic-restart set (see the
+# conf file for why). The directory exists once needrestart is installed; create
+# it defensively so the drop-in never fails the apply.
+- name: Ensure needrestart conf.d directory exists
+  become: true
+  ansible.builtin.file:
+    path: /etc/needrestart/conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Exclude docker and containerd from needrestart auto-restart
+  become: true
+  ansible.builtin.copy:
+    src: needrestart-no-docker.conf
+    dest: /etc/needrestart/conf.d/no-restart-docker.conf
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: Create docker group, add users to this group to allow them to run docker without sudo
   become: true
   ansible.builtin.group:

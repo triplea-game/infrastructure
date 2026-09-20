@@ -1,0 +1,9 @@
+---
+# Reload (SIGHUP), never restart: dockerd applies 'live-restore' on a config
+# reload without tearing down running containers, so turning the protection on
+# does not itself drop a live game. A restart here would defeat the purpose.
+- name: Reload docker
+  become: true
+  ansible.builtin.systemd:
+    name: docker
+    state: reloaded
