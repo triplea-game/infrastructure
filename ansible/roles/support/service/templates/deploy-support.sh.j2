@@ -3,6 +3,19 @@
 set -euo pipefail
 
 cd {{ support_working_directory }}
+
+health_url="http://{{ private_ip }}:8010/q/health/ready"
+
+# Record health before we touch anything, so a post-deploy failure can be
+# attributed to this deploy (green -> red) rather than a pre-existing outage.
+# Never gates the deploy: a currently-unhealthy server still gets the new build,
+# which may itself be the fix.
+if curl -fsS --max-time 5 "$health_url" >/dev/null 2>&1; then
+  echo "Pre-deploy health: UP"
+else
+  echo "Pre-deploy health: DOWN or unreachable (deploying anyway)"
+fi
+
 docker compose pull service
 docker compose up -d --no-deps service
 
@@ -10,7 +23,6 @@ docker compose up -d --no-deps service
 # (bad Flyway migration, unreachable DB) would otherwise deploy silently. Poll
 # the app's readiness probe on the private-network port and fail the deploy if it
 # never comes up, turning a broken deploy into a non-zero exit the caller sees.
-health_url="http://{{ private_ip }}:8010/q/health/ready"
 for attempt in $(seq 1 30); do
   if curl -fsS --max-time 5 "$health_url" >/dev/null 2>&1; then
     echo "Support server healthy after ${attempt} attempt(s)."
