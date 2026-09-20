@@ -18,4 +18,6 @@ deploy_user:
 # No write access. This account is for LLM use.
 read_only_user:
   name: read-only
-  ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMDs3/DJcB3Wu3hbtxqbq/4oaqd9Oxw5VJ93favomFUW dan@desk"
+  ssh_key: |
+    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMDs3/DJcB3Wu3hbtxqbq/4oaqd9Oxw5VJ93favomFUW dan@desk
+    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB2gL8uQcEEmlTu4qr/ShskSK01aHruPcGL5a313PSja claude-bot@triplea-readonly
