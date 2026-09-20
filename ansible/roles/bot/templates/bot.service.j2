@@ -16,6 +16,7 @@ Group=bot
 # the swapfile before that.
 ExecStart=docker run \
    --rm \
+   --stop-timeout=30 \
    --network host \
    --memory={{ bot_container_memory }} \
    --memory-swap={{ bot_container_memory_swap }} \
@@ -31,6 +32,8 @@ ExecStart=docker run \
    -v /home/bot/triplea/savedGames/autoSave:/home/bot/triplea/savedGames/autoSave \
    --name bot%i \
    ghcr.io/triplea-game/bot:latest
+# On stop, docker sends the bot SIGTERM to write a final autosave; --stop-timeout=30
+# on the run line above gives that save 30s before SIGKILL (vs docker's 10s default).
 ExecStop=docker stop bot%i
 Restart=always
 # Back off between restarts so a crash-looping bot does not saturate the host.
