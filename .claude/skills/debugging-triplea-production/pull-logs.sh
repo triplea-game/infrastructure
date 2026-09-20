@@ -9,7 +9,7 @@
 # read-only server account it connects as (it can do nothing but read logs).
 #
 # Guarantees:
-#   - Read-only: only `journalctl` (read) and `docker compose logs` (read).
+#   - Read-only: only `journalctl` (read).
 #   - Bounded: always line-capped; no --follow / streaming.
 #   - No passthrough: unknown flags are rejected; --grep is fixed-string;
 #     every caller value is passed as a distinct, %q-quoted argv element so
@@ -17,8 +17,11 @@
 #
 # Access: always SSHes as the low-privilege `read-only` account. The host
 # is passed in (IPs are dynamic — resolve the current one from the Linode
-# inventory; see SKILL.md). Journald read comes from that account's
-# adm/systemd-journal membership; docker log read from a narrow sudoers rule.
+# inventory; see SKILL.md). Every target reads the host journal, which the
+# account can do via its adm/systemd-journal group membership — no sudo. The
+# docker-compose services (lobby/marti/support) log to journald under a stable
+# syslog tag, so their history survives container recreation and reads the same
+# way as the bots and forums.
 
 set -euo pipefail
 
@@ -36,16 +39,17 @@ usage() {
   exit 2
 }
 
-# Resolve service -> MODE (docker|journald), ARG.
-# docker ARG: "<compose_dir>::<service>"; journald ARG: journalctl selector.
+# Resolve service -> journalctl selector (SELECTOR array). The docker-compose
+# services log to journald under a stable tag set in their compose files; forums
+# under its own tag; bots are systemd units.
 resolve_service() {
   case "$1" in
-    lobby)   MODE=docker;   ARG="/opt/lobby::service" ;;
-    marti)   MODE=docker;   ARG="/opt/triplea-marti::app" ;;
-    support) MODE=docker;   ARG="/opt/support::service" ;;
-    forums)  MODE=journald; ARG="-t forums-nodebb" ;;
+    lobby)   SELECTOR=(-t lobby) ;;
+    marti)   SELECTOR=(-t marti) ;;
+    support) SELECTOR=(-t support) ;;
+    forums)  SELECTOR=(-t forums-nodebb) ;;
     bot[0-9]|bot[0-9][0-9])
-             MODE=journald; ARG="-u ${1/bot/bot@}" ;;
+             SELECTOR=(-u "${1/bot/bot@}") ;;
     *) echo "pull-logs: unknown service '$1'" >&2; exit 2 ;;
   esac
 }
@@ -83,24 +87,13 @@ resolve_service "$SERVICE"
 
 # Build the remote command as a single quoted string; %q makes each value inert.
 build_remote() {
-  if [[ "$MODE" == journald ]]; then
-    # read-only reads journald via the adm/systemd-journal group (no sudo).
-    local cmd=(journalctl --no-pager -n "$LINES" $ARG)
-    [[ -n "$SINCE" ]]    && cmd+=(--since "$SINCE")
-    [[ -n "$UNTIL" ]]    && cmd+=(--until "$UNTIL")
-    [[ -n "$PRIORITY" ]] && cmd+=(-p "$PRIORITY")
-    printf '%q ' "${cmd[@]}"
-    [[ -n "$GREP" ]] && { printf '| grep -F -- '; printf '%q' "$GREP"; }
-  else
-    local dir="${ARG%%::*}" svc="${ARG##*::}"
-    # read-only reads docker logs via a narrow sudoers rule (logs only).
-    local cmd=(sudo docker compose -f "$dir/docker-compose.yml" logs --no-color --tail "$LINES" "$svc")
-    [[ -n "$SINCE" ]] && cmd+=(--since "$SINCE")
-    [[ -n "$UNTIL" ]] && cmd+=(--until "$UNTIL")
-    printf '%q ' "${cmd[@]}"
-    [[ -n "$GREP" ]]     && { printf '| grep -F -- '; printf '%q ' "$GREP"; }
-    [[ -n "$PRIORITY" ]] && echo "pull-logs: --priority ignored for docker service '$SERVICE'" >&2
-  fi
+  # read-only reads journald via the adm/systemd-journal group (no sudo).
+  local cmd=(journalctl --no-pager -n "$LINES" "${SELECTOR[@]}")
+  [[ -n "$SINCE" ]]    && cmd+=(--since "$SINCE")
+  [[ -n "$UNTIL" ]]    && cmd+=(--until "$UNTIL")
+  [[ -n "$PRIORITY" ]] && cmd+=(-p "$PRIORITY")
+  printf '%q ' "${cmd[@]}"
+  [[ -n "$GREP" ]] && { printf '| grep -F -- '; printf '%q' "$GREP"; }
 }
 
 ssh_opts=(-o BatchMode=yes -o StrictHostKeyChecking=accept-new)

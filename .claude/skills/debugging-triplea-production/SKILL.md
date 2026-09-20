@@ -52,10 +52,11 @@ a Linode PAT — the inventory reads `LINODE_TOKEN`. See the runbook for the det
 ```
 
 Flags (all optional; the wrapper rejects anything else): `--since`, `--until`,
-`--lines` (default 500, max 5000), `--grep` (fixed-string), `--priority`
-(journald only). Time semantics differ by backend — journald (`bot*`, `forums`)
-take `"2 hours ago"` / ISO; docker (`lobby`, `marti`, `support`) want `2h` /
-RFC3339. See the runbook for targets, backends, and the full workflow.
+`--lines` (default 500, max 5000), `--grep` (fixed-string), `--priority`. Every
+target now reads the host journal (the docker-compose services log to journald
+under a stable tag), so `--since` / `--until` take `"2 hours ago"` or ISO
+timestamps — not docker's `2h` / RFC3339 — and `--priority` applies to all
+targets. See the runbook for targets and the full workflow.
 
 ## Service status (bots)
 

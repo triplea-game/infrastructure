@@ -11,9 +11,9 @@ You diagnose live issues by **reading logs only**, and only through the wrapper
 `pull-logs.sh`. This is not merely a convention:
 
 - The hard safety gate is the **`read-only` server account** the wrapper connects
-  as. That account can do nothing but read logs — journald read via group
-  membership plus a narrow `docker compose … logs` sudoers rule. Even a mistake
-  cannot mutate a server, because the account has no capability to.
+  as. That account can do nothing but read logs — it reads the host journal via
+  its `adm`/`systemd-journal` group membership, and holds no sudo at all. Even a
+  mistake cannot mutate a server, because the account has no capability to.
 - The wrapper is the sanctioned, ergonomic interface to that account. It builds
   every remote command itself and accepts only a fixed set of parameters; you
   supply nothing free-form.
@@ -53,13 +53,17 @@ starting rather than guessing an address.
 
 ## Targets and where their logs live
 
+Every target reads the host journal. The docker-compose services log to journald
+under a stable syslog tag (set in their compose files), so their history survives
+container recreation — a redeploy or restart no longer discards it.
+
 | Target | Log source the wrapper reads |
 |---|---|
-| `lobby` | `docker compose logs` — `/opt/lobby`, service `service` |
-| `marti` (dice server) | `docker compose logs` — `/opt/triplea-marti`, service `app` |
+| `lobby` | journald — tag `lobby` |
+| `marti` (dice server) | journald — tag `marti` |
 | `bot<N>` (eg `bot01`) | journald — unit `bot@<N>` |
 | `forums` | journald — tag `forums-nodebb` |
-| `support` | `docker compose logs` — `/opt/support` (maps/support server) |
+| `support` | journald — tag `support` (maps/support server) |
 
 Servers are Linode instances discovered by tag; the inventory is
 `ansible/inventory/linode.yml`.
@@ -86,13 +90,12 @@ Flags (all optional; the wrapper rejects anything not on this list):
 | `--until <when>` | End time. |
 | `--lines <N>` | Cap on lines (default 500, hard max 5000). |
 | `--grep <pattern>` | Server-side fixed-string filter (safely quoted). |
-| `--priority <p>` | Minimum severity (journald only; ignored for docker targets). |
+| `--priority <p>` | Minimum severity (applies to every target). |
 
-`--since` / `--until` semantics differ by backend: journald services (`bot*`,
-`forums`) take `"2 hours ago"` or ISO timestamps; docker services (`lobby`,
-`marti`, `support`) want `2h` / `10m` / RFC3339. There is intentionally no
-`--follow`, no free-form passthrough, and no way to change a target's working
-directory or service name.
+Every target reads the host journal, so `--since` / `--until` take `"2 hours
+ago"` or ISO timestamps for all of them (journald syntax, not docker's `2h` /
+`10m` / RFC3339). There is intentionally no `--follow`, no free-form passthrough,
+and no way to change a target's selector.
 
 ## Resolving the server address
 
@@ -179,8 +182,7 @@ own sudoers grant — a separate, deliberate change.
 
 The wrapper is only the ergonomic interface; the real gate is the `read-only`
 account. If the script itself is missing or broken, you can still read logs by
-connecting **as the `read-only` account** and running the same read-only commands
-it would (`docker compose … logs` for docker targets, `journalctl` for journald
-targets) — but never as a privileged account, and never a mutating command. Do
-not "fix" `pull-logs.sh` mid-investigation; repairing it is a separate, reviewed
-task.
+connecting **as the `read-only` account** and running the same read-only command
+it would — `journalctl` against the target's tag or unit (see the targets table)
+— but never as a privileged account, and never a mutating command. Do not "fix"
+`pull-logs.sh` mid-investigation; repairing it is a separate, reviewed task.

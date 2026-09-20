@@ -1,11 +1,8 @@
-# Cap the default json-file driver; without this these logs grow unbounded
-# (unlike the forums host, which routes containers to the capped journald).
-x-logging: &default-logging
-  driver: json-file
-  options:
-    max-size: "10m"
-    max-file: "3"
-
+# Log to the host journald under a stable tag per service. The default
+# json-file driver keeps only the current container's logs, so a redeploy or
+# restart loses all history; journald persists on the host across container
+# recreation, and the tag makes each service readable with `journalctl -t <tag>`
+# (how pull-logs.sh reads them). Matches the forums role, also on journald.
 services:
   app:
     image: {{ marti_image }}
@@ -26,7 +23,10 @@ services:
       postfix:
         condition: service_started
     restart: unless-stopped
-    logging: *default-logging
+    logging:
+      driver: journald
+      options:
+        tag: marti
   postgres:
     image: postgres:16
     environment:
@@ -41,7 +41,10 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    logging: *default-logging
+    logging:
+      driver: journald
+      options:
+        tag: marti-postgres
   postfix:
     image: boky/postfix
     environment:
@@ -51,7 +54,10 @@ services:
     volumes:
       - dkim_keys:/etc/opendkim/keys
     restart: unless-stopped
-    logging: *default-logging
+    logging:
+      driver: journald
+      options:
+        tag: marti-postfix
 volumes:
   pgdata:
   dkim_keys:

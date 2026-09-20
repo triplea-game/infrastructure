@@ -1,7 +1,8 @@
 ---
 # Read-only account (see group_vars/all.yml: read_only_user).
-# Journald read via adm/systemd-journal group membership; docker log read via a
-# narrow sudoers rule. Deliberately has no other privileges.
+# Reads logs from the host journal via its adm/systemd-journal group membership.
+# The docker-compose services log to journald under a stable tag, so the account
+# needs no sudo at all. Deliberately has no other privileges.
 - name: Read only account - create group
   become: true
   ansible.builtin.group:
@@ -27,12 +28,10 @@
     key: "{{ read_only_user.ssh_key }}"
     state: present
 
-- name: Read only account - sudoers (docker log read only)
+# Logs now read from journald with no sudo, so the former docker-logs grant is
+# gone; remove any file left on hosts provisioned before that change.
+- name: Read only account - remove obsolete docker-logs sudoers
   become: true
-  ansible.builtin.template:
-    src: read_only_sudoers.j2
-    dest: "/etc/sudoers.d/{{ read_only_user.name }}"
-    owner: root
-    group: root
-    mode: "0440"
-    validate: /usr/sbin/visudo -cf %s
+  ansible.builtin.file:
+    path: "/etc/sudoers.d/{{ read_only_user.name }}"
+    state: absent
