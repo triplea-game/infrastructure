@@ -5,3 +5,22 @@ set -euo pipefail
 cd {{ support_working_directory }}
 docker compose pull service
 docker compose up -d --no-deps service
+
+# 'up -d' returns once the container starts, not once it serves, so a crash-loop
+# (bad Flyway migration, unreachable DB) would otherwise deploy silently. Poll
+# the app's readiness probe on the private-network port and fail the deploy if it
+# never comes up, turning a broken deploy into a non-zero exit the caller sees.
+health_url="http://{{ private_ip }}:8010/q/health/ready"
+for attempt in $(seq 1 30); do
+  if curl -fsS --max-time 5 "$health_url" >/dev/null 2>&1; then
+    echo "Support server healthy after ${attempt} attempt(s)."
+    exit 0
+  fi
+  echo "Waiting for support server to become healthy (attempt ${attempt}/30)..."
+  sleep 5
+done
+
+echo "ERROR: support server did not become healthy within ~150s." >&2
+docker compose ps >&2 || true
+docker compose logs --tail=100 service >&2 || true
+exit 1
