@@ -1,0 +1,55 @@
+# Reusable deploy job shared by the server repos (lobby-server, support-server,
+# dice-server-js). Called via `uses:` — so `actions/checkout` and the ansible
+# steps run against the *caller's* repository at the caller's commit, picking up
+# that repo's own deploy/ansible/ tree.
+#
+# Actions are pinned to commit SHAs, not tags: a moved tag would run attacker
+# code with the deploy SSH key and the Linode secrets below.
+name: Shared Deploy
+
+on:
+  workflow_call:
+    inputs:
+      deploy-command:
+        description: Task-runner command run to deploy the caller repo — the Java servers use just, dice-server-js uses make.
+        type: string
+        default: just deploy
+    secrets:
+      DEPLOY_SSH_PRIVATE_KEY:
+        required: true
+      LINODE_READ_ONLY_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - name: Load SSH private key into ssh-agent
+        uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555  # v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+      - name: Install just
+        uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3  # v4.0.0
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+        with:
+          enable-cache: true
+          python-version: "3.12"
+      - name: Cache Ansible Galaxy collections
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
+        with:
+          path: ~/.ansible/collections
+          key: ansible-collections-${{ hashFiles('deploy/ansible/requirements.yml') }}
+      - name: Install Ansible and dependencies
+        run: |
+          uv tool install --with linode_api4 --with-executables-from ansible-core,ansible-lint ansible
+          ansible-galaxy collection install -r deploy/ansible/requirements.yml
+      - name: Deploy
+        env:
+          LINODE_ACCESS_TOKEN: ${{ secrets.LINODE_READ_ONLY_TOKEN }}
+        run: SSH_USER=deploy ${{ inputs.deploy-command }}

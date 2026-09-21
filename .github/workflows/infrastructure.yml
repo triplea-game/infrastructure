@@ -5,6 +5,11 @@ on:
     branches: [main]
   push:
     branches: [main]
+    # The reusable workflows and their publisher are CI plumbing for other
+    # repos; a change to them must not trigger a terraform/ansible apply here.
+    paths-ignore:
+      - '.github/workflows/shared-*.yml'
+      - '.github/workflows/publish-shared-workflows.yml'
   workflow_dispatch:  # manual run on any branch — treated as apply if on main
 
 # Actions are pinned to commit SHAs, not tags: a moved tag would run attacker
