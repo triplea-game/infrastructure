@@ -20,6 +20,9 @@ variable "servers" {
     image   = optional(string, "linode/ubuntu24.04")
     region  = string
     tags    = optional(list(string), [])
+    # Allocate a Linode private IP (same-DC private network). The provider can
+    # add one but errors on removing it, so don't flip this back to false.
+    private_ip = optional(bool, false)
     # Unique number for a bot server. Emitted as a "botnum-<n>" Linode tag and then read by ansible
     bot_number = optional(number)
     # Location of the bot server. Emitted as a "botlocation-<location>" Linode tag

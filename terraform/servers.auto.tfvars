@@ -1,10 +1,12 @@
 servers = {
   # Lobby server
-  lobby = { region = "us-east", tags = ["lobby"], destroy = false }
+  # private_ip is unused (lobby reaches support over public DNS) but kept: the
+  # Linode provider can't remove one, only a support ticket or the API can.
+  lobby = { region = "us-east", tags = ["lobby"], destroy = false, private_ip = true }
 
   # Support server (Quarkus). Own $5 box; lobby's nginx reaches it over public
-  # DNS + TLS (support.triplea-game.org).
-  support = { region = "us-east", tags = ["support"], destroy = false }
+  # DNS + TLS (support.triplea-game.org). private_ip: see lobby above.
+  support = { region = "us-east", tags = ["support"], destroy = false, private_ip = true }
 
   # Forums
   # Also a placeholder right now with the 'destroy = true', pre-existing server not under TF control
