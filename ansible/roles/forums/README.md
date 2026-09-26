@@ -5,6 +5,13 @@ uploads mirror to the lobby host as `forums-backup`. That key is confined there
 to `rrsync -wo`, so the remote paths in the script are relative to the backup
 directory rather than absolute (see the `lobby/forums_backup_target` role).
 
+Postgres settings live in the compose `command:`, sized for the 1 vCPU / 2 GB
+host. This role only writes the compose file, so a change takes effect on the
+next `docker compose up -d` in `/opt/triplea-forums`, which restarts Postgres
+for a few seconds. `pg_stat_statements` is preloaded there, but
+`CREATE EXTENSION IF NOT EXISTS pg_stat_statements;` is a one-time manual step
+in the `nodebb` database.
+
 ## nginx and firewall
 
 `tasks/nginx.yml` installs nginx, templates the `forums.triplea-game.org` vhost

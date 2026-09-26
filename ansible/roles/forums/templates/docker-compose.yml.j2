@@ -2,6 +2,18 @@ services:
   postgres:
     image: postgres:18
     restart: unless-stopped
+    # Sized for the 1 vCPU / 2 GB forums Linode: parallel workers only contend
+    # with the leader on one core, and the image's 4GB effective_cache_size
+    # exceeds the box's RAM. pg_stat_statements is preloaded for query
+    # diagnostics; its 'CREATE EXTENSION' is run by hand in the 'nodebb' DB.
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_stat_statements
+      - -c
+      - max_parallel_workers_per_gather=0
+      - -c
+      - effective_cache_size=768MB
     environment:
       POSTGRES_USER: nodebb
       POSTGRES_PASSWORD: "{{ nodebb_postgres_password }}"
