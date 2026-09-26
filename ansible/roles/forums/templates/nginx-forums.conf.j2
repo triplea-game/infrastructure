@@ -6,6 +6,19 @@ ssl_session_cache shared:ssl_session_cache:10m;
 # repeated failures; this is what slows stuffing spread across many accounts.
 limit_req_zone $binary_remote_addr zone=forums_login:10m rate={{ forums_login_rate }};
 
+# Site-wide (not per-IP) brake on page and API renders. Scrapers rotating
+# through proxy pools stay under any per-IP limit a reader would tolerate, so
+# this caps the work NodeBB and Postgres take on regardless of who sends it:
+# a short queue absorbs spikes, the rest get a fast 503 instead of a 60s hang.
+limit_req_zone $server_name zone=forums_render_rate:1m rate={{ forums_render_rate }};
+limit_conn_zone $server_name zone=forums_render_conn:1m;
+
+# NodeBB's session middleware runs ahead of /assets, so every asset request
+# carrying a cookie rewrites that session's row in Postgres. Asset URLs are
+# cache-busted, so nginx can serve them without NodeBB or the cookie.
+proxy_cache_path {{ forums_assets_cache_path }} levels=1:2 keys_zone=forums_assets:10m
+                 max_size={{ forums_assets_cache_max_size }} inactive=7d use_temp_path=off;
+
 server {
     listen 80;
     listen [::]:80;
@@ -64,7 +77,43 @@ server {
         include /etc/nginx/include/forums-proxy.conf;
     }
 
-    location / {
+    # Uploads stay uncached and keep the cookie: with NodeBB's private uploads
+    # on, a cached or cookieless request would lock members out of them.
+    location ^~ /assets/uploads/ {
         include /etc/nginx/include/forums-proxy.conf;
+    }
+
+    location ^~ /assets/ {
+        proxy_cache forums_assets;
+        proxy_cache_valid 200 {{ forums_assets_cache_ttl }};
+        proxy_cache_lock on;
+        proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+        proxy_ignore_headers Set-Cookie Cache-Control Expires;
+        proxy_hide_header Set-Cookie;
+        # Any add_header here drops the server-level ones, so HSTS is restated.
+        add_header Strict-Transport-Security "max-age=31536000" always;
+        add_header X-Cache-Status $upstream_cache_status;
+        include /etc/nginx/include/forums-proxy.conf;
+        proxy_set_header Cookie "";
+    }
+
+    # Websockets hold a connection for as long as a tab is open, so they would
+    # starve the render cap below.
+    location ^~ /socket.io/ {
+        include /etc/nginx/include/forums-proxy.conf;
+    }
+
+    location / {
+        limit_req zone=forums_render_rate burst={{ forums_render_burst }};
+        limit_conn forums_render_conn {{ forums_render_max_conn }};
+        error_page 503 /forums-busy.html;
+        include /etc/nginx/include/forums-proxy.conf;
+    }
+
+    location = /forums-busy.html {
+        internal;
+        default_type text/html;
+        add_header Retry-After 10 always;
+        return 503 '<!doctype html><title>Forums busy</title><p>The forums are under heavy load. Please try again in a few seconds.</p>';
     }
 }

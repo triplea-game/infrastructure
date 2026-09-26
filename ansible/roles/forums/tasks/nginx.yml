@@ -17,6 +17,15 @@
     group: root
     mode: "0755"
 
+- name: Create the asset cache directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ forums_assets_cache_path }}"
+    state: directory
+    owner: www-data
+    group: root
+    mode: "0700"
+
 - name: Deploy the NodeBB proxy snippet
   become: true
   notify: Reload_nginx
