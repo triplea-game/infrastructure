@@ -3,5 +3,38 @@
 set -euo pipefail
 
 cd {{ lobby_working_directory }}
+
+health_url="http://127.0.0.1:8010/q/health/ready"
+
+# Record health before we touch anything, so a post-deploy failure can be
+# attributed to this deploy (green -> red) rather than a pre-existing outage.
+# Never gates the deploy: a currently-unhealthy server still gets the new build,
+# which may itself be the fix.
+if curl -fsS --max-time 5 "$health_url" >/dev/null 2>&1; then
+  echo "Pre-deploy health: UP"
+else
+  echo "Pre-deploy health: DOWN or unreachable (deploying anyway)"
+fi
+
 docker compose pull service
 docker compose up -d --no-deps service
+
+# 'up -d' returns once the container starts, not once it serves, so a crash-loop
+# (bad Flyway migration, unreachable DB) would otherwise deploy silently. Poll
+# the app's readiness probe on its loopback port and fail the deploy if it
+# never comes up, turning a broken deploy into a non-zero exit the caller sees.
+for attempt in $(seq 1 30); do
+  if curl -fsS --max-time 5 "$health_url" >/dev/null 2>&1; then
+    echo "Lobby server healthy after ${attempt} attempt(s)."
+    exit 0
+  fi
+  echo "Waiting for lobby server to become healthy (attempt ${attempt}/30)..."
+  sleep 5
+done
+
+echo "ERROR: lobby server did not become healthy after 30 attempts." >&2
+docker compose ps >&2 || true
+# The caller's output lands in lobby-server's public CI log, and the app log
+# can hold DB connection details and player IPs, so it stays in the host journal.
+echo "App log withheld from this output; see docs/runbooks/debugging-triplea-production.md in the infrastructure repo." >&2
+exit 1
