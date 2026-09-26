@@ -3,9 +3,51 @@
 set -euo pipefail
 
 cd /opt/triplea-forums
+
+# NodeBB's /sping runs a Postgres query before answering, so a 200 means the app
+# is up and its database is reachable; with Postgres down NodeBB exits or the
+# query hangs past --max-time. It's also registered ahead of the session
+# middleware, so a probe writes no session row. Loopback skips nginx and its
+# site-wide render rate limit.
+health_url="http://127.0.0.1:{{ nodebb_port }}/sping"
+max_attempts=60
+
+# Record health before we touch anything, so a post-deploy failure can be
+# attributed to this deploy (green -> red) rather than a pre-existing outage.
+# Never gates the deploy: a currently-unhealthy forum still gets the new build,
+# which may itself be the fix.
+if curl -fsS --max-time 5 "$health_url" >/dev/null 2>&1; then
+  echo "Pre-deploy health: UP"
+else
+  echo "Pre-deploy health: DOWN or unreachable (deploying anyway)"
+fi
+
 docker compose pull nodebb
 # Full 'up' rather than '--no-deps nodebb' so a change to Postgres or the shared
 # network reconciles here; '--no-deps' cannot recreate a network Postgres still
 # holds open, which wedges the deploy. Compose is declarative — a routine image
 # push still only recreates nodebb.
 docker compose up -d
+
+# 'up -d' returns once the container starts, not once it serves, so a crash-loop
+# (unreachable DB, failed upgrade) would otherwise deploy silently. Poll until
+# NodeBB answers and fail the deploy if it never does. Every container start
+# rebuilds assets, and a package.json change (a NodeBB bump) runs 'nodebb
+# upgrade' and its migrations first. A routine start took ~9s on a dev machine;
+# prod (1 vCPU) and upgrade migrations are unmeasured.
+for attempt in $(seq 1 "$max_attempts"); do
+  if curl -fsS --max-time 5 "$health_url" >/dev/null 2>&1; then
+    echo "Forums healthy after ${attempt} attempt(s)."
+    exit 0
+  fi
+  if [ "$attempt" -lt "$max_attempts" ]; then
+    echo "Waiting for forums to become healthy (attempt ${attempt}/${max_attempts})..."
+    sleep 5
+  fi
+done
+
+echo "ERROR: forums did not become healthy after ${max_attempts} attempts (~5-10 min) at ${health_url}." >&2
+echo "The new image is already running. On a NodeBB bump this may be a 'nodebb upgrade' still running: check the log tail below, and if so wait and re-run the deploy instead of reverting." >&2
+docker compose ps >&2 || true
+docker compose logs --tail=100 nodebb >&2 || true
+exit 1
