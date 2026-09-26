@@ -1,0 +1,78 @@
+---
+- name: Install nginx
+  become: true
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+
+- name: Remove default nginx site
+  become: true
+  notify: Reload_nginx
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Deploy support vhost config
+  become: true
+  notify: Reload_nginx
+  ansible.builtin.template:
+    src: support.triplea-game.org.conf.j2
+    dest: /etc/nginx/sites-available/support.triplea-game.org.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Enable support vhost
+  become: true
+  notify: Reload_nginx
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/support.triplea-game.org.conf
+    dest: /etc/nginx/sites-enabled/support.triplea-game.org.conf
+    state: link
+    # A real apply writes the src (the template task above) before this runs, but
+    # a first --check on a host that has never had this role leaves the src
+    # unwritten; force lets the link task report its change instead of erroring.
+    force: true
+
+# ACME http-01 (initial issue and renewals) needs port 80 reachable from Let's
+# Encrypt's validators, so it stays open to the world.
+- name: Open firewall port 80 (ACME http-01)
+  become: true
+  community.general.ufw:
+    rule: allow
+    port: "80"
+    proto: tcp
+
+# 443 carries the X-Auth-* identity headers the support app trusts, so it is
+# scoped to lobby's public IP: lobby's nginx (which sanitizes those headers) is
+# the only legitimate caller, and an open 443 would be forgeable MapAdmin.
+- name: Assert lobby's public IP is resolvable (source for the 443 rule)
+  ansible.builtin.assert:
+    that:
+      - groups['lobby'] | default([]) | length > 0
+      - hostvars[groups['lobby'][0]].ansible_host | default('') | length > 0
+    fail_msg: >-
+      Cannot determine lobby's public IP to scope the support 443 firewall rule.
+
+# support has an AAAA record, so lobby's nginx resolves both addresses and
+# round-robins across them. Without the IPv6 rule, ufw silently drops the IPv6
+# attempts and those requests hang until proxy_connect_timeout before falling
+# back to IPv4. Linode reports the SLAAC address as 'addr/128'.
+- name: Allow lobby -> support HTTPS (443)
+  become: true
+  community.general.ufw:
+    rule: allow
+    from_ip: "{{ item }}"
+    port: "443"
+    proto: tcp
+  loop: >-
+    {{ [hostvars[groups['lobby'][0]].ansible_host,
+        hostvars[groups['lobby'][0]].ipv6 | default('') | split('/') | first]
+       | select | list }}
+
+- name: Ensure nginx is started and enabled
+  become: true
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: true

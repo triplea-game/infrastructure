@@ -1,13 +1,11 @@
 ---
-- name: Assert the support host and its private IP are resolvable
+- name: Assert the support hostname is set
   ansible.builtin.assert:
     that:
-      - groups['support'] | default([]) | length > 0
-      - hostvars[groups['support'][0]].private_ip | default('') | length > 0
+      - support_hostname | default('') | length > 0
     fail_msg: >-
-      No support host with a private IP found in inventory. Provision the
-      support Linode (with private_ip = true) before deploying lobby's
-      nginx, so this upstream can resolve its private address.
+      support_hostname must be set (group_vars/all.yml) so lobby's nginx knows
+      the public DNS name to proxy the support backend to over TLS.
 
 - name: Create dir /etc/nginx/include/
   become: true

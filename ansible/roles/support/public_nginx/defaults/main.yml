@@ -1,0 +1,4 @@
+---
+# Loopback port the support app container listens on; this role's nginx vhost is
+# the only thing in front of it.
+support_app_port: 8010

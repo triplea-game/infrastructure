@@ -7,6 +7,11 @@ ansible_user: ansible
 admin_group: admin
 ansible_python_interpreter: /usr/bin/python3
 
+# Public DNS name for the support server. lobby's nginx proxies to it over TLS
+# (support/nginx_conf) and the support host terminates HTTPS for it
+# (support/public_nginx). The A/AAAA record is managed outside this repo.
+support_hostname: support.triplea-game.org
+
 deploy_user:
   name: deploy
   ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJZwah7g0w5b9FjBtW9+psAWuF/dlrIq213C49L8sR1R deploy@triplea"

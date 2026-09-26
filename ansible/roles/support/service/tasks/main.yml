@@ -24,62 +24,28 @@
     group: support
     path: "{{ support_working_directory }}"
 
-# SSH (port 22) is already allowed on every host by the system/firewall role
-# (rule: limit, port: ssh), so support is reachable like any other box.
-# Here we only open the app port, scoped to the lobby box's private IP, since
-# lobby's nginx is the sole thing that proxies in over the private network.
-- name: Assert lobby's private IP is resolvable (source for the support port rule)
-  ansible.builtin.assert:
-    that:
-      - groups['lobby'] | default([]) | length > 0
-      - hostvars[groups['lobby'][0]].private_ip | default('') | length > 0
-    fail_msg: >-
-      Cannot determine lobby's private IP to scope the support firewall rule.
-      Ensure the lobby host is provisioned with private_ip = true.
-
-- name: Allow lobby -> support app port (8010) over the private network
+# The app is published on loopback only (docker-compose.yml.j2) and fronted by
+# nginx on this host (support/public_nginx terminates TLS on 443, scoped to
+# lobby). The private-IP exposure of 8010 is gone, so the rules that scoped it
+# are removed here; these converge a host previously deployed with the
+# private-IP model and are no-ops afterwards.
+- name: Remove obsolete lobby -> 8010 private-network ufw rule
   become: true
   community.general.ufw:
     rule: allow
     from_ip: "{{ hostvars[groups['lobby'][0]].private_ip }}"
     port: "8010"
     proto: tcp
+    delete: true
+  when: hostvars[groups['lobby'][0]].private_ip | default('') | length > 0
 
-# The allow rule above states the intent but cannot enforce it. Docker
-# publishes a port by DNAT'ing it into its own DOCKER chain in FORWARD, which
-# netfilter reaches before ufw's INPUT chains — published-port traffic is
-# never seen by ufw at all. That leaves 8010 open to anything that can route
-# to this host's private IP, and on Linode the 192.168.0.0/17 private network
-# is one flat segment shared by every Linode in the datacenter, across
-# accounts; the support backend trusts X-Auth-Email/X-Auth-Groups on the
-# assumption lobby's nginx is its only caller, so an open 8010 is forgeable
-# MapAdmin. DOCKER-USER is the seam Docker leaves for exactly this: consulted
-# first for forwarded traffic and never flushed by Docker. Persisting it in
-# '/etc/ufw/after.rules' gets boot and 'ufw reload' for free — ufw-init pipes
-# that file through 'iptables-restore -n', where the ':DOCKER-USER - [0:0]'
-# declaration flushes the chain before the -A lines refill it, so reloads
-# cannot stack duplicates (verified against ufw 0.36.2 / iptables 1.8.11).
-# Boot order is a non-issue in both directions: Docker's jump lives in
-# FORWARD, not inside DOCKER-USER, so the declaration cannot wipe it, and
-# Docker tolerates the chain already existing.
-- name: Enforce the lobby-only restriction on 8010 in DOCKER-USER
+- name: Remove obsolete DOCKER-USER 8010 restriction
   become: true
   notify: Reload_ufw
   ansible.builtin.blockinfile:
     path: /etc/ufw/after.rules
     marker: "# {mark} ANSIBLE MANAGED BLOCK: support 8010 DOCKER-USER"
-    owner: root
-    group: root
-    mode: "0640"
-    block: |
-      *filter
-      :DOCKER-USER - [0:0]
-      -A DOCKER-USER -p tcp --dport 8010 -s {{ hostvars[groups['lobby'][0]].private_ip }} -j RETURN
-      # NEW only, so replies and established flows are unaffected. DOCKER-USER
-      # sees both directions, but nothing on this host dials out to a :8010.
-      -A DOCKER-USER -p tcp --dport 8010 -m conntrack --ctstate NEW -j DROP
-      -A DOCKER-USER -j RETURN
-      COMMIT
+    state: absent
 
 - name: Deploy docker-compose.yml
   become: true
