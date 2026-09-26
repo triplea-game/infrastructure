@@ -12,32 +12,42 @@ CI on `main`** — see "Config drift" below for why that matters more than it lo
 ## How support is reached (the architecture you're debugging)
 
 The public site is `prod.triplea-game.org`, served by **nginx on the lobby
-host**. Support runs on its **own** Linode and is reached over the
-**same-datacentre private network**:
+host**. Support runs on its **own** Linode, reached over **public DNS + TLS**
+at `support.triplea-game.org`:
 
 ```
 game client ─https─> lobby nginx (prod.triplea-game.org)
                         │  /support/*  ─> auth_request to oauth2-proxy (lobby, 127.0.0.1:4180)
-                        │              ─> proxy_pass http://support_backend
-                        └─ support_backend = <support private_ip>:8010  (private net, plaintext)
-                                              └─> support container publishes {{ private_ip }}:8010
+                        │              ─> proxy_pass https://support_backend
+                        └─ support_backend = support.triplea-game.org:443  (public DNS, TLS, cert verified)
+                                              └─> support nginx (Let's Encrypt) ─> 127.0.0.1:8010 container
 ```
 
 Key facts, each a place things break:
 
-- **Lobby nginx → support is private + plaintext + port 8010**, defined in
-  `/etc/nginx/include/pre-server-support.conf` (`upstream support_backend { server <priv>:8010; }`)
-  and `server-support.conf` (`proxy_pass http://support_backend`). Rendered by the
-  `support/nginx_conf` role from `hostvars[support].private_ip`.
+- **Lobby nginx → support is `https://support.triplea-game.org:443`**, defined in
+  `/etc/nginx/include/pre-server-support.conf` (`upstream support_backend { server support.triplea-game.org:443; }`)
+  and `server-support.conf` (`proxy_pass https://support_backend`, with
+  `proxy_ssl_verify on`). Rendered by the `support/nginx_conf` role from
+  `support_hostname` in `group_vars/all.yml`.
+- **The name is resolved when lobby's nginx loads its config**, to both the A
+  and AAAA records. If support is rebuilt (new IP), update DNS (managed outside
+  this repo) *and* reload lobby's nginx; until then lobby keeps dialing the old IP.
 - **Every `/support/*` request first hits an `auth_request`** to oauth2-proxy on
   the lobby host at `127.0.0.1:4180`. Anonymous requests get 401 and fall through
   to `@optional_anon`, so **public** pages (the map listing, `latest-version`)
   still work — *unless oauth2-proxy is down*, in which case the subrequest fails
   and even public `/support/*` returns 502.
-- **The support container publishes 8010 on its private IP** (`{{ private_ip }}:8010:8010`
-  in `/opt/support/docker-compose.yml`), **not** loopback or `0.0.0.0`. A
-  `DOCKER-USER` iptables rule on the support box allows only lobby's private IP to
-  reach 8010.
+- **Support's nginx terminates TLS** (`support/public_nginx` role) with a Let's
+  Encrypt cert renewed by certbot's timer, over http-01 on port 80. Lobby verifies
+  the cert, so an expired cert is an outage, not a warning.
+- **Support's 443 is firewalled (ufw) to lobby's public IPv4 and IPv6 only.**
+  This is the security boundary: the support app trusts the `X-Auth-*` headers
+  lobby's nginx sets, so anyone else reaching 443 could forge MapAdmin. A lobby
+  rebuild (new IPs) leaves the rule stale until `support` is redeployed.
+- **The support container publishes 8010 on loopback only**
+  (`127.0.0.1:8010:8010` in `/opt/support/docker-compose.yml`); only support's
+  own nginx reaches it.
 - The client path for the map listing is `GET /support/maps/listing`
   (`ServerPaths.MAPS_LISTING_PATH` in the game repo). nginx forwards the URI
   unchanged, so support serves it at `/support/maps/listing`.
@@ -51,38 +61,46 @@ curl -sS -o /dev/null -w '%{http_code}  %{time_total}s\n' --max-time 5 \
 ```
 
 - **200** — healthy (payload is `{"maps":[...]}`, ~300 maps).
-- **502 fast (<1s)** — upstream actively refused (nothing listening) or nginx has
-  marked the upstream down.
-- **502 after ~60s** — packets are being **dropped/blackholed** (missing IP or a
-  firewall DROP), not refused.
+- **502 fast (<1s)** — upstream actively refused (nothing listening), TLS
+  verification failed, or nginx has marked the upstream down.
+- **502 after ~60s** — packets are being **dropped/blackholed** (support's
+  firewall doesn't admit lobby, or DNS points at a dead IP), not refused.
 - **000 / timeout** — a connect that hangs.
 
-Isolate nginx-vs-backend: from the **lobby** box, hit the backend directly. If
-this is fast 200 but the public URL 502s, the fault is on lobby's nginx side, not
-support.
+Isolate nginx-vs-backend hop by hop. From the **lobby** box, hit support's
+nginx over each address family (a firewall gap is often v6-only, which shows up
+as intermittent ~60s hangs rather than a clean failure):
+
+```bash
+for v in -4 -6; do curl $v -m 5 -sS -o /dev/null -w "$v %{http_code} %{time_total}s\n" \
+  https://support.triplea-game.org/support/maps/listing; done
+```
+
+From the **support** box, hit the app directly:
 
 ```bash
 curl -m 5 -sS -o /dev/null -w '%{http_code} %{time_total}s\n' \
-  http://<support private_ip>:8010/support/maps/listing
+  http://127.0.0.1:8010/support/maps/listing
 ```
 
-nginx errors on lobby are in `/var/log/nginx/error.log` (**not** journald — the
-log wrapper won't show them). The `upstream: "..."` field names exactly what
-nginx dialed — trust it.
+If support's loopback is a fast 200 but lobby's curl fails, the fault is support's
+nginx, cert, or firewall. If lobby's curl is 200 but the public URL 502s, the
+fault is lobby's nginx.
+
+nginx errors are in `/var/log/nginx/error.log` on each host (**not** journald —
+the log wrapper won't show them). On lobby, the `upstream: "..."` field names
+exactly what nginx dialed — trust it.
 
 ## Failure modes (symptom → check → fix)
 
 | # | Symptom | Check | Fix |
 |---|---------|-------|-----|
-| 1 | lobby nginx dials the **wrong target** (e.g. `https://<public ip>:443`, or a stale private IP) | `sudo nginx -T` on lobby; `grep -r support_backend /etc/nginx/`. The `upstream:` in the error log is the tell. | **Redeploy `main` via CI.** The templates are private/8010/http; a wrong target means the box drifted from `main` — see "Config drift". |
-| 2 | support container **up but 8010 not published** on the private IP (bound to `127.0.0.1` or missing) | On support: `docker ps` PORTS column; from the box `curl http://<priv>:8010/q/health/ready` (instant refuse = not published) | Correct `/opt/support/docker-compose.yml` port to `<priv>:8010:8010`; `docker compose up -d`. Then redeploy `main` to make it stick. |
+| 1 | lobby nginx dials the **wrong target** (a raw IP, `http://`, or `:8010`) | `sudo nginx -T` on lobby; `grep -r support_backend /etc/nginx/`. The `upstream:` in the error log is the tell. | **Redeploy `main` via CI.** The templates are `https://support.triplea-game.org:443`; anything else means the box drifted from `main` — see "Config drift". |
+| 2 | lobby dials a **stale IP** after support was rebuilt | `dig +short support.triplea-game.org` (A and AAAA) vs the Linode's IPs; lobby's error log `upstream:` IP | Fix the DNS records, then `sudo systemctl reload nginx` on lobby. |
 | 3 | 502 on **all** `/support/*`, 60s-ish | oauth2-proxy on lobby: `curl -m5 http://127.0.0.1:4180/ping` (expect 200); `systemctl status oauth2-proxy` | `sudo systemctl restart oauth2-proxy` |
-| 4 | lobby's traffic **dropped** at support's firewall | On support: `sudo iptables -L DOCKER-USER -n -v` — is lobby's private IP RETURN'd before the DROP? are DROP counters climbing? | Redeploy `support/service` (renders the rule from inventory) |
-| 5 | support **private IP** absent | On support: `ip addr show eth0 \| grep 192.168` | `sudo ip addr add <priv>/17 dev eth0` — **but** this has *not* historically been the real cause; don't stop here. See below. |
-
-**Do not assume "the private IP fell off."** Every incident so far blamed on a
-dropping private IP turned out to be something else (a hand-applied branch, a
-loopback port binding). Verify with `ip addr` before spending time on it.
+| 4 | lobby's traffic **dropped** at support's firewall (all, or v6 only) | On support: `sudo ufw status numbered` — is 443 allowed from lobby's current IPv4 **and** IPv6? From lobby: the `-4`/`-6` curl above. | Redeploy `support` (renders the rule from inventory). |
+| 5 | **TLS verify fails** (lobby error log: `SSL_do_handshake`, `certificate verify failed`, `expired`) | On support: `sudo certbot certificates`; `systemctl list-timers \| grep certbot`; is port 80 reachable for renewal? | `sudo certbot renew` on support, then fix whatever blocked the timer. |
+| 6 | support container **up but 8010 not on loopback** | On support: `docker ps` PORTS column; `curl http://127.0.0.1:8010/q/health/ready` (instant refuse = not published) | Correct `/opt/support/docker-compose.yml` port to `127.0.0.1:8010:8010`; `docker compose up -d`. Then redeploy `main` to make it stick. |
 
 ## Config drift — the failure mode that has actually bitten us
 
@@ -136,6 +154,10 @@ workstation ~2026-09-21 and left incomplete** (never reverted, never merged); CI
 only applies `main`, so the divergence stayed invisible for days. Fix: re-run the
 `main` infra deploy, which restored the private-network design. Root cause was an
 unfinished manual apply — **not** a private-IP problem at any point.
+
+That private-network design has since been replaced: `feat/support-public-dns`
+was finished and merged through `main`, giving the public-DNS architecture
+described above.
 
 ## Safety
 
