@@ -1,8 +1,79 @@
 #!/bin/bash
 # Managed by Ansible - do not edit manually
+#
+# Usage: deploy-marti.sh [tag]    (tag defaults to 'latest'; CI passes sha-<commit>)
+#
+# Deploys {{ marti_image_repo }}:<tag> and waits for the app's compose
+# healthcheck. If it never turns healthy, redeploys the image that was running
+# before and exits 1 either way, so CI goes red.
+#
+# The deployed image is pinned in docker-compose.override.yml, which compose
+# merges automatically. That keeps systemd restarts and Ansible applies on the
+# deployed (or rolled-back) image instead of whatever ':latest' now is. Ansible
+# does not manage the override; deleting it returns to marti_image.
 set -euo pipefail
 
 cd {{ marti_working_directory }}
-docker compose pull app
-docker compose up -d --no-deps app
 
+repo="{{ marti_image_repo }}"
+{% raw %}
+tag="${1:-latest}"
+# The tag arrives through sudo from the deploy user; accept only a plain tag.
+if [[ ! "$tag" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+  echo "ERROR: invalid image tag '$tag'" >&2
+  exit 2
+fi
+
+pin_image() {
+  printf 'services:\n  app:\n    image: %s\n' "$1" > docker-compose.override.yml.tmp
+  mv -f docker-compose.override.yml.tmp docker-compose.override.yml
+}
+
+start_and_wait() {
+  docker compose up -d --no-deps --wait --wait-timeout 150 app
+}
+
+# Record what runs now, by registry digest, so a rollback can re-pull it even
+# after a prune. Health is logged so a red deploy can be told apart from a
+# pre-existing outage; it never gates the deploy.
+previous_ref=""
+container_id="$(docker compose ps -aq app)"
+if [ -n "$container_id" ]; then
+  image_id="$(docker inspect --format '{{.Image}}' "$container_id")"
+  previous_ref="$(docker image inspect --format '{{if .RepoDigests}}{{index .RepoDigests 0}}{{end}}' "$image_id")"
+  health="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}no healthcheck{{end}}' "$container_id")"
+  echo "Pre-deploy: ${previous_ref:-$image_id} ($health)"
+else
+  echo "Pre-deploy: no app container"
+fi
+
+# Pull before pinning, so a bad tag fails here and leaves the pin untouched.
+docker pull "$repo:$tag"
+pin_image "$repo:$tag"
+
+if start_and_wait; then
+  echo "Deployed $repo:$tag; app is healthy."
+  exit 0
+fi
+
+echo "ERROR: $repo:$tag did not become healthy." >&2
+docker compose ps app >&2 || true
+# The caller's output lands in dice-server-js's public CI log, and the app log
+# can hold DB connection details, so it stays in the host journal.
+echo "App log withheld from this output; see docs/runbooks/debugging-triplea-production.md in the infrastructure repo." >&2
+
+if [ -z "$previous_ref" ]; then
+  echo "ERROR: no previous image recorded; nothing to roll back to." >&2
+  exit 1
+fi
+
+echo "Rolling back to $previous_ref" >&2
+pin_image "$previous_ref"
+if start_and_wait; then
+  echo "Rollback healthy; still failing the deploy." >&2
+else
+  echo "ERROR: rollback image is unhealthy too." >&2
+  docker compose ps app >&2 || true
+fi
+exit 1
+{% endraw %}

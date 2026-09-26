@@ -129,14 +129,24 @@ Add this to a cron job for automated backups.
 
 ### Updating the Application
 
-Update the image digest in `ansible/roles/marti/app/defaults/main.yml`
-(`marti_image`), then re-run the playbook:
+A push to dice-server-js `main` deploys by running
+`/opt/triplea-marti/deploy-marti.sh sha-<commit>` as `marti`. The script pulls
+that image and waits for the app's healthcheck (`/health`, which queries the
+database). If the app turns unhealthy or is still starting after 150s, the
+script redeploys the
+image that was running before and exits 1, so the CI deploy fails.
+
+The deployed image is pinned in `/opt/triplea-marti/docker-compose.override.yml`,
+which compose merges over the Ansible-managed `docker-compose.yml`. Restarts and
+playbook runs keep that image. `marti_image` applies only while no override
+exists.
+
+To deploy or roll back by hand, run the script with the tag you want. Every
+`main` build is tagged `sha-<full commit sha>`:
 
 ```bash
-ansible-playbook playbook.yml --limit marti
+sudo -u marti /opt/triplea-marti/deploy-marti.sh sha-<commit>
 ```
-
-The systemd service restarts the Compose stack automatically.
 
 ### Key Rotation
 
