@@ -21,6 +21,12 @@ forums_login_burst: 20
 forums_render_rate: 5r/s
 forums_render_burst: 20
 forums_render_max_conn: 10
+# Per-IP cap on pages and on socket.io, each counted separately. In 14 days of
+# logs (09-12..09-26) 99% of browser IPs peaked at 3 pages a minute and no
+# socket.io client passed 116 a minute; only automated clients went past
+# rate + burst.
+forums_client_rate: 2r/s
+forums_client_burst: 60
 forums_assets_cache_path: /var/cache/nginx/forums-assets
 forums_assets_cache_max_size: 512m
 # Bounds how long an un-busted asset URL can serve the old file after a deploy.

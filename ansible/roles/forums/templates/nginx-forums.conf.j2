@@ -2,9 +2,23 @@
 
 ssl_session_cache shared:ssl_session_cache:10m;
 
+# Per-client key for the per-IP limits: IPv4 as-is, IPv6 cut to its /64, since
+# one client usually holds a whole /64 and could otherwise rotate through it.
+# An address compressed ('::') within its first four groups falls back to the
+# full address.
+map $remote_addr $forums_client {
+    "~^(?<v6net>[0-9a-f]+:[0-9a-f]+:[0-9a-f]+:[0-9a-f]+):" $v6net;
+    default $remote_addr;
+}
+
 # Per-IP brake on the credential endpoints. NodeBB locks an account after
 # repeated failures; this is what slows stuffing spread across many accounts.
-limit_req_zone $binary_remote_addr zone=forums_login:10m rate={{ forums_login_rate }};
+limit_req_zone $forums_client zone=forums_login:10m rate={{ forums_login_rate }};
+
+# Per-IP brake on pages and websockets: stops one client (eg: a crawler at
+# 100 req/s) from using up the site-wide cap below and locking everyone out.
+limit_req_zone $forums_client zone=forums_client_rate:10m rate={{ forums_client_rate }};
+limit_req_zone $forums_client zone=forums_socket_rate:10m rate={{ forums_client_rate }};
 
 # Site-wide (not per-IP) brake on page and API renders. Scrapers rotating
 # through proxy pools stay under any per-IP limit a reader would tolerate, so
@@ -98,12 +112,20 @@ server {
     }
 
     # Websockets hold a connection for as long as a tab is open, so they would
-    # starve the render cap below.
+    # starve the render cap below. NodeBB still serves post and topic content
+    # to guests over socket.io, so it gets its own per-IP limit instead.
     location ^~ /socket.io/ {
+        limit_req zone=forums_socket_rate burst={{ forums_client_burst }} nodelay;
+        limit_req_status 429;
         include /etc/nginx/include/forums-proxy.conf;
     }
 
     location / {
+        # nginx stops at the first limit that rejects, so the per-IP limit goes
+        # first: a flooding client is turned away before it spends site-wide
+        # budget. Both reject with the 503 "Forums busy" page; error.log names
+        # the zone that fired.
+        limit_req zone=forums_client_rate burst={{ forums_client_burst }} nodelay;
         limit_req zone=forums_render_rate burst={{ forums_render_burst }};
         limit_conn forums_render_conn {{ forums_render_max_conn }};
         error_page 503 /forums-busy.html;
