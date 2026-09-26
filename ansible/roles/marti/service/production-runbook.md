@@ -148,16 +148,41 @@ To deploy or roll back by hand, run the script with the tag you want. Every
 sudo -u marti /opt/triplea-marti/deploy-marti.sh sha-<commit>
 ```
 
-### Key Rotation
+### Signing Key
 
-If the RSA private key is compromised:
+Every roll is signed with the RSA-4096 key in
+`/opt/triplea-marti/keys/privkey.pem`. Players verify rolls against its public
+key, so losing the key breaks verification of every past roll just as rotating
+it does.
 
-1. Delete `keys/privkey.pem` and `keys/pubkey.pem` on the server under
-   `/opt/triplea-marti/keys/`.
-2. Re-run the Ansible playbook - it will regenerate the key pair.
-3. Restart the stack: `systemctl restart marti`.
-4. Notify any users who verify dice roll signatures - tokens signed with the
-   old key will no longer pass verification.
+**Backup.** The key is kept vault-encrypted in `marti_signing_private_key`
+(`defaults/main.yml`). With it set, the role installs that key instead of
+generating one, so a rebuilt host keeps signing with it. While the variable is
+empty, the key lives only on the host. To vault it (run from `ansible/`, as an
+account that can read the key, i.e. root on the host):
+
+```bash
+ssh <admin>@dice.triplea-game.org 'sudo cat /opt/triplea-marti/keys/privkey.pem' \
+  | TRIPLEA_ANSIBLE_VAULT_PASSWORD=... ansible-vault encrypt_string \
+      --vault-password-file vault-password.sh --stdin-name marti_signing_private_key
+```
+
+Paste the output over `marti_signing_private_key: ""`, then confirm with
+`just diff` that the key task reports no change. A change means the vaulted
+bytes differ from the host's key.
+
+**Rotation.** The app verifies with a single public key, so switching keys
+fails every roll signed before the switch. Until dice-server-js can also check
+a list of retired public keys, rotate only when the key is compromised:
+
+1. Generate a new key: `openssl genrsa 4096`, and vault it into
+   `marti_signing_private_key` as above.
+2. Apply. The role installs the key, derives `pubkey.pem`, and restarts marti.
+3. Tell players that rolls signed before the rotation no longer verify.
+
+After a compromise that loss is correct, since anyone holding the old key can
+forge "past" rolls. A routine rotation should wait for retired-key support,
+then keep each old public key verifiable, so past rolls still check out.
 
 ### Applying Vault Secret Changes
 

@@ -17,6 +17,11 @@ marti_db_password: !vault |
   3230623937643731340a346561663734356130636466656132356630646265663065336362303438
   35613132386631643065303939393835623033336536383932346563633962613661
 
+# The dice roll signing key (PEM). Empty means the host keeps, or on first
+# deploy generates, its own key; set it (vault-encrypted) so a rebuilt host
+# signs with the same key. See production-runbook.md, "Signing Key".
+marti_signing_private_key: ""
+
 # SMTP is handled by the postfix container in the same compose stack.
 # Host is the compose service name; no auth needed for the internal relay.
 marti_smtp_host: postfix

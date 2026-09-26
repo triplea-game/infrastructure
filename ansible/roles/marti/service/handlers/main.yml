@@ -1,4 +1,16 @@
 ---
+# Listed before Restart_marti: handlers run in file order, and the app reads
+# both keys at startup.
+- name: Derive_marti_public_key
+  become: true
+  ansible.builtin.command:
+    cmd: >
+      openssl rsa
+      -in {{ marti_working_directory }}/keys/privkey.pem
+      -outform PEM -pubout
+      -out {{ marti_working_directory }}/keys/pubkey.pem
+  changed_when: true
+
 - name: Restart_marti
   become: true
   ansible.builtin.systemd_service:

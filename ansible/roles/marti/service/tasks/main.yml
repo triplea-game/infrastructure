@@ -51,7 +51,23 @@
     group: marti
     path: "{{ marti_working_directory }}/keys"
 
-- name: Generate RSA private key (first deploy only)
+- name: Install RSA private key from vault
+  when: marti_signing_private_key | length > 0
+  notify:
+    - Derive_marti_public_key
+    - Restart_marti
+  become: true
+  no_log: true
+  ansible.builtin.copy:
+    # A PEM file ends in exactly one newline; vaulting can drop or add one.
+    content: "{{ marti_signing_private_key | trim }}\n"
+    dest: "{{ marti_working_directory }}/keys/privkey.pem"
+    mode: "0400"
+    owner: marti
+    group: marti
+
+- name: Generate RSA private key (first deploy only, when none is vaulted)
+  when: marti_signing_private_key | length == 0
   become: true
   ansible.builtin.command:
     cmd: openssl genrsa -out {{ marti_working_directory }}/keys/privkey.pem 4096
