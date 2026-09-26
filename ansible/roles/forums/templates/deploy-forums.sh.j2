@@ -47,7 +47,9 @@ for attempt in $(seq 1 "$max_attempts"); do
 done
 
 echo "ERROR: forums did not become healthy after ${max_attempts} attempts (~5-10 min) at ${health_url}." >&2
-echo "The new image is already running. On a NodeBB bump this may be a 'nodebb upgrade' still running: check the log tail below, and if so wait and re-run the deploy instead of reverting." >&2
+echo "The new image is already running. On a NodeBB bump this may be a 'nodebb upgrade' still running: check the nodebb log on the host, and if so wait and re-run the deploy instead of reverting." >&2
 docker compose ps >&2 || true
-docker compose logs --tail=100 nodebb >&2 || true
+# The caller's output lands in the forums repo's public CI log, and the app log
+# can hold DB connection details and user IPs, so it stays in the host journal.
+echo "App log withheld from this output; see docs/runbooks/debugging-triplea-production.md in the infrastructure repo." >&2
 exit 1

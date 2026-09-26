@@ -34,5 +34,7 @@ done
 
 echo "ERROR: support server did not become healthy within ~150s." >&2
 docker compose ps >&2 || true
-docker compose logs --tail=100 service >&2 || true
+# The caller's output lands in support-server's public CI log, and the app log
+# can hold DB connection details, so it stays in the host journal.
+echo "App log withheld from this output; see docs/runbooks/debugging-triplea-production.md in the infrastructure repo." >&2
 exit 1
