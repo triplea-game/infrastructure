@@ -6,6 +6,8 @@
 #   TRIPLEA_ANSIBLE_VAULT_PASSWORD  vault password, consumed by vault-password.sh
 
 set shell := ["bash", "-euo", "pipefail", "-c"]
+# Lets 'diff' and 'apply' forward extra ansible-playbook args as "$@", quoting intact.
+set positional-arguments
 
 ssh_user := env_var_or_default("SSH_USER", env_var_or_default("USER", ""))
 run_ansible := 'ANSIBLE_CONFIG=./ansible.cfg ansible-playbook --vault-password-file ./vault-password.sh -e ansible_user=' + ssh_user
@@ -50,13 +52,13 @@ verify: galaxy-install
 format: galaxy-install
     ansible-lint --fix=yaml || true
 
-# Preview changes against production (check + diff, no changes made).
-diff: galaxy-install
-    {{run_ansible}} --check --diff {{prod_inventory}} {{playbook}}
+# Preview changes against production (check + diff, no changes made); extra args go to ansible-playbook.
+diff *args: galaxy-install
+    {{run_ansible}} --check --diff {{prod_inventory}} {{playbook}} "$@"
 
-# Apply changes to production.
-apply: galaxy-install
-    {{run_ansible}} {{prod_inventory}} {{playbook}}
+# Apply changes to production; extra args go to ansible-playbook.
+apply *args: galaxy-install
+    {{run_ansible}} {{prod_inventory}} {{playbook}} "$@"
 
 # Apply as the 'ansible' service account.
 apply-as-ansible:

@@ -1,10 +1,12 @@
 #!/bin/bash
 
-# This script is a wrapper around 'ansible-playbook'
-# When run without any args, ansible is run in 'dry-run' mode and will not make any changes.
-# Any args passed into this script are passed directly to the ansible-playbook command.
+# Previews (default) or, with APPLY=1, applies terraform and then ansible.
+# Any args are passed to ansible-playbook, and terraform runs only when there
+# are none: it has no equivalent of '--limit' or '--tags', so a scoped run would
+# otherwise still plan or apply every server.
 #
-# Examples: ./run.sh --limit bot --tags system --verbose
+# Examples: ./run.sh
+#           APPLY=1 ./run.sh --limit bots --tags system --verbose
 
 
 set -eu
@@ -32,16 +34,20 @@ else
   printCheckMode
 fi
 
-(
-  set -x
-  cd "$scriptDir/terraform"
-  just "$tfRecipe"
-)
+if [[ $# -eq 0 ]]; then
+  (
+    set -x
+    cd "$scriptDir/terraform"
+    just "$tfRecipe"
+  )
+else
+  echo "Arguments given: skipping terraform, running ansible only." >&2
+fi
 
 (
   set -x
   cd "$scriptDir/ansible"
-  just "$ansibleRecipe"
+  just "$ansibleRecipe" "$@"
 )
 
 if [[ "$tfRecipe" == "plan" ]]; then

@@ -148,7 +148,9 @@ Once done, the server can be managed with `./run.sh` as normal.
 
 ## Running Ansible
 
-`run.sh` is a wrapper around `ansible-playbook`. **By default it runs in dry-run (check) mode** and makes no changes.
+`run.sh` runs terraform and then `ansible-playbook`. **By default it runs in dry-run (check) mode** and makes no changes; `APPLY=1` runs `terraform apply` as well as the ansible apply.
+
+Any arguments are passed to `ansible-playbook`, and **with arguments terraform is skipped** — a run scoped by `--limit`/`--tags` touches ansible only. Run `./run.sh` with no arguments to include terraform.
 
 ```bash
 # Preview changes (default — no changes made)
@@ -194,7 +196,8 @@ just update-bots
 
 ### Installing Ansible
 
-If Ansible is not installed, `run.sh` will prompt to install it. Or install manually:
+If `ansible-playbook` is not installed, `run.sh` exits with an error. Install it with
+`cd ansible && just install-ansible`, or manually:
 
 ```bash
 sudo apt update && sudo apt install software-properties-common
