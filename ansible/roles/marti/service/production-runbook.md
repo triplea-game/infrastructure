@@ -125,12 +125,18 @@ docker compose -f /opt/triplea-marti/docker-compose.yml logs -f app
 
 ### Database Backups
 
-```bash
-docker compose -f /opt/triplea-marti/docker-compose.yml exec postgres \
-  pg_dump -U postgres dicedb > dicedb-backup-$(date +%F).sql
-```
+The `marti/db_backup` role runs `/opt/triplea-marti/backup-marti-db.sh` from
+root's cron at 07:00. It keeps the newest 7 dated dumps in
+`/opt/triplea-marti/backups/` and ships each one to the lobby host's
+`/opt/backups/marti/`, which keeps the newest 30. The run logs to
+`/var/log/triplea-marti-db-backup.log`; see the role's `README.md` for how the
+shipping key is set up.
 
-Add this to a cron job for automated backups.
+For a one-off dump outside the schedule:
+
+```bash
+sudo /opt/triplea-marti/backup-marti-db.sh
+```
 
 ### Updating the Application
 

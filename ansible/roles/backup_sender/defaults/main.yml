@@ -1,0 +1,8 @@
+---
+# Names the sending host's instance; must equal backup_target_name on the
+# matching lobby/backup_target instance in playbook.yml.
+backup_sender_name: ""
+
+# Private key the host's backup script ships with. Generated here on first
+# apply and never leaves the host; the lobby host only ever sees its public half.
+backup_sender_key_path: "/root/.ssh/{{ backup_sender_name }}-backup_key"

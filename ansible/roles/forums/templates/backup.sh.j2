@@ -7,8 +7,9 @@ set -euo pipefail
 umask 077
 
 BACKUP_DIR="{{ forums_working_directory }}"
-# The lobby host's forums_backup_target prune matches this name and relies on
-# the timestamp sorting newest-first; change both together.
+# The lobby host's prune matches this name by the glob on the 'forums'
+# lobby/backup_target instance in playbook.yml, and relies on the timestamp
+# sorting newest-first; change both together.
 BACKUP_FILE="triplea_forums_db_backup_$(date +%Y%m%d-%H%M%S).sql.gz"
 
 # A failed rsync aborts the script (set -e) before the rm below, so its dated
@@ -17,7 +18,7 @@ BACKUP_FILE="triplea_forums_db_backup_$(date +%Y%m%d-%H%M%S).sql.gz"
 # is a stranded leftover; the +60min floor keeps this from racing a dump a
 # concurrent run is mid-write. -maxdepth 1 + the dump glob keep the rest of the
 # working dir untouched. Retention of the shipped copies is separate and lives
-# on the lobby host in the forums_backup_target role.
+# on the lobby host in the lobby/backup_target role.
 find "$BACKUP_DIR" -maxdepth 1 -type f -name 'triplea_forums_db_backup_*.sql.gz' \
   -mmin +60 -delete
 
@@ -25,7 +26,7 @@ docker compose -f "{{ nodebb_docker_compose_path }}" exec -T postgres \
   pg_dump -U nodebb -d nodebb | gzip > "$BACKUP_DIR/$BACKUP_FILE"
 # The remote path below is anchored at the root of the 'rrsync -wo' jail the
 # lobby host pins this key to, not at /, so ':/' means the backup directory the
-# forums_backup_target role owns. rrsync rejects a path containing '..'.
+# lobby/backup_target role owns. rrsync rejects a path containing '..'.
 rsync -az -e "ssh -i {{ backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new" \
   "$BACKUP_DIR/$BACKUP_FILE" \
   forums-backup@prod.triplea-game.org:/

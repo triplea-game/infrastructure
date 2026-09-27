@@ -6,3 +6,6 @@ collections:
   # Provides ansible.posix.authorized_key, used by the system admin/read-only roles
   - name: ansible.posix
     version: "1.5.4"
+  # Provides community.crypto.openssh_keypair, used by the backup_sender role
+  - name: community.crypto
+    version: "3.4.0"

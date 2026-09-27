@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Daily backup of the marti (dice server) database. Runs pg_dump inside the
+# postgres container, writes a gzipped plain-SQL dump named for the day, keeps
+# only the newest {{ marti_db_backup_retention_count }} dumps here, then ships the
+# day's dump to the lobby host.
+
+set -euo pipefail
+
+# The dump holds every registered email address; keep it owner-only.
+umask 077
+
+BACKUP_DIR="{{ marti_db_backup_directory }}"
+BACKUP_FILE="$BACKUP_DIR/{{ marti_db_backup_prefix }}_$(date +%F).sql.gz"
+TMP_FILE="$BACKUP_FILE.tmp"
+KEEP={{ marti_db_backup_retention_count }}
+
+# Dump to a temp file first so a failed/partial dump never clobbers a good backup.
+docker compose -f "{{ marti_working_directory }}/docker-compose.yml" exec -T postgres \
+  pg_dump -U postgres dicedb | gzip > "$TMP_FILE"
+
+mv -f "$TMP_FILE" "$BACKUP_FILE"
+
+# Prune by count, never by age: the ISO date in the name sorts newest-first, and
+# the prune only runs after a successful dump (set -e), so the newest KEEP good
+# dumps always survive. It runs before the ship so an offsite outage cannot
+# stop local retention.
+find "$BACKUP_DIR" -maxdepth 1 -type f -name '{{ marti_db_backup_prefix }}_????-??-??.sql.gz' \
+  | sort -r | tail -n +$((KEEP + 1)) | xargs -r rm -f
+
+rsync -az -e "ssh -i {{ marti_db_backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new" \
+  "$BACKUP_FILE" \
+  {{ marti_db_backup_offsite_destination }}

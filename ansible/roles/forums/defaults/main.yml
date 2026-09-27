@@ -43,7 +43,7 @@ forums_assets_cache_max_size: 512m
 forums_assets_cache_ttl: 1h
 # Private key 'backup.sh' pushes with; the lobby host authorizes its public half
 # under an 'rrsync -wo' forced command, so it grants a write-only rsync into the
-# backup directory and nothing more (see the 'lobby/forums_backup_target' role).
+# backup directory and nothing more (see the 'lobby/backup_target' role).
 backup_ssh_key_path: "/root/.ssh/backup-user_key"
 
 # NodeBB's Postgres password (mongo->postgres migration).

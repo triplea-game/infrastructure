@@ -3,7 +3,7 @@ Postgres 18. The compose stack is two services: `postgres` and `nodebb`.
 `backup.sh.j2` backs up the database with `pg_dump` and rsyncs the dump plus the
 uploads mirror to the lobby host as `forums-backup`. That key is confined there
 to `rrsync -wo`, so the remote paths in the script are relative to the backup
-directory rather than absolute (see the `lobby/forums_backup_target` role).
+directory rather than absolute (see the `lobby/backup_target` role and its `forums` instance in `playbook.yml`).
 
 Postgres settings live in the compose `command:`, sized for the 1 vCPU / 2 GB
 host. This role only writes the compose file, so a change takes effect on the

@@ -1,0 +1,13 @@
+---
+# Delegated to the lobby host because a sender that generates its key at apply
+# time runs this from its own play (via the backup_sender role), after the lobby
+# play has already created the account. Run from the lobby play itself, the
+# delegation targets the current host and is a no-op.
+- name: Backup target - authorize the sending key for {{ backup_target_name }}
+  become: true
+  delegate_to: "{{ groups['lobby'][0] }}"
+  ansible.posix.authorized_key:
+    user: "{{ backup_target_user }}"
+    key: "{{ backup_target_public_key }}"
+    key_options: 'restrict,command="rrsync -wo {{ backup_target_directory }}"'
+    state: present

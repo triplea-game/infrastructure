@@ -1,0 +1,26 @@
+---
+# Names one receiving instance; one per sending host (eg: forums, marti). Every
+# default below derives from it, and the backup_sender role on the sending host
+# relies on the same derivation to reach this instance's account and jail.
+backup_target_name: ""
+
+backup_target_user: "{{ backup_target_name }}-backup"
+
+# Destination for the received backups, and also the root of the 'rrsync -wo'
+# forced command the sending key is pinned to; the sender's remote paths are
+# relative to it, so moving this directory changes what ':/' means on the wire.
+backup_target_directory: "/opt/backups/{{ backup_target_name }}"
+
+# Received dumps the prune cron manages. The default matches the dated
+# '<name>_db_YYYY-MM-DD.sql.gz' files the db_backup roles ship; the pattern must
+# sort newest-first by name, since the prune keeps the tail of that order.
+backup_target_file_glob: "{{ backup_target_name }}_db_????-??-??.sql.gz"
+
+# How many of the newest received dumps the prune cron keeps, however old they
+# are, so a stalled sender never empties backup_target_directory.
+backup_target_retention_count: 30
+
+# Sending host's public key, when it is fixed ahead of time (forums, whose
+# private half is vaulted). Empty for senders that generate their key at apply
+# time; those authorize it themselves through this role's 'authorize' tasks.
+backup_target_public_key: ""

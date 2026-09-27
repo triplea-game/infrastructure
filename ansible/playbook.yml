@@ -60,8 +60,21 @@
     - support/nginx_conf
     - lobby/service
     - lobby/db_backup
-    # receiving side for the forums host's offsite backup rsync (forums role)
-    - lobby/forums_backup_target
+    # Receiving side of each host's offsite backup rsync; one instance per sender.
+    - role: lobby/backup_target
+      vars:
+        backup_target_name: forums
+        # Must match the filename the forums role's backup.sh.j2 generates, and
+        # keep a timestamp that sorts newest-first; change both together.
+        backup_target_file_glob: triplea_forums_db_backup_*.sql.gz
+        # Public half of the vaulted 'nodebb_private_key' the forums role
+        # deploys to the forums host as its backup key.
+        backup_target_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAE6Sr1ibMZnujm6Ndu+1ObSANq9iqzrPoq/L3DfaCRY forums-backup"
+    # marti's key is generated on the marti host and authorized from the marti
+    # play (backup_sender role); this instance only makes the account and jail.
+    - role: lobby/backup_target
+      vars:
+        backup_target_name: marti
 
 - name: Configure forums server
   hosts: forums
@@ -76,3 +89,4 @@
     # note: this marti/nginx_conf is not like the lobby or support server, it's a full standalone NGINX config
     - marti/nginx_conf
     - marti/service
+    - marti/db_backup

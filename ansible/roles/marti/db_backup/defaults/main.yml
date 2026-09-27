@@ -1,0 +1,21 @@
+---
+# Directory the marti docker-compose project lives in (matches marti/service role).
+marti_working_directory: /opt/triplea-marti
+
+# Where the daily database backups are written, one dated file per day:
+# marti_db_backup_prefix + '_YYYY-MM-DD.sql.gz'. The lobby host's 'marti'
+# lobby/backup_target instance prunes by the default '<name>_db_*' glob, which
+# this prefix satisfies.
+marti_db_backup_directory: "{{ marti_working_directory }}/backups"
+marti_db_backup_prefix: marti_db
+
+# How many of the newest dated dumps survive each run's local prune. A count
+# rather than an age, so a stretch of failed dumps never ages the last good
+# copies out.
+marti_db_backup_retention_count: 7
+
+# Offsite copy: the jail of the 'marti' lobby/backup_target instance. ':/' is
+# that jail's root, not the lobby host's /, because the key is pinned to
+# 'rrsync -wo' there.
+marti_db_backup_ssh_key_path: /root/.ssh/marti-backup_key
+marti_db_backup_offsite_destination: "marti-backup@prod.triplea-game.org:/"

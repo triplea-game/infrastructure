@@ -1,0 +1,60 @@
+---
+# Receiving side of one host's offsite database backup: the sending host
+# rsyncs its dumps here as backup_target_user. Its key is confined to a
+# write-only rsync rooted at backup_target_directory, so a compromised sender
+# cannot shell in, read anything back, or reach another sender's jail.
+- name: Backup target - require an instance name
+  ansible.builtin.assert:
+    that:
+      - backup_target_name | length > 0
+    fail_msg: "lobby/backup_target needs backup_target_name set (eg: forums, marti)."
+
+- name: Backup target - install rsync for the rrsync forced command
+  become: true
+  ansible.builtin.apt:
+    name: rsync
+    state: present
+
+- name: Backup target - create group for {{ backup_target_name }}
+  become: true
+  ansible.builtin.group:
+    name: "{{ backup_target_user }}"
+    state: present
+
+# The account keeps an interactive shell because sshd runs the forced command
+# through the login shell; nologin would break every push.
+- name: Backup target - create receiving account for {{ backup_target_name }}
+  become: true
+  ansible.builtin.user:
+    name: "{{ backup_target_user }}"
+    shell: /bin/bash
+    create_home: true
+    group: "{{ backup_target_user }}"
+
+- name: Backup target - create destination directory for {{ backup_target_name }}
+  become: true
+  ansible.builtin.file:
+    path: "{{ backup_target_directory }}"
+    state: directory
+    owner: "{{ backup_target_user }}"
+    group: "{{ backup_target_user }}"
+    mode: "0750"
+
+- name: Backup target - authorize a fixed sending key
+  when: backup_target_public_key | length > 0
+  ansible.builtin.import_tasks: authorize.yml
+
+# Senders never delete what they have shipped, so this cron keeps the newest
+# backup_target_retention_count and drops the rest. It counts rather than ages
+# them out: if shipping stalls, the last good dumps stay put instead of
+# expiring one by one.
+- name: Backup target - prune received dumps down to the newest N for {{ backup_target_name }}
+  become: true
+  ansible.builtin.cron:
+    name: "{{ backup_target_name }}-backup-prune"
+    user: root
+    hour: "8"
+    minute: "0"
+    job: >-
+      find {{ backup_target_directory }} -maxdepth 1 -type f -name '{{ backup_target_file_glob }}'
+      | sort -r | tail -n +{{ backup_target_retention_count | int + 1 }} | xargs -r rm -f

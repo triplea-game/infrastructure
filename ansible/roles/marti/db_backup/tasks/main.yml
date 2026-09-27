@@ -1,0 +1,45 @@
+---
+- name: Create marti db backup directory
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: "{{ marti_db_backup_directory }}"
+    owner: marti
+    group: marti
+    mode: "0750"
+
+# Before the cron exists, so the first nightly run already has a key the lobby
+# host accepts.
+- name: Set up the offsite backup key
+  vars:
+    backup_sender_name: marti
+    backup_sender_key_path: "{{ marti_db_backup_ssh_key_path }}"
+  ansible.builtin.import_role:
+    name: backup_sender
+
+- name: Deploy marti db backup script
+  become: true
+  ansible.builtin.template:
+    src: backup-marti-db.sh.j2
+    dest: "{{ marti_working_directory }}/backup-marti-db.sh"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Schedule daily marti db backup cron job
+  become: true
+  ansible.builtin.cron:
+    name: triplea-marti-db-backup
+    user: root
+    hour: "7"
+    minute: "0"
+    job: "{{ marti_working_directory }}/backup-marti-db.sh >> /var/log/triplea-marti-db-backup.log 2>&1"
+
+- name: Deploy logrotate config for the marti db backup log
+  become: true
+  ansible.builtin.copy:
+    src: logrotate-marti-db-backup
+    dest: /etc/logrotate.d/triplea-marti-db-backup
+    owner: root
+    group: root
+    mode: "0644"
