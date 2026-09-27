@@ -57,7 +57,8 @@ jobs:
     name: Ansible ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && 'apply' || 'diff' }}
     if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Fleet apt upgrade plus a reboot handler can top 20 min; a cancel strands handlers.
+    timeout-minutes: 45
     needs: terraform
     env:
       TRIPLEA_ANSIBLE_VAULT_PASSWORD: ${{ secrets.TRIPLEA_ANSIBLE_VAULT_PASSWORD }}
