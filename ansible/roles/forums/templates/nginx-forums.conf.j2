@@ -63,6 +63,13 @@ server {
     # nothing and closes the downgrade path.
     add_header Strict-Transport-Security "max-age=31536000" always;
 
+    # Without these only HTML was gzipped, and NodeBB's JS and CSS bundles
+    # (~1 MB) went out uncompressed. As in NodeBB's scaling guide.
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1000;
+    gzip_types text/css text/javascript application/javascript application/json image/svg+xml;
+
     # ACME http-01 webroot for certbot renewals.
     location /.well-known {
         alias /var/www/nodebb/.well-known;
