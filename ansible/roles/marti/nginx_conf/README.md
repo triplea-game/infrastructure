@@ -4,15 +4,17 @@ Installs and configures nginx as a reverse proxy for the dice server.
 
 ## Deployment phases
 
-HTTPS requires a Let's Encrypt certificate that does not exist on a fresh server.
-Follow these phases in order.
+The committed vhost is the live host's post-certbot config, so it references a
+cert under `/etc/letsencrypt/` that does not exist on a fresh server, and nginx
+will refuse to load it there. For a rebuild, follow these phases in order.
 
 ---
 
-### Phase 1 - HTTP only (Ansible)
+### Phase 1 - HTTP only (Ansible, template edited by hand)
 
-Run the playbook normally. Ansible deploys an HTTP-only vhost config that proxies
-port 80 traffic to the app on `127.0.0.1:7654`.
+Temporarily deploy the vhost without its `# managed by Certbot` lines: a single
+`listen 80` server proxying to the app on `127.0.0.1:7654`. Don't commit that
+edit.
 
 At this point the app is reachable over plain HTTP - enough to verify the proxy
 is working and for the Let's Encrypt HTTP-01 challenge to succeed.

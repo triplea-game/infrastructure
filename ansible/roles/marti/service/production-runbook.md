@@ -57,9 +57,10 @@ because certbot must make an outbound HTTP-01 challenge before a cert exists.
 
 ### Phase 1 - Run Ansible (HTTP only)
 
-The `marti/nginx_conf` role deploys an HTTP-only vhost on port 80 that proxies to
-the app. This is enough to verify the proxy works and for certbot to complete
-its challenge.
+The committed vhost references the live host's certificate, so on a fresh host
+nginx refuses to load it. Temporarily strip its `# managed by Certbot` lines
+(see `marti/nginx_conf/README.md`) and apply; the resulting HTTP-only vhost is
+enough for certbot to complete its challenge.
 
 ### Phase 2 - Obtain the certificate
 
