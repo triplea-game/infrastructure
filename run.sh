@@ -11,47 +11,39 @@ set -eu
 
 scriptDir="$(dirname "$0")"
 
-#function installAnsible() {
-#  read -p "Ansible not installed, would you like to install it now with apt (y/n)? " -n 1 -r
-#  echo    # (optional) move to a new line
-#  if [[ $REPLY =~ ^[Yy]$ ]]
-#  then
-#    # Install steps from:
-#    # https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html
-#    sudo apt update
-#    sudo apt install software-properties-common
-#    sudo add-apt-repository --yes --update ppa:ansible/ansible
-#    sudo apt install --yes ansible
-#  else
-#    exit
-#  fi
-#}
-
 function printCheckMode() {
   echo ""
   echo "!!! PREVIEW MODE, NO CHANGES ARE ACTUALLY MADE !!!"
   echo "    To apply changes, instead run: APPLY=1 $0"
 }
 
-# Check if ansible is installed, if not, then ask to install it.
-hash ansible-playbook 2> /dev/null || installAnsible
+if ! hash ansible-playbook 2> /dev/null; then
+  echo "ansible-playbook not found; install it with: (cd $scriptDir/ansible && just install-ansible)" >&2
+  exit 1
+fi
 
-if [[ "${APPLY-}" != "1" ]]; then
+# Only an exact APPLY=1 applies; any other value (APPLY=0, APPLY=no) previews.
+if [[ "${APPLY-}" == 1 ]]; then
+  tfRecipe="apply"
+  ansibleRecipe="apply"
+else
+  tfRecipe="plan"
+  ansibleRecipe="diff"
   printCheckMode
 fi
 
 (
   set -x
-  cd "$(dirname "$0")/terraform"
-  just "${APPLY:+apply}${APPLY:-plan}"
+  cd "$scriptDir/terraform"
+  just "$tfRecipe"
 )
 
 (
   set -x
-  cd "$(dirname "$0")/ansible"
-  just "${APPLY:+apply}${APPLY:-diff}"
+  cd "$scriptDir/ansible"
+  just "$ansibleRecipe"
 )
 
-if [[ "${APPLY-}" != "1" ]]; then
+if [[ "$tfRecipe" == "plan" ]]; then
   printCheckMode
 fi
