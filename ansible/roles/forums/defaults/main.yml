@@ -22,16 +22,12 @@ forums_login_burst: 20
 forums_render_rate: 5r/s
 forums_render_burst: 20
 forums_render_max_conn: 10
-# Per-IP cap on pages and on socket.io, each counted separately. In 14 days of
-# logs (09-12..09-26) 99% of browser IPs peaked at 3 pages a minute and no
-# socket.io client passed 116 a minute; only automated clients went past
-# rate + burst.
+# Per-IP cap on pages and on socket.io, each counted separately; sized well
+# above what a person browsing sends, so only automated clients hit it.
 forums_client_rate: 2r/s
 forums_client_burst: 60
 # nginx counts client, websocket and upstream connections against one
-# per-worker pool. Ubuntu's 768 ran out on 09-26 and failed requests with 500s
-# before any rate limit fired; this is about 4x the worst case modelled from the
-# 09-12..09-26 logs, so the limits above are what shed load.
+# per-worker pool; sized so the rate limits above, not the pool, shed load.
 forums_nginx_worker_connections: 4096
 # Each proxied request holds two fds, and the unit's default soft limit is 1024.
 forums_nginx_worker_rlimit_nofile: 8192

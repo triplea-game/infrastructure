@@ -18,16 +18,11 @@ bot_instances:
 # late-game boards.
 bot_max_memory: "128m"
 
-# Container cgroup cap per bot; sits above bot_max_memory (JVM heap) to leave room
-# for JVM non-heap, so a healthy bot runs but a runaway trips the container OOM.
-# bot_container_memory_swap is the combined mem+swap ceiling: the gap over
-# bot_container_memory (~384m) is how far a bot may spill into the host swapfile —
-# but per-container swap spill needs cgroup v2 (the hosts' modern Ubuntu default);
-# on cgroup v1 --memory-swap is ignored and --memory becomes a hard swapless cap.
-# Conservative estimates pending a measured `docker stats` RSS baseline — with the
-# 128m heap three healthy bots aim to fit the 1GB Nanode, so these caps only bound a
-# runaway; tune once baselined. Values track the 1GB Nanode tier; override if the bot
-# hosts are resized.
+# Container cgroup cap per bot; above bot_max_memory (JVM heap) to leave room for
+# JVM non-heap, so a healthy bot runs but a runaway trips the container OOM.
+# bot_container_memory_swap is the mem+swap ceiling; the gap is how far a bot may
+# spill into the host swapfile (cgroup v2 only). Unmeasured estimates sized for
+# the 1GB Nanode; they only bound a runaway.
 bot_container_memory: "640m"
 bot_container_memory_swap: "1024m"
 

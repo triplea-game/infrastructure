@@ -15,8 +15,8 @@ map $remote_addr $forums_client {
 # repeated failures; this is what slows stuffing spread across many accounts.
 limit_req_zone $forums_client zone=forums_login:10m rate={{ forums_login_rate }};
 
-# Per-IP brake on pages and websockets: stops one client (eg: a crawler at
-# 100 req/s) from using up the site-wide cap below and locking everyone out.
+# Per-IP brake on pages and websockets: stops one client from using up the
+# site-wide cap below and locking everyone out.
 limit_req_zone $forums_client zone=forums_client_rate:10m rate={{ forums_client_rate }};
 limit_req_zone $forums_client zone=forums_socket_rate:10m rate={{ forums_client_rate }};
 
@@ -63,8 +63,6 @@ server {
     # nothing and closes the downgrade path.
     add_header Strict-Transport-Security "max-age=31536000" always;
 
-    # Without these only HTML was gzipped, and NodeBB's JS and CSS bundles
-    # (~1 MB) went out uncompressed. As in NodeBB's scaling guide.
     gzip on;
     gzip_vary on;
     gzip_min_length 1000;

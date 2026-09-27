@@ -38,9 +38,7 @@ fi
 # 'up -d' returns once the container starts, not once it serves, so a crash-loop
 # (unreachable DB, failed upgrade) would otherwise deploy silently. Poll until
 # NodeBB answers and fail the deploy if it never does. Every container start
-# rebuilds assets, and a package.json change (a NodeBB bump) runs 'nodebb
-# upgrade' and its migrations first. A routine start took ~9s on a dev machine;
-# prod (1 vCPU) and upgrade migrations are unmeasured.
+# rebuilds assets, and a NodeBB bump runs 'nodebb upgrade' migrations first.
 for attempt in $(seq 1 "$max_attempts"); do
   if curl -fsS --max-time 5 "$health_url" >/dev/null 2>&1; then
     echo "Forums healthy after ${attempt} attempt(s)."

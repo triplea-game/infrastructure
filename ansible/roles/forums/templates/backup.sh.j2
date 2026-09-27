@@ -12,13 +12,9 @@ BACKUP_DIR="{{ forums_working_directory }}"
 # sorting newest-first; change both together.
 BACKUP_FILE="triplea_forums_db_backup_$(date +%Y%m%d-%H%M%S).sql.gz"
 
-# A failed rsync aborts the script (set -e) before the rm below, so its dated
-# dump lingers here and, across a sustained outage, stacks up at ~100MB each.
-# A successful run rm's its own dump, so any dump present at the start of a run
-# is a stranded leftover; the +60min floor keeps this from racing a dump a
-# concurrent run is mid-write. -maxdepth 1 + the dump glob keep the rest of the
-# working dir untouched. Retention of the shipped copies is separate and lives
-# on the lobby host in the lobby/backup_target role.
+# A failed rsync exits (set -e) before the rm below and strands its dump, so
+# clear leftovers here; the +60min floor avoids racing a concurrent run's dump.
+# Retention of shipped copies lives on the lobby host (lobby/backup_target).
 find "$BACKUP_DIR" -maxdepth 1 -type f -name 'triplea_forums_db_backup_*.sql.gz' \
   -mmin +60 -delete
 

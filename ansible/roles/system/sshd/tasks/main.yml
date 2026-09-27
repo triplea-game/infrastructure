@@ -1,12 +1,8 @@
 ---
-# Owns the fleet's sshd policy. Terraform-provisioned hosts pick up
-# 'ssh_pwauth: false' from terraform/cloudinit.tpl, but the forums host predates
-# terraform and gets no cloud-init guarantee; every account across the fleet
-# (admins, deploy, read-only, forums-backup) is key-only, so password auth is
-# turned off everywhere from one place. Lockout risk is low: the handler reloads
-# rather than restarts, so established sessions survive, and system/admin_user
-# and system/read_only_account run earlier in the same play, so the keys are
-# already in place before this takes effect.
+# Owns the fleet's sshd policy: every account is key-only, so password auth is
+# off everywhere, including the forums host, which cloud-init doesn't manage.
+# The handler reloads rather than restarts, and the account roles run earlier
+# in the play, so keys are in place before this takes effect.
 - name: Deploy sshd hardening drop-in
   become: true
   register: sshd_drop_in

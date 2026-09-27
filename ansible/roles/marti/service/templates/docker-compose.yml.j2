@@ -10,9 +10,8 @@ services:
     # whose system uid is assigned inside the image and is not knowable from the
     # host; the mounted signing key is owner-only to marti.
     user: "{{ marti_uid }}:{{ marti_gid }}"
-    # tini as PID 1: node alone as PID 1 ignores SIGTERM, so every redeploy
-    # waited out the 10s stop grace period and was SIGKILLed, rolls in flight
-    # included.
+    # tini as PID 1 forwards SIGTERM; node as PID 1 ignores it, so a stop
+    # would wait out the grace period and SIGKILL rolls in flight.
     init: true
     ports:
       - "127.0.0.1:{{ marti_port }}:{{ marti_port }}"

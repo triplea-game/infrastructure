@@ -1,10 +1,7 @@
 ---
-# The discontinued 'webupd8team/java' PPA (Oracle Java 8 installer, trusty era)
-# survived on the forums host as a live source, signed by an rsa1024 key in the
-# legacy 'trusted.gpg' keyring that apt trusts for every source. Both the source
-# and its key must go, or 'apt-get update' fails there with NO_PUBKEY. The source
-# file is not named for the PPA, so match on content rather than filename. A
-# no-op on hosts that never had it.
+# Removes the discontinued 'webupd8team/java' PPA and its rsa1024 key in the
+# legacy 'trusted.gpg' keyring; while either remains, 'apt-get update' fails
+# with NO_PUBKEY. The source file isn't named for the PPA, so match on content.
 - name: Find sources files for the dead 'webupd8team/java' PPA
   become: true
   ansible.builtin.find:

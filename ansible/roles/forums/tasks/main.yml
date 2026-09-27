@@ -1,13 +1,4 @@
 ---
-# Clone the repo to the server's app directory
-# sudo git clone https://github.com/triplea-project/forums.git /srv/triplea-forums
-
-# Create the data directories that docker-compose.yml mounts
-
-# Copy the example config to the host path that docker-compose.yml mounts
-# sudo cp /srv/triplea-forums/node-bb/example/config.json /opt/triplea-forums/config.json
-# sudo nano /opt/triplea-forums/config.json
-
 - name: Create triplea-forums directory
   become: true
   ansible.builtin.file:

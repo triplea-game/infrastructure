@@ -98,10 +98,3 @@
     hour: "4"
     minute: "30"
     job: "docker system prune -f 2>&1 | logger -t docker-prune"
-
-# - name: sudoless docker commands
-#  become: true
-#  user:
-#    name: "{{ lookup('ansible.builtin.env', 'USER') }}"
-#    groups: docker
-#    append: yes

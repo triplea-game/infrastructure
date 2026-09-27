@@ -26,7 +26,7 @@ LOBBY_DOMAIN="lobby.triplea-game.org"
 LOBBY_IP="45.56.110.254"          # lobby host mail-egress IP
 
 DICE_DOMAIN="dice.triplea-game.org"
-# dice IP is derived from its A record below (it was confirmed == egress IP)
+# dice IP is derived from its A record below, which is also its egress IP
 
 RESOLVER="${1:-1.1.1.1}"
 

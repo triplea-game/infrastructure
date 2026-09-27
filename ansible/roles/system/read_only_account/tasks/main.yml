@@ -28,8 +28,7 @@
     key: "{{ read_only_user.ssh_key }}"
     state: present
 
-# Logs now read from journald with no sudo, so the former docker-logs grant is
-# gone; remove any file left on hosts provisioned before that change.
+# Logs are read from journald without sudo; remove the retired docker-logs grant.
 - name: Read only account - remove obsolete docker-logs sudoers
   become: true
   ansible.builtin.file:

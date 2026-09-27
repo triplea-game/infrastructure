@@ -24,11 +24,8 @@
     group: support
     path: "{{ support_working_directory }}"
 
-# The app is published on loopback only (docker-compose.yml.j2) and fronted by
-# nginx on this host (support/public_nginx terminates TLS on 443, scoped to
-# lobby). The private-IP exposure of 8010 is gone, so the rules that scoped it
-# are removed here; these converge a host previously deployed with the
-# private-IP model and are no-ops afterwards.
+# The app is published on loopback only and fronted by nginx on this host
+# (support/public_nginx), so the old private-network rules for 8010 go.
 - name: Remove obsolete lobby -> 8010 private-network ufw rule
   become: true
   community.general.ufw:

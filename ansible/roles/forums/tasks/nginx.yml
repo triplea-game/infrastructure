@@ -119,8 +119,8 @@
     - "80"
     - "443"
 
-# NodeBB publishes 4567 on loopback only, so this rule was a foot-gun waiting
-# for a compose edit to expose the app past TLS and nginx.
+# NodeBB publishes 4567 on loopback only; an allow rule would expose it past
+# TLS and nginx the moment a compose edit published the port.
 - name: Remove the firewall rule exposing NodeBB's port
   become: true
   community.general.ufw:
@@ -128,8 +128,8 @@
     port: "4567"
     delete: true
 
-# ufw is first-match: these hand-added allows sat ahead of the 'limit 22/tcp'
-# rule from system/firewall, so the SSH rate limit never fired.
+# ufw is first-match, so an allow on 22 ahead of the 'limit 22/tcp' rule from
+# system/firewall disables the SSH rate limit.
 - name: Remove the SSH allow rules that shadow the rate limit
   become: true
   community.general.ufw:
@@ -143,9 +143,7 @@
   loop_control:
     label: "{{ item }}"
 
-# Left over from a mail server this host no longer runs: 'ss -ltnp' shows
-# nothing listening on any of them (578 is a mistyped 587). The forum only
-# sends mail, so nothing inbound is needed.
+# The forum only sends mail, so no inbound mail port is open.
 - name: Remove the inbound mail rules nothing listens on
   become: true
   community.general.ufw:
