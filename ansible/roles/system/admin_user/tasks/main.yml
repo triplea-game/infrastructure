@@ -9,6 +9,17 @@
     quiet: true
   run_once: true
 
+# Sudo is revoked on every host before the account task runs, so removing the
+# connecting account would strand the run halfway across the fleet.
+- name: Removed admins - reject the account this run connects as
+  ansible.builtin.assert:
+    that: ansible_user not in removed_admins
+    fail_msg: >-
+      '{{ ansible_user }}' is in removed_admins but is the account this run connects as.
+      Remove it in a run that connects as a different admin.
+    quiet: true
+  run_once: true
+
 - name: Ensure admin user group & docker user group exist
   become: true
   ansible.builtin.group:
@@ -64,7 +75,9 @@
   loop_control:
     label: "{{ item.name }}"
 
-# Sudo is revoked first so the account loses root even if deleting it fails.
+# The role's own sudoers file goes first, so that grant is gone even if deleting the
+# account fails. cloud-init's /etc/sudoers.d/90-cloud-init-users is not touched; it is
+# inert once the account is gone.
 - name: Removed admins - delete sudoers file
   become: true
   ansible.builtin.file:
@@ -82,6 +95,13 @@
     state: absent
     remove: false
     force: true
+  loop: "{{ removed_admins }}"
+
+- name: Removed admins - delete per-user group
+  become: true
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: absent
   loop: "{{ removed_admins }}"
 
 # Deploy service account - limited to docker pull and service restarts only

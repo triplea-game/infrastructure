@@ -14,9 +14,13 @@ set -eu
 scriptDir="$(dirname "$0")"
 
 function printCheckMode() {
+  local args=""
+  if [[ $# -gt 0 ]]; then
+    printf -v args ' %q' "$@"
+  fi
   echo ""
   echo "!!! PREVIEW MODE, NO CHANGES ARE ACTUALLY MADE !!!"
-  echo "    To apply changes, instead run: APPLY=1 $0"
+  echo "    To apply changes, instead run: APPLY=1 $0$args"
 }
 
 if ! hash ansible-playbook 2> /dev/null; then
@@ -31,7 +35,7 @@ if [[ "${APPLY-}" == 1 ]]; then
 else
   tfRecipe="plan"
   ansibleRecipe="diff"
-  printCheckMode
+  printCheckMode "$@"
 fi
 
 if [[ $# -eq 0 ]]; then
@@ -51,5 +55,5 @@ fi
 )
 
 if [[ "$tfRecipe" == "plan" ]]; then
-  printCheckMode
+  printCheckMode "$@"
 fi

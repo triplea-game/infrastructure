@@ -106,8 +106,8 @@ To add a new admin maintainer:
    - Ansible runs and creates the personal account on all existing servers.
 
 > **Removing an admin:** in one PR, remove their entry from `admins.json` **and** add their name to
-> `removed_admins` in `ansible/group_vars/all.yml`. On merge, Ansible deletes their account (home
-> directory kept) and sudoers file on every host. Once an apply has reached every host, drop the
+> `removed_admins` in `ansible/group_vars/all.yml`. On merge, Ansible deletes their sudoers file and then
+> their account (home directory kept) on every host. Once an apply has reached every host, drop the
 > name from `removed_admins`.
 
 ### New server on Linode
@@ -282,14 +282,14 @@ The role writes `authorized_keys` exclusively, so a rotation takes two merges â€
 in one step would have CI, still holding the old key, delete that key from every server.
 
 ```bash
-ssh-keygen -t ed25519 -N '' -C ansible@triplea -f ansible_ci  # writes ansible_ci and ansible_ci.pub
+ssh-keygen -t ed25519 -N '' -C ansible@triplea -f ~/.ssh/ansible_ci  # outside the repo, so the private key can't be committed
 ```
 
-1. Add the contents of `ansible_ci.pub` to the `ansible` entry's `ssh_keys` in
+1. Add the contents of `~/.ssh/ansible_ci.pub` to the `ansible` entry's `ssh_keys` in
    `terraform/keys/admins.json`, **alongside** the old key, and merge. CI, still on the old key,
    installs both on every server.
 2. Replace [GitHub Actions secret](https://github.com/triplea-game/infrastructure/settings/secrets/actions)
-   `INFRASTRUCTURE_SSH_PRIVATE_KEY` with the contents of `ansible_ci`, then delete the local file.
+   `INFRASTRUCTURE_SSH_PRIVATE_KEY` with the contents of `~/.ssh/ansible_ci`, then delete both local files.
 3. Remove the old key from the `ansible` entry and merge. CI connects with the new key and drops
    the old one everywhere.
 

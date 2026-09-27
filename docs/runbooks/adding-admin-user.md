@@ -68,9 +68,11 @@ Two edits in the same commit:
 Apply it (see below). On every host it reaches, the `system/admin_user` role
 deletes `/etc/sudoers.d/<name>` and then the account itself (`userdel -f`, so an
 open login session does not block it; that session keeps running until killed).
-The home directory, including `~/.ssh/authorized_keys`, is kept for audit, but
-with the account gone nobody can log in as it. A name in both lists fails the
-run.
+It then deletes the per-user group. The home directory, including
+`~/.ssh/authorized_keys`, is kept for audit, but with the account gone nobody
+can log in as it. That home stays owned by the freed UID, which a later
+`useradd` may hand to a new account. A name in both lists fails the run, as
+does removing the account the run connects as.
 
 Deleting only the `admins.json` entry is not enough: the account, its sudo, and
 its keys stay on every running server.
