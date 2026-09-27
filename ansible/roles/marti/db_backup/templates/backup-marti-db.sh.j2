@@ -15,6 +15,9 @@ BACKUP_FILE="$BACKUP_DIR/{{ marti_db_backup_prefix }}_$(date +%F).sql.gz"
 TMP_FILE="$BACKUP_FILE.tmp"
 KEEP={{ marti_db_backup_retention_count }}
 
+# A failed dump would otherwise strand its .tmp, which the prune glob never matches.
+trap 'rm -f "$TMP_FILE"' EXIT
+
 # Dump to a temp file first so a failed/partial dump never clobbers a good backup.
 docker compose -f "{{ marti_working_directory }}/docker-compose.yml" exec -T postgres \
   pg_dump -U postgres dicedb | gzip > "$TMP_FILE"

@@ -7,7 +7,8 @@
 # Every task is delegated to the lobby host so a sender that generates its key
 # at apply time can provision its whole instance from its own play, wherever
 # that play falls relative to the lobby play (support's runs before it). From
-# the lobby play itself the delegation targets the current host.
+# the lobby play itself the delegation targets the current host. It assumes a
+# single lobby host: a second one in the 'lobby' group would get no receiver.
 - name: Backup target - require an instance name and key
   ansible.builtin.assert:
     that:

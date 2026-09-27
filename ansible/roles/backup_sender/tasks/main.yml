@@ -33,7 +33,9 @@
     mode: "0700"
 
 # Creates the key once; later runs leave it alone and just report its public
-# half. Under --check on a host that has no key yet there is no public half to
+# half. 'regenerate: never' keeps an existing key even when an edit here stops
+# matching it, so changing an option below never silently rotates the key.
+# Under --check on a host that has no key yet there is no public half to
 # report, so the receiver step below is skipped rather than failed.
 - name: Backup sender - generate the backup key for {{ backup_sender_name }}
   become: true
@@ -41,6 +43,7 @@
   community.crypto.openssh_keypair:
     path: "{{ backup_sender_key_path }}"
     type: ed25519
+    regenerate: never
     comment: "{{ backup_sender_name }}-backup@{{ inventory_hostname }}"
     owner: root
     group: root

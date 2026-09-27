@@ -1,7 +1,8 @@
 ---
 # Names one receiving instance; one per sending host (eg: forums, marti). Every
-# default below derives from it, and the backup_sender role on the sending host
-# relies on the same derivation to reach this instance's account and jail.
+# default below derives from it. Each sender's db_backup defaults spell out the
+# matching '<name>-backup@prod.triplea-game.org:/' destination by hand, so a
+# change to the user or directory naming here needs the same change there.
 backup_target_name: ""
 
 backup_target_user: "{{ backup_target_name }}-backup"

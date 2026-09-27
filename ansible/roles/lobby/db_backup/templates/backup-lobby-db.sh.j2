@@ -6,10 +6,16 @@
 
 set -euo pipefail
 
+# The dump holds user account data; keep it owner-only.
+umask 077
+
 BACKUP_DIR="{{ lobby_db_backup_directory }}"
 BACKUP_FILE="$BACKUP_DIR/{{ lobby_db_backup_prefix }}_$(date +%F).sql.gz"
 TMP_FILE="$BACKUP_FILE.tmp"
 KEEP={{ lobby_db_backup_retention_count }}
+
+# A failed dump would otherwise strand its .tmp, which the prune glob never matches.
+trap 'rm -f "$TMP_FILE"' EXIT
 
 # Dump to a temp file first so a failed/partial dump never clobbers a good backup.
 docker compose -f "{{ lobby_working_directory }}/docker-compose.yml" exec -T postgres18 \
@@ -22,3 +28,7 @@ mv -f "$TMP_FILE" "$BACKUP_FILE"
 # dumps always survive.
 find "$BACKUP_DIR" -maxdepth 1 -type f -name '{{ lobby_db_backup_prefix }}_????-??-??.sql.gz' \
   | sort -r | tail -n +$((KEEP + 1)) | xargs -r rm -f
+
+# 'lobby_db.sql.gz' is the single undated dump written before dated dumps; its
+# data is now covered by the dated copies, so drop it once one of them exists.
+rm -f "$BACKUP_DIR/lobby_db.sql.gz"
