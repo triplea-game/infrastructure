@@ -27,6 +27,15 @@ forums_render_max_conn: 10
 # rate + burst.
 forums_client_rate: 2r/s
 forums_client_burst: 60
+# nginx counts client, websocket and upstream connections against one
+# per-worker pool. Ubuntu's 768 ran out on 09-26 and failed requests with 500s
+# before any rate limit fired; this is about 4x the worst case modelled from the
+# 09-12..09-26 logs, so the limits above are what shed load.
+forums_nginx_worker_connections: 4096
+# Each proxied request holds two fds, and the unit's default soft limit is 1024.
+forums_nginx_worker_rlimit_nofile: 8192
+# Idle client keepalives are the largest share of the pool on a normal day.
+forums_keepalive_timeout: 20s
 forums_assets_cache_path: /var/cache/nginx/forums-assets
 forums_assets_cache_max_size: 512m
 # Bounds how long an un-busted asset URL can serve the old file after a deploy.

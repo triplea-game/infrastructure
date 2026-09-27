@@ -45,6 +45,7 @@ server {
     listen [::]:443 ssl http2;
     server_name {{ forums_hostname }};
     server_tokens off;
+    keepalive_timeout {{ forums_keepalive_timeout }};
 
     # Issued by hand with certbot; renewal is certbot's, not Ansible's.
     ssl_certificate /etc/letsencrypt/live/{{ forums_hostname }}/fullchain.pem;
@@ -129,6 +130,9 @@ server {
         limit_req zone=forums_render_rate burst={{ forums_render_burst }};
         limit_conn forums_render_conn {{ forums_render_max_conn }};
         error_page 503 /forums-busy.html;
+        # A stuck render holds one of the render_max_conn slots, and past 30s no
+        # reader is still waiting for it.
+        proxy_read_timeout 30s;
         include /etc/nginx/include/forums-proxy.conf;
     }
 

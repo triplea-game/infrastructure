@@ -4,6 +4,9 @@
 
 proxy_pass http://127.0.0.1:{{ nodebb_port }};
 proxy_redirect off;
+# NodeBB is on loopback: a connect either succeeds at once or its backlog is
+# full, and waiting out the 60s default only ties up two connections.
+proxy_connect_timeout 5s;
 
 proxy_set_header Host $http_host;
 proxy_set_header X-Real-IP $remote_addr;

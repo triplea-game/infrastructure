@@ -17,6 +17,25 @@
     group: root
     mode: "0755"
 
+# events{} and the rlimit live in the main context, which no include under
+# sites-enabled or conf.d reaches, so these edit the packaged nginx.conf.
+- name: Size the nginx connection pool
+  become: true
+  notify: Reload_nginx
+  ansible.builtin.lineinfile:
+    path: /etc/nginx/nginx.conf
+    regexp: '^\s*worker_connections\s'
+    line: "\tworker_connections {{ forums_nginx_worker_connections }};"
+
+- name: Raise the nginx workers' open-file limit
+  become: true
+  notify: Reload_nginx
+  ansible.builtin.lineinfile:
+    path: /etc/nginx/nginx.conf
+    regexp: '^\s*worker_rlimit_nofile\s'
+    line: "worker_rlimit_nofile {{ forums_nginx_worker_rlimit_nofile }};"
+    insertafter: '^worker_processes'
+
 - name: Create the asset cache directory
   become: true
   ansible.builtin.file:
