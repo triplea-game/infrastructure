@@ -34,8 +34,11 @@
     owner: lobby
     group: lobby
 
+# Secret-rendering tasks set 'no_log': CI previews run '--check --diff', which
+# would print the rendered secrets into the public repo's Actions log.
 - name: Deploy .env
   become: true
+  no_log: true
   notify: Restart_lobby
   ansible.builtin.template:
     src: .env.j2

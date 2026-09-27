@@ -21,6 +21,7 @@
 
 - name: Deploy config.json file
   become: true
+  no_log: true
   ansible.builtin.template:
     src: config.json.j2
     dest: "{{ forums_working_directory }}/config.json"
@@ -33,6 +34,7 @@
 
 - name: Deploy templates
   become: true
+  no_log: true
   ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
@@ -114,6 +116,7 @@
 
     - name: Deploy backup-user private key
       become: true
+      no_log: true
       ansible.builtin.template:
         src: backup_user_private_key.j2
         dest: "{{ backup_ssh_key_path }}"

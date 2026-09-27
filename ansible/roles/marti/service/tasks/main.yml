@@ -110,6 +110,7 @@
     group: marti
 
 - name: Deploy config.json
+  notify: Restart_marti
   become: true
   ansible.builtin.template:
     src: config.json.j2
@@ -119,7 +120,9 @@
     group: marti
 
 - name: Deploy .env
+  notify: Restart_marti
   become: true
+  no_log: true
   ansible.builtin.template:
     src: .env.j2
     dest: "{{ marti_working_directory }}/.env"

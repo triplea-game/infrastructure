@@ -59,6 +59,7 @@
 
 - name: Deploy .env
   become: true
+  no_log: true
   notify: Restart_support
   ansible.builtin.template:
     src: .env.j2

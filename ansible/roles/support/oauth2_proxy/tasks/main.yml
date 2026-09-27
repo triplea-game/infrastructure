@@ -39,6 +39,7 @@
 
 - name: Deploy .env (vault-sourced secrets)
   become: true
+  no_log: true
   notify: Restart_oauth2_proxy
   ansible.builtin.template:
     src: .env.j2
