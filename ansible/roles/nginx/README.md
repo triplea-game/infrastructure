@@ -1,7 +1,7 @@
 Installs a very barebones NGINX.
 
 
-## Generating dhparam.pem 
+## Generating dhparam.pem
 
 Done by hand, one-time:
 

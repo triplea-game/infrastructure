@@ -67,4 +67,3 @@ dig +short TXT mail._domainkey.dice.triplea-game.org
 - [ ] Confirm `DKIM-Signature` header present in received emails
 - [ ] IP not listed on any blacklists (MXToolbox)
 - [ ] (Optional) Register with Google Postmaster Tools for ongoing monitoring
-

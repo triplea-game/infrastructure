@@ -10,4 +10,3 @@ if [[ -z "${TRIPLEA_ANSIBLE_VAULT_PASSWORD:-}" ]]; then
 fi
 
 echo "${TRIPLEA_ANSIBLE_VAULT_PASSWORD}"
-

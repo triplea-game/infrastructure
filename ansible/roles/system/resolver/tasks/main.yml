@@ -1,3 +1,4 @@
+---
 - name: Ensure systemd-resolved drop-in directory exists
   become: true
   ansible.builtin.file:

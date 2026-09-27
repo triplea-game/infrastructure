@@ -28,7 +28,7 @@
   become: true
   ansible.builtin.lineinfile:
     path: /etc/apt/sources.list
-    regexp: 'ppa\.launchpad\.net/webupd8team/java'
+    regexp: "ppa\\.launchpad\\.net/webupd8team/java"
     state: absent
 
 - name: Remove the 'webupd8team/java' signing key from the legacy keyring

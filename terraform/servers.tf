@@ -32,4 +32,3 @@ resource "linode_instance" "servers" {
     ]
   }
 }
-

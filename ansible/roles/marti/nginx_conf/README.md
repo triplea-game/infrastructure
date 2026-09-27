@@ -84,4 +84,3 @@ server {
 ```
 
 Once the template matches what certbot put on disk, the role is fully idempotent again.
-

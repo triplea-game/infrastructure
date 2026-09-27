@@ -42,4 +42,3 @@ which is correct since postfix runs on the same host.
 If the server is ever reprovisioned, the `dkim_keys` Docker volume will be lost and a new
 key pair will be generated on next start. The DNS record must be updated with the new public key
 or outbound email will fail DKIM validation.
-
