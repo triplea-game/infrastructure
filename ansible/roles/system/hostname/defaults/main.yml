@@ -1,0 +1,6 @@
+---
+# Reboot when the hostname changes. Off by default because the hostname tracks
+# the Linode label, so a relabel in Cloud Manager would otherwise reboot a
+# stateful host (and drop its live games) on the next apply. Enabled for the
+# stateless bots in group_vars/bots.yml.
+hostname_reboot_on_change: false

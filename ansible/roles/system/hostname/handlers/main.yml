@@ -1,4 +1,13 @@
 ---
 - name: Reboot_system
+  when: hostname_reboot_on_change | bool
   become: true
   ansible.builtin.reboot:
+
+- name: Report_pending_reboot
+  when: not (hostname_reboot_on_change | bool)
+  ansible.builtin.debug:
+    msg: >-
+      Hostname is now '{{ hostname }}' but {{ inventory_hostname }} was not
+      rebooted; processes that cached the old name keep it until restarted.
+      Reboot at a quiet moment for the change to take full effect.

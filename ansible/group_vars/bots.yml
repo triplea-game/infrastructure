@@ -1,0 +1,4 @@
+---
+# Bots are stateless and their service restarts on its own, so a reboot to
+# apply a new hostname costs nothing worth protecting.
+hostname_reboot_on_change: true

@@ -15,7 +15,9 @@
 
 - name: Set hostname of system
   become: true
-  notify: Reboot_system
+  notify:
+    - Reboot_system
+    - Report_pending_reboot
   ansible.builtin.hostname:
     name: "{{ hostname }}"
     use: debian
