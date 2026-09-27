@@ -60,7 +60,9 @@ services:
       options:
         tag: marti-postgres
   postfix:
-    image: boky/postfix
+    # Pinned: the healthcheck below calls the image's /scripts/healthcheck.sh,
+    # so an unreviewed upgrade could leave postfix unhealthy and block app start.
+    image: boky/postfix:v5.1.0
     environment:
       - ALLOWED_SENDER_DOMAINS={{ marti_hostname }}
       - POSTFIX_myhostname={{ marti_hostname }}
