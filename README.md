@@ -36,17 +36,19 @@ Ansible manages:
 |---|---|---|---|---|
 | `LINODE_TOKEN` | Terraform (`terraform/justfile`) and the Ansible dynamic inventory (`inventory/linode.yml`) | Local shell / CI secret | Linode Personal Access Token to provision/manage servers and to discover them for Ansible | [Linode Cloud Manager](https://cloud.linode.com/profile/tokens) → Create token |
 | `TRIPLEA_ANSIBLE_VAULT_PASSWORD` | Ansible (`ansible/justfile`) | Local shell / CI secret | Password to decrypt Ansible Vault secrets in playbooks | Shared secret — ask a maintainer |
-| `INFRASTRUCTURE_SSH_PRIVATE_KEY` | GitHub Actions | GitHub Actions secret | Private SSH key for the `deploy-infrastructure` service account | Generate with `ssh-keygen`, store private half here, public half in `playbook.yml` |
+| `INFRASTRUCTURE_SSH_PRIVATE_KEY` | GitHub Actions (Ansible job) | GitHub Actions secret | Private SSH key CI uses to connect as the `ansible` account | Generate with `ssh-keygen`; private half here, public half under `ansible` in `terraform/keys/admins.json` — see [Rotating the Ansible SSH key](#rotating-the-ansible-ssh-key) |
+| `TF_TOKEN_APP_TERRAFORM_IO` | GitHub Actions (Terraform job, exported as `TF_TOKEN_app_terraform_io`) | GitHub Actions secret | HCP Terraform API token for the remote state backend (`cloud` block in `terraform/main.tf`, org `triplea-tf`) | HCP Terraform → user or team settings → Tokens. Locally, `terraform login` instead |
 
 **GitHub Actions secrets** (configure at Settings → Secrets → Actions):
 - `LINODE_TOKEN`
 - `TRIPLEA_ANSIBLE_VAULT_PASSWORD`
 - `INFRASTRUCTURE_SSH_PRIVATE_KEY`
+- `TF_TOKEN_APP_TERRAFORM_IO`
 
 > **Local runs via `run.sh`:** your personal SSH key (already on servers) + `TRIPLEA_ANSIBLE_VAULT_PASSWORD` + `LINODE_TOKEN`.
 > For **freshly provisioned servers**, SSH in as `<your-username>@<ip>` (your named account from `admins.json`) — your key is injected at provisioning time via `terraform/keys/admins.json`. See [SSH access on freshly provisioned servers](#ssh-access-on-freshly-provisioned-servers).
 >
-> **Terraform only:** `LINODE_TOKEN` (or `TF_VAR_linode_token`).
+> **Terraform only:** `LINODE_TOKEN` (or `TF_VAR_linode_token`), plus HCP Terraform credentials for the remote backend (`terraform login`, or `TF_TOKEN_app_terraform_io`).
 >
 > **Ansible only:** `TRIPLEA_ANSIBLE_VAULT_PASSWORD` + `LINODE_TOKEN`.
 
@@ -264,17 +266,33 @@ Ansible runs after Terraform (`needs: terraform`) so newly provisioned servers e
 |---|---|
 | `LINODE_TOKEN` | Terraform — provision/destroy Linode servers; Ansible dynamic inventory — discover servers via Linode API |
 | `TRIPLEA_ANSIBLE_VAULT_PASSWORD` | Decrypt Ansible Vault secrets |
-| `INFRASTRUCTURE_SSH_PRIVATE_KEY` | SSH private key for the `deploy-infrastructure` service account |
+| `INFRASTRUCTURE_SSH_PRIVATE_KEY` | Ansible — SSH private key for the `ansible` account the Ansible job connects as (`SSH_USER=ansible`) |
+| `TF_TOKEN_APP_TERRAFORM_IO` | Terraform — HCP Terraform API token for the remote state backend (exported as `TF_TOKEN_app_terraform_io`) |
 
 ### Rotating the Ansible SSH key
 
+CI connects as the `ansible` account with `INFRASTRUCTURE_SSH_PRIVATE_KEY`. That account is an
+ordinary entry in `terraform/keys/admins.json`, so its public key is installed like any admin's:
+by cloud-init on newly provisioned servers, and by the Ansible `system/admin_user` role on existing
+ones (Terraform ignores `metadata` changes on existing servers, so it never updates their keys).
+The role writes `authorized_keys` exclusively, so a rotation takes two merges — swapping the key
+in one step would have CI, still holding the old key, delete that key from every server.
+
 ```bash
-ssh-keygen -f ~/.ssh/ansible  # no passphrase
+ssh-keygen -t ed25519 -N '' -C ansible@triplea -f ansible_ci  # writes ansible_ci and ansible_ci.pub
 ```
 
-1. Update the **private key** in [GitHub Actions secrets](https://github.com/triplea-game/infrastructure/settings/secrets/actions) → `INFRASTRUCTURE_SSH_PRIVATE_KEY`
-2. Update the **public key** in `playbook.yml` under the `deploy-infrastructure` user entry
-3. Ensure you have your own SSH access before rotating — rotating breaks CI/CD until the new key is deployed
+1. Add the contents of `ansible_ci.pub` to the `ansible` entry's `ssh_keys` in
+   `terraform/keys/admins.json`, **alongside** the old key, and merge. CI, still on the old key,
+   installs both on every server.
+2. Replace [GitHub Actions secret](https://github.com/triplea-game/infrastructure/settings/secrets/actions)
+   `INFRASTRUCTURE_SSH_PRIVATE_KEY` with the contents of `ansible_ci`, then delete the local file.
+3. Remove the old key from the `ansible` entry and merge. CI connects with the new key and drops
+   the old one everywhere.
+
+Check the Ansible apply after step 1: a bot skipped as unreachable then lacks the new key and is
+locked out of CI after step 3. Keep your own admin access working throughout; it is the way to
+catch such a host up (`APPLY=1 ./run.sh --limit <ip> --tags system`).
 
 ---
 
