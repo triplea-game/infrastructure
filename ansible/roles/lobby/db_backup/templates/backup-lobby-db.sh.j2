@@ -1,16 +1,24 @@
 #!/bin/bash
 
 # Daily backup of the lobby database. Runs pg_dump inside the postgres
-# container and writes a gzipped plain-SQL dump, overwriting the previous
-# day's backup so only the most recent copy is retained.
+# container, writes a gzipped plain-SQL dump named for the day, then keeps only
+# the newest {{ lobby_db_backup_retention_count }} dumps.
 
 set -euo pipefail
 
-BACKUP_FILE="{{ lobby_db_backup_directory }}/{{ lobby_db_backup_file }}"
+BACKUP_DIR="{{ lobby_db_backup_directory }}"
+BACKUP_FILE="$BACKUP_DIR/{{ lobby_db_backup_prefix }}_$(date +%F).sql.gz"
 TMP_FILE="$BACKUP_FILE.tmp"
+KEEP={{ lobby_db_backup_retention_count }}
 
 # Dump to a temp file first so a failed/partial dump never clobbers a good backup.
 docker compose -f "{{ lobby_working_directory }}/docker-compose.yml" exec -T postgres18 \
   pg_dump -U {{ database_user }} {{ database_name }} | gzip > "$TMP_FILE"
 
 mv -f "$TMP_FILE" "$BACKUP_FILE"
+
+# Prune by count, never by age: the ISO date in the name sorts newest-first, and
+# the prune only runs after a successful dump (set -e), so the newest KEEP good
+# dumps always survive.
+find "$BACKUP_DIR" -maxdepth 1 -type f -name '{{ lobby_db_backup_prefix }}_????-??-??.sql.gz' \
+  | sort -r | tail -n +$((KEEP + 1)) | xargs -r rm -f

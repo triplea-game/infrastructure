@@ -2,7 +2,11 @@
 # Directory the lobby docker-compose project lives in (matches lobby/service role).
 lobby_working_directory: /opt/lobby
 
-# Where the daily database backup is written. The same file is overwritten
-# on each run, so only the most recent day's backup is kept.
+# Where the daily database backups are written, one dated file per day:
+# lobby_db_backup_prefix + '_YYYY-MM-DD.sql.gz'.
 lobby_db_backup_directory: "{{ lobby_working_directory }}/backups"
-lobby_db_backup_file: lobby_db.sql.gz
+lobby_db_backup_prefix: lobby_db
+
+# How many of the newest dated dumps survive each run's prune. A count rather
+# than an age, so a stretch of failed dumps never ages the last good copies out.
+lobby_db_backup_retention_count: 7

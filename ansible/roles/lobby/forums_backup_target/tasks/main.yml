@@ -44,14 +44,19 @@
     mode: "0750"
 
 # The forums host ships a fresh dated dump nightly and never deletes the
-# received copies, so they accumulate here indefinitely. The 'triplea_forums_db_backup_*'
-# glob must stay in sync with the one backup.sh.j2 generates on the forums host —
-# a filename-pattern change there needs the same change here.
-- name: Forums backup - prune received dumps past the retention window
+# received copies, so this cron keeps the newest forums_backup_retention_count
+# and drops the rest. It counts rather than ages them out: if shipping stalls,
+# the last good dumps stay put instead of expiring one by one. The
+# 'triplea_forums_db_backup_*' glob, and the timestamp in it that makes name
+# order newest-first, must stay in sync with the filename backup.sh.j2
+# generates on the forums host — a change there needs the same change here.
+- name: Forums backup - prune received dumps down to the newest N
   become: true
   ansible.builtin.cron:
     name: forums-backup-prune
     user: root
     hour: "8"
     minute: "0"
-    job: "find {{ forums_backup_directory }} -maxdepth 1 -type f -name 'triplea_forums_db_backup_*.sql.gz' -mtime +{{ forums_backup_retention_days }} -delete"
+    job: >-
+      find {{ forums_backup_directory }} -maxdepth 1 -type f -name 'triplea_forums_db_backup_*.sql.gz'
+      | sort -r | tail -n +{{ forums_backup_retention_count | int + 1 }} | xargs -r rm -f

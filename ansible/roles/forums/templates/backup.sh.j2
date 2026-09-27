@@ -7,6 +7,8 @@ set -euo pipefail
 umask 077
 
 BACKUP_DIR="{{ forums_working_directory }}"
+# The lobby host's forums_backup_target prune matches this name and relies on
+# the timestamp sorting newest-first; change both together.
 BACKUP_FILE="triplea_forums_db_backup_$(date +%Y%m%d-%H%M%S).sql.gz"
 
 # A failed rsync aborts the script (set -e) before the rm below, so its dated

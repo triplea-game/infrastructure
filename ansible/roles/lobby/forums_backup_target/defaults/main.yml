@@ -6,9 +6,9 @@ forums_backup_user: forums-backup
 # relative to it, so moving this directory changes what ':/' means on the wire.
 forums_backup_directory: /opt/backups/forums
 
-# How long received DB dumps are kept in forums_backup_directory before the
-# retention cron prunes them.
-forums_backup_retention_days: 30
+# How many of the newest received DB dumps the prune cron keeps, however old
+# they are, so a stalled sender never empties forums_backup_directory.
+forums_backup_retention_count: 30
 
 # Public half of the vaulted 'nodebb_private_key' that the 'forums' role deploys
 # to the forums host; that host authenticates here as forums_backup_user over ssh
