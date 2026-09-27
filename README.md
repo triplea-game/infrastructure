@@ -170,6 +170,10 @@ APPLY=1 ./run.sh --limit [IP] --tags system
 # Lint gate (must pass before an apply)
 just verify
 
+# Auto-fix yaml formatting findings from 'just verify'
+# ('just format' at the repo root fixes all formatting, repo-wide)
+just format
+
 # Preview (check + diff)
 just diff
 

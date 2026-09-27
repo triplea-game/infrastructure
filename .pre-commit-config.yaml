@@ -34,6 +34,6 @@ repos:
       - id: just-format
         name: Format (just format)
         language: system
-        entry: just format
+        entry: just _format-tools
         pass_filenames: false
         stages: [pre-push]
