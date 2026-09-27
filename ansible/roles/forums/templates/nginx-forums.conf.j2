@@ -23,10 +23,17 @@ map $remote_addr $forums_client {
 # repeated failures; this is what slows stuffing spread across many accounts.
 limit_req_zone $forums_client zone=forums_login:10m rate={{ forums_login_rate }};
 
-# Per-IP brake on pages and websockets: stops one client from using up the
-# site-wide cap below and locking everyone out.
+# Per-IP brake on pages, websockets and uploads: stops one client from using
+# up the site-wide caps below and locking everyone out.
 limit_req_zone $forums_client zone=forums_client_rate:10m rate={{ forums_client_rate }};
 limit_req_zone $forums_client zone=forums_socket_rate:10m rate={{ forums_client_rate }};
+limit_req_zone $forums_client zone=forums_uploads_rate:10m rate={{ forums_uploads_rate }};
+
+# Connection caps on websockets and uploads, which sit outside the render cap
+# but still hold nginx connections and NodeBB work for their whole lifetime.
+limit_conn_zone $forums_client zone=forums_socket_client_conn:10m;
+limit_conn_zone $server_name zone=forums_socket_conn:1m;
+limit_conn_zone $server_name zone=forums_uploads_conn:1m;
 
 # Site-wide (not per-IP) brake on page and API renders. Scrapers rotating
 # through proxy pools stay under any per-IP limit a reader would tolerate, so
@@ -111,6 +118,11 @@ server {
     # Uploads stay uncached and keep the cookie: with NodeBB's private uploads
     # on, a cached or cookieless request would lock members out of them.
     location ^~ /assets/uploads/ {
+        limit_req zone=forums_uploads_rate burst={{ forums_uploads_burst }} nodelay;
+        limit_conn forums_uploads_conn {{ forums_uploads_max_conn }};
+        # 429, not 503: the "Forums busy" page is no use to an image or download.
+        limit_req_status 429;
+        limit_conn_status 429;
         include /etc/nginx/include/forums-proxy.conf;
     }
 
@@ -133,7 +145,10 @@ server {
     # to guests over socket.io, so it gets its own per-IP limit instead.
     location ^~ /socket.io/ {
         limit_req zone=forums_socket_rate burst={{ forums_client_burst }} nodelay;
+        limit_conn forums_socket_client_conn {{ forums_socket_client_max_conn }};
+        limit_conn forums_socket_conn {{ forums_socket_max_conn }};
         limit_req_status 429;
+        limit_conn_status 429;
         include /etc/nginx/include/forums-proxy.conf;
     }
 

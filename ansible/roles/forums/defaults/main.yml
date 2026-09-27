@@ -26,6 +26,17 @@ forums_render_max_conn: 10
 # above what a person browsing sends, so only automated clients hit it.
 forums_client_rate: 2r/s
 forums_client_burst: 60
+# Concurrent socket.io connections (a websocket or a pending long-poll), per IP
+# and site-wide. Sep 12-26 peaked at 8 per IP and 73 site-wide.
+forums_socket_client_max_conn: 20
+forums_socket_max_conn: 300
+# Per-IP rate on /assets/uploads/. An image-heavy topic loads ~250 uploads in
+# a couple of seconds, so the burst covers that; the rate is what an upload
+# scraper settles to (seen at up to ~2,400/min). 'max_conn' is site-wide and
+# bounds uploads' share of the nginx connection pool.
+forums_uploads_rate: 5r/s
+forums_uploads_burst: 300
+forums_uploads_max_conn: 512
 # nginx counts client, websocket and upstream connections against one
 # per-worker pool; sized so the rate limits above, not the pool, shed load.
 forums_nginx_worker_connections: 4096
