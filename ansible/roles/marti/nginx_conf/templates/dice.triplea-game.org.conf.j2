@@ -1,26 +1,69 @@
+# Per-client key for the per-IP limits: IPv4 as-is, IPv6 cut to its /64, since
+# one client usually holds a whole /64 and could otherwise rotate through it.
+# An address compressed ('::') within its first four groups falls back to the
+# full address.
+map $remote_addr $marti_client {
+    "~^(?<v6net>[0-9a-f]+:[0-9a-f]+:[0-9a-f]+:[0-9a-f]+):" $v6net;
+    default $remote_addr;
+}
+
 # Throttles the public /health probe below.
-limit_req_zone $binary_remote_addr zone=marti_health:1m rate=1r/s;
+limit_req_zone $marti_client zone=marti_health:1m rate=1r/s;
+
+# Per-IP brake on the account endpoints. Unlimited, /api/register is an email
+# cannon aimed at any address, and the token and unregister routes can be
+# guessed at or hammered; a person touches each a few times.
+limit_req_zone $marti_client zone=marti_register:1m rate={{ marti_register_rate }};
+
+# Per-IP brake on dice rolls, sized in defaults/main.yml so a game never hits
+# it: each roll also sends two emails.
+limit_req_zone $marti_client zone=marti_roll:1m rate={{ marti_roll_rate }};
 
 server {
     server_name {{ marti_hostname }};
+
+    # Inherited by every location below; none sets its own headers.
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # nginx's stock 429 is an HTML page, which the register form and the game
+    # client both fail to parse; answer in the API's own error shape instead.
+    error_page 429 = @rate_limited;
+    location @rate_limited {
+        default_type application/json;
+        return 429 '{"status":"Error","errors":["Too many requests; wait a minute and try again."]}';
+    }
 
     # Rate-limited per client because each hit runs a database query.
     location = /health {
         limit_req zone=marti_health burst=10 nodelay;
         limit_req_status 429;
         proxy_pass http://127.0.0.1:{{ marti_port }};
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Both /api/register and /api/register/<token>.
+    location ^~ /api/register {
+        limit_req zone=marti_register burst={{ marti_register_burst }} nodelay;
+        limit_req_status 429;
+        proxy_pass http://127.0.0.1:{{ marti_port }};
+    }
+
+    location = /api/unregister {
+        limit_req zone=marti_register burst={{ marti_register_burst }} nodelay;
+        limit_req_status 429;
+        proxy_pass http://127.0.0.1:{{ marti_port }};
+    }
+
+    location = /api/roll {
+        limit_req zone=marti_roll burst={{ marti_roll_burst }} nodelay;
+        limit_req_status 429;
+        proxy_pass http://127.0.0.1:{{ marti_port }};
     }
 
     location / {
         proxy_pass http://127.0.0.1:{{ marti_port }};
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     listen 443 ssl; # managed by Certbot

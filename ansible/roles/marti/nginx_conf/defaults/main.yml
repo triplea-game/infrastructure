@@ -1,0 +1,14 @@
+---
+# Per-IP rate on the account endpoints: POST /api/register (which emails
+# whatever address the request names), /api/register/<token> and
+# /api/unregister. A person does each a handful of times; 'burst' is how many
+# requests over the rate are still served before nginx answers 429.
+marti_register_rate: 6r/m
+marti_register_burst: 5
+# Per-IP rate on POST /api/roll. The game client rolls one request at a time
+# behind a modal dialog and opens a fresh TLS connection per roll, and the
+# server emails both players per roll, so one player tops out near a request a
+# second in the fastest battle sequence. The burst covers several players on
+# one NAT hitting battles at once; only a script sustains the rate.
+marti_roll_rate: 5r/s
+marti_roll_burst: 50
