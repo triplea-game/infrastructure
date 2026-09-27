@@ -33,8 +33,8 @@ you rely on:
   Terraform.
 
 The practical consequence: Terraform alone will not add an admin to a running
-box, and removing an entry will not evict them from one. Ansible is the lever for
-live servers.
+box, and deleting an entry will not evict them from one. Ansible is the lever for
+live servers, and removal needs its own list (below).
 
 ## Adding an admin
 
@@ -54,14 +54,30 @@ live servers.
 
 ## Removing an admin
 
-Delete that object from `admins.json` and commit.
+Two edits in the same commit:
 
-**Critical caveat — removal is not automatic on live servers.** The Ansible role
-is create-only (`state: present`, no `state: absent`), and cloud-init does not
-re-run. Deleting the entry only stops *future* provisioning from recreating the
-account; every currently-running server keeps the account and its keys until you
-remove them **manually** on each box. If you are removing someone for a security
-reason, the file edit is not sufficient — you must also revoke on the live hosts.
+1. Delete their object from `terraform/keys/admins.json`, so no future server is
+   provisioned with the account.
+2. Add their name to `removed_admins` in `ansible/group_vars/all.yml`:
+
+   ```yaml
+   removed_admins:
+     - alice
+   ```
+
+Apply it (see below). On every host it reaches, the `system/admin_user` role
+deletes `/etc/sudoers.d/<name>` and then the account itself (`userdel -f`, so an
+open login session does not block it; that session keeps running until killed).
+The home directory, including `~/.ssh/authorized_keys`, is kept for audit, but
+with the account gone nobody can log in as it. A name in both lists fails the
+run.
+
+Deleting only the `admins.json` entry is not enough: the account, its sudo, and
+its keys stay on every running server.
+
+Once an apply has reached every host, drop the name from `removed_admins`. Check
+the apply output first — the base play skips unreachable hosts, so a bot that
+was down still has the account and needs another apply with the name listed.
 
 ## Applying the change
 

@@ -103,7 +103,10 @@ To add a new admin maintainer:
    - Terraform picks up the new key in `admins.json` for any *future* server provisioning (existing servers are unaffected — cloud-init only runs once).
    - Ansible runs and creates the personal account on all existing servers.
 
-> **Removing an admin:** remove their entry from `admins.json` in the same PR.
+> **Removing an admin:** in one PR, remove their entry from `admins.json` **and** add their name to
+> `removed_admins` in `ansible/group_vars/all.yml`. On merge, Ansible deletes their account (home
+> directory kept) and sudoers file on every host. Once an apply has reached every host, drop the
+> name from `removed_admins`.
 
 ### New server on Linode
 

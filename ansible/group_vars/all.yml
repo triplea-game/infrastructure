@@ -12,6 +12,13 @@ ansible_python_interpreter: /usr/bin/python3
 # (support/public_nginx). The A/AAAA record is managed outside this repo.
 support_hostname: support.triplea-game.org
 
+# Former admins to revoke on every host: the system/admin_user role deletes each
+# one's account (keeping the home directory) and sudoers file. Removing an admin
+# means dropping them from 'terraform/keys/admins.json' and adding them here in
+# the same change; a name can leave this list once an apply has reached every
+# host (bots skipped as unreachable still have the account).
+removed_admins: []
+
 deploy_user:
   name: deploy
   ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJZwah7g0w5b9FjBtW9+psAWuF/dlrIq213C49L8sR1R deploy@triplea"

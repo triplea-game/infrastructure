@@ -1,4 +1,14 @@
 ---
+- name: Removed admins - reject a name that is also in admins.json
+  ansible.builtin.assert:
+    that: admin_users | map(attribute='name') | intersect(removed_admins) | length == 0
+    fail_msg: >-
+      Listed in both terraform/keys/admins.json and removed_admins:
+      {{ admin_users | map(attribute='name') | intersect(removed_admins) | join(', ') }}.
+      Drop each name from one of the two lists.
+    quiet: true
+  run_once: true
+
 - name: Ensure admin user group & docker user group exist
   become: true
   ansible.builtin.group:
@@ -53,6 +63,26 @@
   loop: "{{ admin_users }}"
   loop_control:
     label: "{{ item.name }}"
+
+# Sudo is revoked first so the account loses root even if deleting it fails.
+- name: Removed admins - delete sudoers file
+  become: true
+  ansible.builtin.file:
+    path: "/etc/sudoers.d/{{ item }}"
+    state: absent
+  loop: "{{ removed_admins }}"
+
+# The home directory is kept for recovery and audit. 'force' deletes the account even
+# while its owner is logged in, which would otherwise fail the apply; that live session
+# survives until killed.
+- name: Removed admins - delete account
+  become: true
+  ansible.builtin.user:
+    name: "{{ item }}"
+    state: absent
+    remove: false
+    force: true
+  loop: "{{ removed_admins }}"
 
 # Deploy service account - limited to docker pull and service restarts only
 - name: Create user for deployment named 'deploy'
