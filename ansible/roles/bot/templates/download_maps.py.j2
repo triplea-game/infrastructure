@@ -10,8 +10,16 @@ commit timestamp for each map (from the listing's lastCommitDateEpochMilli field
 Maps whose timestamp has not changed since the last download are skipped.
 Delete the cache file or use --force to re-download everything.
 
+Removal is guarded, since a listing that parses fine but is empty or truncated
+(eg: a fresh support DB before its indexer has run) would otherwise delete maps
+out from under running games. The run aborts, removing nothing and leaving the
+cache untouched, when the listing is empty or when it would remove more than
+--max-removal-percent of the existing map directories. --force-prune skips the
+guard.
+
 Usage:
     python3 download_maps.py [--maps-dir PATH] [--url URL] [--force]
+                             [--max-removal-percent N] [--force-prune]
 """
 import argparse
 import io
@@ -25,6 +33,7 @@ import zipfile
 MAPS_LISTING_URL = "https://prod.triplea-game.org/support/maps/listing"
 DEFAULT_MAPS_DIR = "{{ bot_maps_folder }}"
 CACHE_FILENAME = ".map_cache.json"
+DEFAULT_MAX_REMOVAL_PERCENT = 20.0
 
 
 def fetch_maps(url: str) -> dict:
@@ -73,18 +82,22 @@ def download_and_extract(download_url: str, maps_dir: str, map_name: str) -> set
     return extracted_dirs
 
 
-def remove_stale_maps(maps_dir: str, known_dirs: set) -> int:
-    """
-    Removes subdirectories in maps_dir that are not in known_dirs.
-    Returns the count of directories removed.
-    """
-    removed = 0
-    for entry in os.scandir(maps_dir):
-        if entry.is_dir() and entry.name not in known_dirs:
-            shutil.rmtree(entry.path)
-            print(f"Removed stale map: {entry.name}")
-            removed += 1
-    return removed
+def list_map_dirs(maps_dir: str) -> set:
+    return {entry.name for entry in os.scandir(maps_dir) if entry.is_dir()}
+
+
+def remove_maps(maps_dir: str, stale_dirs: set) -> int:
+    """Removes the given subdirectories of maps_dir. Returns the count removed."""
+    for name in sorted(stale_dirs):
+        shutil.rmtree(os.path.join(maps_dir, name))
+        print(f"Removed stale map: {name}")
+    return len(stale_dirs)
+
+
+def abort_prune(reason: str) -> None:
+    print(f"Error: {reason}", file=sys.stderr)
+    print("Aborting: no maps removed and the cache is unchanged. Rerun with --force-prune if this is expected.", file=sys.stderr)
+    sys.exit(1)
 
 
 def main():
@@ -92,7 +105,16 @@ def main():
     parser.add_argument("--maps-dir", default=DEFAULT_MAPS_DIR, help="Directory to extract maps into")
     parser.add_argument("--url", default=MAPS_LISTING_URL, help="Maps listing JSON URL")
     parser.add_argument("--force", action="store_true", help="Re-download all maps, ignoring cached timestamps")
+    parser.add_argument(
+        "--max-removal-percent",
+        type=float,
+        default=DEFAULT_MAX_REMOVAL_PERCENT,
+        help=f"Abort instead of removing more than this percent of existing map directories (default: {DEFAULT_MAX_REMOVAL_PERCENT:g})",
+    )
+    parser.add_argument("--force-prune", action="store_true", help="Remove stale maps even when the removal guard would abort")
     args = parser.parse_args()
+    if not 0 <= args.max_removal_percent <= 100:
+        parser.error("--max-removal-percent must be between 0 and 100")
 
     maps_dir = args.maps_dir
     if not os.path.isdir(maps_dir):
@@ -102,6 +124,10 @@ def main():
     print(f"Fetching map listing from {args.url} ...")
     maps = fetch_maps(args.url).get("maps", [])
     print(f"Found {len(maps)} maps.")
+    if not maps and not args.force_prune:
+        abort_prune("the map listing is empty; removing every map it no longer lists would wipe the maps directory.")
+
+    existing_dirs = list_map_dirs(maps_dir)
 
     cache = {} if args.force else load_cache(maps_dir)
 
@@ -142,7 +168,17 @@ def main():
             known_dirs.update(cached_dirs)
             error_count += 1
 
-    removed = remove_stale_maps(maps_dir, known_dirs)
+    stale_dirs = existing_dirs - known_dirs
+    # Measured against the directories present before this run's downloads, so
+    # newly added maps can't dilute a mass removal below the threshold.
+    if existing_dirs and not args.force_prune:
+        removal_percent = 100 * len(stale_dirs) / len(existing_dirs)
+        if removal_percent > args.max_removal_percent:
+            abort_prune(
+                f"would remove {len(stale_dirs)} of {len(existing_dirs)} map directories "
+                f"({removal_percent:.0f}%), over the --max-removal-percent limit of {args.max_removal_percent:g}%."
+            )
+    removed = remove_maps(maps_dir, stale_dirs)
 
     # Drop cache entries for maps that are no longer in the listing.
     trimmed_cache = {k: v for k, v in cache.items() if k in listing_map_names}
