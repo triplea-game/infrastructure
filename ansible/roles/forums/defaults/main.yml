@@ -14,10 +14,11 @@ forums_max_body_size: 4096K
 # requests over the rate are still served before nginx answers 429.
 forums_login_rate: 30r/m
 forums_login_burst: 20
-# Site-wide cap on page/API renders (everything but assets, websockets and the
-# login routes). The 1-vCPU host saturates at a few renders a second, so the
-# rate queues up to 'burst' requests and 'max_conn' bounds how many NodeBB and
-# Postgres work on at once. Starting values: size against quiet-time load.
+# Site-wide cap on page/API renders (everything but assets, websockets, the
+# login routes and the /sping health probe). The 1-vCPU host saturates at a few
+# renders a second, so the rate queues up to 'burst' requests and 'max_conn'
+# bounds how many NodeBB and Postgres work on at once. Starting values: size
+# against quiet-time load.
 forums_render_rate: 5r/s
 forums_render_burst: 20
 forums_render_max_conn: 10

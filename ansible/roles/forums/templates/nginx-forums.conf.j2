@@ -121,6 +121,15 @@ server {
         include /etc/nginx/include/forums-proxy.conf;
     }
 
+    # NodeBB's health probe, which the forums CI smoke test polls. Under the
+    # site-wide render cap, scraper load would fail the smoke test with the
+    # forums healthy, so only the per-IP limit applies.
+    location = /sping {
+        limit_req zone=forums_client_rate burst={{ forums_client_burst }} nodelay;
+        error_page 503 /forums-busy.html;
+        include /etc/nginx/include/forums-proxy.conf;
+    }
+
     location / {
         # nginx stops at the first limit that rejects, so the per-IP limit goes
         # first: a flooding client is turned away before it spends site-wide
