@@ -8,6 +8,15 @@
     group: support
     mode: "0750"
 
+# Before the script ships anything, so the first nightly run already has a key
+# the lobby host accepts.
+- name: Set up the offsite backup key
+  vars:
+    backup_sender_name: support
+    backup_sender_key_path: "{{ support_db_backup_ssh_key_path }}"
+  ansible.builtin.import_role:
+    name: backup_sender
+
 - name: Deploy support db backup script
   become: true
   ansible.builtin.template:

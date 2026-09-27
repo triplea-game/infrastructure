@@ -9,3 +9,10 @@ support_db_backup_prefix: support_db
 # How many of the newest dated dumps survive each run's prune. A count rather
 # than an age, so a stretch of failed dumps never ages the last good copies out.
 support_db_backup_retention_count: 7
+
+# Offsite copy: the jail of the 'support' lobby/backup_target instance. ':/' is
+# that jail's root, not the lobby host's /, because the key is pinned to
+# 'rrsync -wo' there. The receiver prunes by its default '<name>_db_*' glob,
+# which support_db_backup_prefix satisfies.
+support_db_backup_ssh_key_path: /root/.ssh/support-backup_key
+support_db_backup_offsite_destination: "support-backup@prod.triplea-game.org:/"

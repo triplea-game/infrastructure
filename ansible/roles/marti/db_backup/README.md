@@ -8,12 +8,10 @@ The offsite copy needs no vaulted secret:
 
 1. On apply, the `backup_sender` role generates `/root/.ssh/marti-backup_key`
    on the marti host (once; later applies reuse it).
-2. In the same run it authorizes the public half for `marti-backup` on the
-   lobby host, with a task delegated there, pinned to
-   `rrsync -wo /opt/backups/marti`.
-3. The lobby play, which runs earlier, has already created that account and
-   directory through its `marti` `lobby/backup_target` instance, whose cron
-   keeps the newest 30 received dumps.
+2. In the same run it sets up the `marti` instance of `lobby/backup_target`
+   on the lobby host, through tasks delegated there: the `marti-backup`
+   account, its `/opt/backups/marti` jail with the key pinned to
+   `rrsync -wo`, and a cron that keeps the newest 30 received dumps.
 
 Rebuilding the marti host generates a new key, and the next apply authorizes
 it; the old key stays authorized on the lobby host until removed by hand.

@@ -20,7 +20,6 @@ backup_target_file_glob: "{{ backup_target_name }}_db_????-??-??.sql.gz"
 # are, so a stalled sender never empties backup_target_directory.
 backup_target_retention_count: 30
 
-# Sending host's public key, when it is fixed ahead of time (forums, whose
-# private half is vaulted). Empty for senders that generate their key at apply
-# time; those authorize it themselves through this role's 'authorize' tasks.
+# Sending host's public key. Fixed for forums (its private half is vaulted);
+# passed in by the backup_sender role for senders that generate theirs.
 backup_target_public_key: ""

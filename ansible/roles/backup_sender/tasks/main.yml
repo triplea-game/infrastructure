@@ -1,7 +1,7 @@
 ---
 # Sending side of an offsite backup. The host generates its own key rather than
-# taking a vaulted one, then authorizes the public half on the lobby host's
-# matching lobby/backup_target instance in the same run.
+# taking a vaulted one, then sets up its lobby/backup_target instance on the
+# lobby host, authorizing the public half, in the same run.
 - name: Backup sender - require an instance name
   ansible.builtin.assert:
     that:
@@ -14,8 +14,8 @@
       - groups['lobby'] | default([]) | length > 0
     fail_msg: >-
       No lobby host found in inventory. The {{ backup_sender_name }} backup
-      rsyncs nightly to the lobby host and its key is authorized there by a
-      task delegated to it; without a lobby host neither can work.
+      rsyncs nightly to the lobby host, and its receiving account there is set
+      up by tasks delegated to it; without a lobby host neither can work.
 
 - name: Backup sender - install rsync
   become: true
@@ -34,7 +34,7 @@
 
 # Creates the key once; later runs leave it alone and just report its public
 # half. Under --check on a host that has no key yet there is no public half to
-# report, so the authorize step below is skipped rather than failed.
+# report, so the receiver step below is skipped rather than failed.
 - name: Backup sender - generate the backup key for {{ backup_sender_name }}
   become: true
   register: backup_sender_keypair
@@ -46,13 +46,13 @@
     group: root
     mode: "0600"
 
-# Imported by path because roles here are grouped per host (lobby/, marti/);
-# the authorize tasks belong to the receiver, whose defaults they need.
-- name: Backup sender - authorize the key on the lobby host  # noqa: role-name[path]
+# Imported by path because roles here are grouped per host (lobby/, marti/).
+# The receiver's tasks delegate themselves to the lobby host, so this
+# provisions the whole instance there: account, jail, prune cron and this key.
+- name: Backup sender - provision the receiver on the lobby host  # noqa: role-name[path]
   when: backup_sender_keypair.public_key | default('') | length > 0
   vars:
     backup_target_name: "{{ backup_sender_name }}"
     backup_target_public_key: "{{ backup_sender_keypair.public_key }}"
   ansible.builtin.import_role:
     name: lobby/backup_target
-    tasks_from: authorize

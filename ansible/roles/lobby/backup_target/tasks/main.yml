@@ -3,20 +3,28 @@
 # rsyncs its dumps here as backup_target_user. Its key is confined to a
 # write-only rsync rooted at backup_target_directory, so a compromised sender
 # cannot shell in, read anything back, or reach another sender's jail.
-- name: Backup target - require an instance name
+#
+# Every task is delegated to the lobby host so a sender that generates its key
+# at apply time can provision its whole instance from its own play, wherever
+# that play falls relative to the lobby play (support's runs before it). From
+# the lobby play itself the delegation targets the current host.
+- name: Backup target - require an instance name and key
   ansible.builtin.assert:
     that:
       - backup_target_name | length > 0
-    fail_msg: "lobby/backup_target needs backup_target_name set (eg: forums, marti)."
+      - backup_target_public_key | length > 0
+    fail_msg: "lobby/backup_target needs backup_target_name and backup_target_public_key set."
 
 - name: Backup target - install rsync for the rrsync forced command
   become: true
+  delegate_to: "{{ groups['lobby'][0] }}"
   ansible.builtin.apt:
     name: rsync
     state: present
 
 - name: Backup target - create group for {{ backup_target_name }}
   become: true
+  delegate_to: "{{ groups['lobby'][0] }}"
   ansible.builtin.group:
     name: "{{ backup_target_user }}"
     state: present
@@ -25,6 +33,7 @@
 # through the login shell; nologin would break every push.
 - name: Backup target - create receiving account for {{ backup_target_name }}
   become: true
+  delegate_to: "{{ groups['lobby'][0] }}"
   ansible.builtin.user:
     name: "{{ backup_target_user }}"
     shell: /bin/bash
@@ -33,6 +42,7 @@
 
 - name: Backup target - create destination directory for {{ backup_target_name }}
   become: true
+  delegate_to: "{{ groups['lobby'][0] }}"
   ansible.builtin.file:
     path: "{{ backup_target_directory }}"
     state: directory
@@ -40,9 +50,14 @@
     group: "{{ backup_target_user }}"
     mode: "0750"
 
-- name: Backup target - authorize a fixed sending key
-  when: backup_target_public_key | length > 0
-  ansible.builtin.import_tasks: authorize.yml
+- name: Backup target - authorize the sending key for {{ backup_target_name }}
+  become: true
+  delegate_to: "{{ groups['lobby'][0] }}"
+  ansible.posix.authorized_key:
+    user: "{{ backup_target_user }}"
+    key: "{{ backup_target_public_key }}"
+    key_options: 'restrict,command="rrsync -wo {{ backup_target_directory }}"'
+    state: present
 
 # Senders never delete what they have shipped, so this cron keeps the newest
 # backup_target_retention_count and drops the rest. It counts rather than ages
@@ -50,6 +65,7 @@
 # expiring one by one.
 - name: Backup target - prune received dumps down to the newest N for {{ backup_target_name }}
   become: true
+  delegate_to: "{{ groups['lobby'][0] }}"
   ansible.builtin.cron:
     name: "{{ backup_target_name }}-backup-prune"
     user: root

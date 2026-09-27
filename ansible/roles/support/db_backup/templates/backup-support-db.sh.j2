@@ -1,10 +1,14 @@
 #!/bin/bash
 
 # Daily backup of the support database. Runs pg_dump inside the postgres
-# container, writes a gzipped plain-SQL dump named for the day, then keeps only
-# the newest {{ support_db_backup_retention_count }} dumps.
+# container, writes a gzipped plain-SQL dump named for the day, keeps only the
+# newest {{ support_db_backup_retention_count }} dumps here, then ships the day's
+# dump to the lobby host.
 
 set -euo pipefail
+
+# The dump leaves this host; keep it owner-only here and, via rsync -a, there.
+umask 077
 
 BACKUP_DIR="{{ support_db_backup_directory }}"
 BACKUP_FILE="$BACKUP_DIR/{{ support_db_backup_prefix }}_$(date +%F).sql.gz"
@@ -19,6 +23,11 @@ mv -f "$TMP_FILE" "$BACKUP_FILE"
 
 # Prune by count, never by age: the ISO date in the name sorts newest-first, and
 # the prune only runs after a successful dump (set -e), so the newest KEEP good
-# dumps always survive.
+# dumps always survive. It runs before the ship so an offsite outage cannot
+# stop local retention.
 find "$BACKUP_DIR" -maxdepth 1 -type f -name '{{ support_db_backup_prefix }}_????-??-??.sql.gz' \
   | sort -r | tail -n +$((KEEP + 1)) | xargs -r rm -f
+
+rsync -az -e "ssh -i {{ support_db_backup_ssh_key_path }} -o StrictHostKeyChecking=accept-new" \
+  "$BACKUP_FILE" \
+  {{ support_db_backup_offsite_destination }}

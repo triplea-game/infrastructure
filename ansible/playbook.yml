@@ -60,7 +60,9 @@
     - support/nginx_conf
     - lobby/service
     - lobby/db_backup
-    # Receiving side of each host's offsite backup rsync; one instance per sender.
+    # Receiving side of the forums host's offsite backup rsync. Senders that
+    # generate their key at apply time (marti, support) provision their own
+    # lobby/backup_target instance from their play, via the backup_sender role.
     - role: lobby/backup_target
       vars:
         backup_target_name: forums
@@ -70,11 +72,6 @@
         # Public half of the vaulted 'nodebb_private_key' the forums role
         # deploys to the forums host as its backup key.
         backup_target_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAE6Sr1ibMZnujm6Ndu+1ObSANq9iqzrPoq/L3DfaCRY forums-backup"
-    # marti's key is generated on the marti host and authorized from the marti
-    # play (backup_sender role); this instance only makes the account and jail.
-    - role: lobby/backup_target
-      vars:
-        backup_target_name: marti
 
 - name: Configure forums server
   hosts: forums
