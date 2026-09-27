@@ -1,4 +1,4 @@
-# marti/nginx
+# marti/nginx_conf
 
 Installs and configures nginx as a reverse proxy for the dice server.
 

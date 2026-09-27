@@ -1,8 +1,8 @@
 # Production Deployment Run-Book: dice-server-js
 
 This document covers the manual steps required to deploy the TripleA Dice Server.
-Most infrastructure is managed by Ansible - see the `marti/app` and `marti/nginx`
-roles. This document covers only what Ansible does not do automatically.
+Most infrastructure is managed by Ansible - see the `marti/service` and
+`marti/nginx_conf` roles. This document covers only what Ansible does not do automatically.
 
 ---
 
@@ -17,30 +17,31 @@ roles. This document covers only what Ansible does not do automatically.
 
 ## 1. How Deployment Works
 
-Run the Ansible playbook targeting the `marti` host group:
+Two pipelines deploy dice:
 
-```bash
-ansible-playbook playbook.yml --limit marti
-```
+- **Host config:** a push to this repo's `main` applies the playbook (the
+  Infrastructure workflow). Preview it with `just diff` from `ansible/`.
+- **App image:** a push to dice-server-js `main` runs `deploy-marti.sh`; see
+  [Updating the Application](#updating-the-application).
 
 Ansible handles everything below automatically. No manual steps are needed for
 any of these on subsequent deploys:
 
 | What | How |
 |---|---|
-| RSA key pair (first deploy only) | Generated on-server with `openssl`; persisted across deploys |
-| `config.json` | Rendered from `marti/app/templates/config.json.j2` |
-| `.env` (DB password) | Rendered from `marti/app/templates/.env.j2`; vault-encrypted at rest |
-| `docker-compose.yml` | Rendered from `marti/app/templates/docker-compose.yml.j2` |
-| systemd service | Rendered from `marti/app/templates/marti.service.j2`; starts on boot |
-| nginx reverse proxy | Deployed by `marti/nginx` role |
-| Firewall (ports 80, 443) | Opened by `marti/nginx` role via `ufw` |
+| RSA key pair | Installed from vault (`marti_signing_private_key`), else generated on first deploy; see [Signing Key](#signing-key) |
+| `config.json` | Rendered from `marti/service/templates/config.json.j2` |
+| `.env` (DB password) | Rendered from `marti/service/templates/.env.j2`; vault-encrypted at rest |
+| `docker-compose.yml` | Rendered from `marti/service/templates/docker-compose.yml.j2` |
+| systemd service | Rendered from `marti/service/templates/marti.service.j2`; starts on boot |
+| nginx reverse proxy | Deployed by `marti/nginx_conf` role |
+| Firewall (ports 80, 443) | Opened by `marti/nginx_conf` role via `ufw` |
 
 **Services in the Compose stack:**
 
 | Service | Image | Purpose |
 |---|---|---|
-| `app` | `ghcr.io/triplea-game/dice-server-js:<digest>` | Node.js dice server, port 7654 (loopback only) |
+| `app` | `ghcr.io/triplea-game/dice-server-js:sha-<commit>`, pinned in `docker-compose.override.yml` | Node.js dice server, port 7654 (loopback only) |
 | `postgres` | `postgres:16` | Database; password from `.env` |
 | `postfix` | `boky/postfix` | Internal SMTP relay with auto-generated DKIM keys |
 
@@ -56,7 +57,7 @@ because certbot must make an outbound HTTP-01 challenge before a cert exists.
 
 ### Phase 1 - Run Ansible (HTTP only)
 
-The `marti/nginx` role deploys an HTTP-only vhost on port 80 that proxies to
+The `marti/nginx_conf` role deploys an HTTP-only vhost on port 80 that proxies to
 the app. This is enough to verify the proxy works and for certbot to complete
 its challenge.
 
@@ -80,8 +81,8 @@ curl -I https://dice.triplea-game.org/
 ### Phase 3 - Update the Ansible template
 
 After certbot runs, copy the SSL directives certbot added to the live nginx
-config into `marti/nginx/templates/dice.triplea-game.org.conf.j2` so future
-Ansible runs do not overwrite them. See `marti/nginx/README.md` for the
+config into `marti/nginx_conf/templates/dice.triplea-game.org.conf.j2` so future
+Ansible runs do not overwrite them. See `marti/nginx_conf/README.md` for the
 expected final template shape.
 
 ---
@@ -91,6 +92,9 @@ expected final template shape.
 ```bash
 # Should return HTTP 200
 curl -I https://dice.triplea-game.org/
+
+# Should return {"status":"OK"} (the app reached its database)
+curl -s https://dice.triplea-game.org/health
 
 # Should return a JSON error about unregistered emails (confirms the API is up)
 curl -s -X POST https://dice.triplea-game.org/api/roll \

@@ -303,11 +303,11 @@ The `deploy` user is a limited service account used for automated deployments. I
 **How it works:**
 
 1. The `admin_user` role creates the `deploy` user and installs `/etc/sudoers.d/deploy`.
-2. The `marti/app` role installs `/usr/local/bin/deploy-marti.sh` (owned by root) and drops `/etc/sudoers.d/deploy-marti`:
+2. The `marti/service` role installs `/opt/triplea-marti/deploy-marti.sh` (owned by root) and drops `/etc/sudoers.d/deploy-marti`, which lets `deploy` run it only as `marti`:
    ```
-   Cmnd_Alias DEPLOY_MARTI = /usr/local/bin/deploy-marti.sh
-   deploy    ALL=(ALL)    NOPASSWD: DEPLOY_MARTI
+   Cmnd_Alias DEPLOY_MARTI = /opt/triplea-marti/deploy-marti.sh
+   deploy    ALL=(marti)    NOPASSWD: DEPLOY_MARTI
    ```
-3. The deploy pipeline connects as `deploy` via SSH and runs `sudo /usr/local/bin/deploy-marti.sh` directly.
+3. The dice-server-js deploy connects as `deploy` via SSH and runs `sudo -u marti /opt/triplea-marti/deploy-marti.sh sha-<commit>` directly. The rule allows any arguments, so the script validates the tag itself.
 
 **Important:** Ansible's `become: true` must NOT be used for this task. `become` escalates to a root shell via a Python bootstrap, which is not covered by the sudoers rule. The `sudo` call must reference the exact script path from the command line so it matches the `NOPASSWD` entry.
