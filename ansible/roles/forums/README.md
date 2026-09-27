@@ -1,7 +1,7 @@
 Sets up the forums that runs as a nodebb server via docker compose, backed by
 Postgres 18. The compose stack is two services: `postgres` and `nodebb`.
-`backup.sh.j2` backs up the database with `pg_dump` and rsyncs the dump plus the
-uploads mirror to the lobby host as `forums-backup`. That key is confined there
+`backup.sh.j2` backs up the database with `pg_dump` and rsyncs only that dump to
+the lobby host as `forums-backup`; uploads are not shipped there. That key is confined there
 to `rrsync -wo`, so the remote paths in the script are relative to the backup
 directory rather than absolute (see the `lobby/backup_target` role and its `forums` instance in `playbook.yml`).
 

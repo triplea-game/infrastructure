@@ -83,8 +83,8 @@ if [ -s "$last_good_file" ]; then
 fi
 container_id="$(app_container)"
 if [ -n "$container_id" ]; then
-  running_ref="$(image_digest "$container_id")"
-  health="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}no healthcheck{{end}}' "$container_id")"
+  running_ref="$(image_digest "$container_id")" || running_ref=""
+  health="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}no healthcheck{{end}}' "$container_id")" || health="container gone"
   echo "Pre-deploy: running ${running_ref:-unknown digest} ($health)"
   if [ -z "$previous_ref" ]; then
     previous_ref="$running_ref"

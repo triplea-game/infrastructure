@@ -22,9 +22,10 @@ services:
     depends_on:
       postgres18:
         condition: service_healthy
-    # Probes readiness with bash's /dev/tcp, which needs no curl or wget; the
-    # eclipse-temurin JRE images ship neither. start_period is twice marti's
-    # because the JVM starts slower and Flyway migrates before the app serves.
+    # Probes readiness with bash's /dev/tcp so lobby and support share one
+    # check; support's eclipse-temurin JRE image ships neither curl nor wget.
+    # start_period is twice marti's because the JVM starts slower and Flyway
+    # migrates before the app serves.
     # deploy-support.sh waits on this to decide rollback.
     healthcheck:
       test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8010 && printf 'GET /q/health/ready HTTP/1.0\\r\\n\\r\\n' >&3 && head -1 <&3 | grep -q ' 200 '"]

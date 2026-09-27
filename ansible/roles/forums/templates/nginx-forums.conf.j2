@@ -68,8 +68,10 @@ server {
         alias /var/www/nodebb/.well-known;
     }
 
-    # Friendlier page while NodeBB is restarting.
+    # Friendlier page while NodeBB is restarting. Both error_page lines sit at
+    # server level because a location that sets any error_page inherits none.
     error_page 502 /502.html;
+    error_page 503 /forums-busy.html;
     location /502.html {
         alias /var/www/nodebb/502.html;
     }
@@ -126,7 +128,6 @@ server {
     # forums healthy, so only the per-IP limit applies.
     location = /sping {
         limit_req zone=forums_client_rate burst={{ forums_client_burst }} nodelay;
-        error_page 503 /forums-busy.html;
         include /etc/nginx/include/forums-proxy.conf;
     }
 
@@ -138,7 +139,6 @@ server {
         limit_req zone=forums_client_rate burst={{ forums_client_burst }} nodelay;
         limit_req zone=forums_render_rate burst={{ forums_render_burst }};
         limit_conn forums_render_conn {{ forums_render_max_conn }};
-        error_page 503 /forums-busy.html;
         # A stuck render holds one of the render_max_conn slots, and past 30s no
         # reader is still waiting for it.
         proxy_read_timeout 30s;
