@@ -19,6 +19,10 @@ limit_req_zone $marti_client zone=marti_register:1m rate={{ marti_register_rate 
 # it: each roll also sends two emails.
 limit_req_zone $marti_client zone=marti_roll:1m rate={{ marti_roll_rate }};
 
+# Per-IP backstop for everything else: the pages, their assets and
+# /api/verify/<token>, which runs an RSA signature check per request.
+limit_req_zone $marti_client zone=marti_client:1m rate={{ marti_client_rate }};
+
 server {
     server_name {{ marti_hostname }};
 
@@ -50,7 +54,8 @@ server {
         proxy_pass http://127.0.0.1:{{ marti_port }};
     }
 
-    location = /api/unregister {
+    # Both /api/unregister and the emailed /api/unregister/<token> confirm.
+    location ^~ /api/unregister {
         limit_req zone=marti_register burst={{ marti_register_burst }} nodelay;
         limit_req_status 429;
         proxy_pass http://127.0.0.1:{{ marti_port }};
@@ -63,6 +68,8 @@ server {
     }
 
     location / {
+        limit_req zone=marti_client burst={{ marti_client_burst }} nodelay;
+        limit_req_status 429;
         proxy_pass http://127.0.0.1:{{ marti_port }};
     }
 

@@ -12,3 +12,7 @@ marti_register_burst: 5
 # one NAT hitting battles at once; only a script sustains the rate.
 marti_roll_rate: 5r/s
 marti_roll_burst: 50
+# Per-IP rate on everything not covered above: a page view is a few requests
+# (HTML, CSS, JS, favicon) and players verify a roll by hand now and then.
+marti_client_rate: 10r/s
+marti_client_burst: 40

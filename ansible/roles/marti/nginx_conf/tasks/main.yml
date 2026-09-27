@@ -30,6 +30,14 @@
     state: link
   notify: Reload_nginx
 
+# Runs before the reload handler fires, so a bad render fails the play while
+# nginx is still serving the previous config.
+- name: Validate the nginx configuration
+  become: true
+  ansible.builtin.command:
+    cmd: nginx -t
+  changed_when: false
+
 - name: Open firewall port 80
   become: true
   community.general.ufw:
