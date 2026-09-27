@@ -10,6 +10,10 @@ services:
     # whose system uid is assigned inside the image and is not knowable from the
     # host; the mounted signing key is owner-only to marti.
     user: "{{ marti_uid }}:{{ marti_gid }}"
+    # tini as PID 1: node alone as PID 1 ignores SIGTERM, so every redeploy
+    # waited out the 10s stop grace period and was SIGKILLed, rolls in flight
+    # included.
+    init: true
     ports:
       - "127.0.0.1:{{ marti_port }}:{{ marti_port }}"
     volumes:
@@ -20,8 +24,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      # A roll fails without its email, and postfix takes a few seconds to
+      # start listening after the container does.
       postfix:
-        condition: service_started
+        condition: service_healthy
     # /health answers only after a database query. node:22-slim has no curl, so
     # probe with node's fetch. deploy-marti.sh waits on this to decide rollback.
     healthcheck:
@@ -61,6 +67,15 @@ services:
       - DKIM_AUTOGENERATE=yes
     volumes:
       - dkim_keys:/etc/opendkim/keys
+    # The image's own check: EHLO on the submission port plus the DKIM milter
+    # socket. Its Dockerfile declares it, but the published image carries no
+    # healthcheck metadata, so 'service_healthy' needs it spelled out here.
+    healthcheck:
+      test: ["CMD", "/scripts/healthcheck.sh"]
+      interval: 5s
+      timeout: 10s
+      retries: 6
+      start_period: 30s
     restart: unless-stopped
     logging:
       driver: journald
