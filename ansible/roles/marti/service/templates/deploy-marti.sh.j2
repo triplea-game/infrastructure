@@ -4,19 +4,28 @@
 # Usage: deploy-marti.sh [tag]    (tag defaults to 'latest'; CI passes sha-<commit>)
 #
 # Deploys {{ marti_image_repo }}:<tag> and waits for the app's compose
-# healthcheck. If it never turns healthy, redeploys the image that was running
-# before and exits 1 either way, so CI goes red.
+# healthcheck. If it never turns healthy, redeploys the last known good image
+# and exits 1 either way, so CI goes red.
 #
 # The deployed image is pinned in docker-compose.override.yml, which compose
 # merges automatically. That keeps systemd restarts and Ansible applies on the
 # deployed (or rolled-back) image instead of whatever ':latest' now is. Ansible
 # does not manage the override; deleting it returns to marti_image.
+#
+# .last-good-image holds the digest of the last image that passed the
+# healthcheck here. It is the rollback target, in preference to whatever runs
+# now: that container may have been deployed but never verified (eg: a
+# cancelled CI run).
 set -euo pipefail
 
 cd {{ marti_working_directory }}
 
 repo="{{ marti_image_repo }}"
 {% raw %}
+service=app
+wait_timeout=150
+last_good_file=.last-good-image
+
 tag="${1:-latest}"
 # The tag arrives through sudo from the deploy user; accept only a plain tag.
 if [[ ! "$tag" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
@@ -24,46 +33,86 @@ if [[ ! "$tag" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
   exit 2
 fi
 
+# A failed recreate can leave a renamed old container beside the new one, so
+# prefer the running container and never hand 'docker inspect' two IDs.
+app_container() {
+  local ids
+  ids="$(docker compose ps -q --status running "$service")"
+  if [ -z "$ids" ]; then
+    ids="$(docker compose ps -aq "$service")"
+  fi
+  printf '%s\n' "$ids" | sed -n 1p
+}
+
+# Prints the container's image by registry digest, so a rollback can re-pull
+# it even after a prune; empty if the image has no digest (eg: built locally).
+image_digest() {
+  local image_id
+  image_id="$(docker inspect --format '{{.Image}}' "$1")"
+  docker image inspect --format '{{if .RepoDigests}}{{index .RepoDigests 0}}{{end}}' "$image_id"
+}
+
 pin_image() {
-  printf 'services:\n  app:\n    image: %s\n' "$1" > docker-compose.override.yml.tmp
+  printf 'services:\n  %s:\n    image: %s\n' "$service" "$1" > docker-compose.override.yml.tmp
   mv -f docker-compose.override.yml.tmp docker-compose.override.yml
 }
 
 start_and_wait() {
-  docker compose up -d --no-deps --wait --wait-timeout 150 app
+  docker compose up -d --wait --wait-timeout "$wait_timeout" "$service"
 }
 
-# Record what runs now, by registry digest, so a rollback can re-pull it even
-# after a prune. Health is logged so a red deploy can be told apart from a
-# pre-existing outage; it never gates the deploy.
+# Best effort: the deploy already succeeded, so a failure here only warns.
+record_last_good() {
+  local cid ref=""
+  cid="$(app_container)" || cid=""
+  if [ -n "$cid" ]; then
+    ref="$(image_digest "$cid")" || ref=""
+  fi
+  if printf '%s\n' "${ref:-$1}" > "$last_good_file.tmp" && mv -f "$last_good_file.tmp" "$last_good_file"; then
+    echo "Recorded last known good image: ${ref:-$1}"
+  else
+    echo "WARNING: could not record the last known good image." >&2
+  fi
+}
+
+# Health is logged so a red deploy can be told apart from a pre-existing
+# outage; it never gates the deploy.
 previous_ref=""
-container_id="$(docker compose ps -aq app)"
-if [ -n "$container_id" ]; then
-  image_id="$(docker inspect --format '{{.Image}}' "$container_id")"
-  previous_ref="$(docker image inspect --format '{{if .RepoDigests}}{{index .RepoDigests 0}}{{end}}' "$image_id")"
-  health="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}no healthcheck{{end}}' "$container_id")"
-  echo "Pre-deploy: ${previous_ref:-$image_id} ($health)"
-else
-  echo "Pre-deploy: no app container"
+if [ -s "$last_good_file" ]; then
+  previous_ref="$(< "$last_good_file")"
 fi
+container_id="$(app_container)"
+if [ -n "$container_id" ]; then
+  running_ref="$(image_digest "$container_id")"
+  health="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}no healthcheck{{end}}' "$container_id")"
+  echo "Pre-deploy: running ${running_ref:-unknown digest} ($health)"
+  if [ -z "$previous_ref" ]; then
+    previous_ref="$running_ref"
+  fi
+else
+  echo "Pre-deploy: no $service container"
+fi
+echo "Rollback target: ${previous_ref:-none}"
 
 # Pull before pinning, so a bad tag fails here and leaves the pin untouched.
 docker pull "$repo:$tag"
 pin_image "$repo:$tag"
 
 if start_and_wait; then
-  echo "Deployed $repo:$tag; app is healthy."
+  echo "Deployed $repo:$tag; $service is healthy."
+  record_last_good "$repo:$tag"
   exit 0
 fi
 
 echo "ERROR: $repo:$tag did not become healthy." >&2
-docker compose ps app >&2 || true
+docker compose ps "$service" >&2 || true
 # The caller's output lands in dice-server-js's public CI log, and the app log
 # can hold DB connection details, so it stays in the host journal.
 echo "App log withheld from this output; see docs/runbooks/debugging-triplea-production.md in the infrastructure repo." >&2
 
 if [ -z "$previous_ref" ]; then
-  echo "ERROR: no previous image recorded; nothing to roll back to." >&2
+  rm -f docker-compose.override.yml
+  echo "ERROR: no previous image recorded; nothing to roll back to. Removed docker-compose.override.yml, so the next 'systemctl start marti' uses the role's default image." >&2
   exit 1
 fi
 
@@ -71,9 +120,10 @@ echo "Rolling back to $previous_ref" >&2
 pin_image "$previous_ref"
 if start_and_wait; then
   echo "Rollback healthy; still failing the deploy." >&2
+  record_last_good "$previous_ref"
 else
   echo "ERROR: rollback image is unhealthy too." >&2
-  docker compose ps app >&2 || true
+  docker compose ps "$service" >&2 || true
 fi
 exit 1
 {% endraw %}

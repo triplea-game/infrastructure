@@ -1,5 +1,9 @@
 ---
 lobby_working_directory: /opt/lobby
+lobby_image_repo: ghcr.io/triplea-game/lobby/server
+# Used until the first deploy-lobby.sh run pins an image in
+# docker-compose.override.yml.
+lobby_image: "{{ lobby_image_repo }}:latest"
 
 # Public hostname for the web service (nginx / lobby URL).
 lobby_hostname: prod.triplea-game.org

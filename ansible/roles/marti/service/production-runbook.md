@@ -138,13 +138,18 @@ A push to dice-server-js `main` deploys by running
 `/opt/triplea-marti/deploy-marti.sh sha-<commit>` as `marti`. The script pulls
 that image and waits for the app's healthcheck (`/health`, which queries the
 database). If the app turns unhealthy or is still starting after 150s, the
-script redeploys the
-image that was running before and exits 1, so the CI deploy fails.
+script redeploys the last known good image and exits 1, so the CI deploy fails.
 
 The deployed image is pinned in `/opt/triplea-marti/docker-compose.override.yml`,
 which compose merges over the Ansible-managed `docker-compose.yml`. Restarts and
 playbook runs keep that image. `marti_image` applies only while no override
 exists.
+
+After every healthy deploy the script writes the running image's digest to
+`/opt/triplea-marti/.last-good-image`; that is the rollback target. Without it
+(first deploy under this script), the rollback target is whatever image is
+running. If a deploy fails with no rollback target, the script deletes the
+override, so the next `systemctl start marti` runs `marti_image`.
 
 To deploy or roll back by hand, run the script with the tag you want. Every
 `main` build is tagged `sha-<full commit sha>`:

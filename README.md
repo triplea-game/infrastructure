@@ -302,7 +302,7 @@ Download all maps to all bots:
 
 ## deploy user - restricted sudo
 
-The `deploy` user is a limited service account used for automated deployments. It is granted passwordless `sudo` for one specific script only - no general root access.
+The `deploy` user is a limited service account used for automated deployments. It is granted passwordless `sudo` for one deploy script per service - no general root access.
 
 **How it works:**
 
@@ -313,5 +313,8 @@ The `deploy` user is a limited service account used for automated deployments. I
    deploy    ALL=(marti)    NOPASSWD: DEPLOY_MARTI
    ```
 3. The dice-server-js deploy connects as `deploy` via SSH and runs `sudo -u marti /opt/triplea-marti/deploy-marti.sh sha-<commit>` directly. The rule allows any arguments, so the script validates the tag itself.
+4. `lobby/service` and `support/service` do the same for `/opt/lobby/deploy-lobby.sh` (run as `lobby`) and `/opt/support/deploy-support.sh` (run as `support`), called by the lobby-server and support-server deploys. The tag argument defaults to `latest`.
+
+All three scripts pull the tag, pin it in `docker-compose.override.yml` in the service's working directory, and wait up to 150s for the app's compose healthcheck. On failure they roll back to the digest in `.last-good-image` (written after each healthy deploy) and exit 1. See `ansible/roles/marti/service/production-runbook.md`.
 
 **Important:** Ansible's `become: true` must NOT be used for this task. `become` escalates to a root shell via a Python bootstrap, which is not covered by the sudoers rule. The `sudo` call must reference the exact script path from the command line so it matches the `NOPASSWD` entry.

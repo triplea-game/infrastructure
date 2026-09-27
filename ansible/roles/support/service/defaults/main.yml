@@ -1,5 +1,9 @@
 ---
 support_working_directory: /opt/support
+support_image_repo: ghcr.io/triplea-game/support-server/server
+# Used until the first deploy-support.sh run pins an image in
+# docker-compose.override.yml.
+support_image: "{{ support_image_repo }}:latest"
 database_name: "support_db"
 database_user: "support_user"
 database_password: !vault |
