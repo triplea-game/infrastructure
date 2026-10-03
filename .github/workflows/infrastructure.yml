@@ -86,8 +86,8 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       # Lint gate — runs on every event, so a lint failure blocks the apply below.
-      - name: Ansible Lint (verify)
-        run: just verify
+      - name: Ansible Lint (check)
+        run: just check
 
       - name: Ansible Diff (PR preview)
         if: github.event_name == 'pull_request'

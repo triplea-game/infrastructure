@@ -17,6 +17,8 @@ playbook := 'playbook.yml'
 alias plan := diff
 alias deploy := apply
 
+alias test := check
+
 # Show available recipes.
 default:
     @just --list
@@ -42,13 +44,13 @@ galaxy-install:
 # collection modules such as community.general.ufw and ansible.posix.authorized_key.
 
 # Lint gate — must pass with zero findings before an apply.
-verify: galaxy-install
+check: galaxy-install
     ansible-lint || { echo "Run 'just format' to auto-fix formatting findings (yaml[...])" >&2; exit 1; }
     uv run --with pyyaml ./check-notify-handlers.sh
 
-# Auto-fix the yaml formatting findings that 'just verify' reports.
+# Auto-fix the yaml formatting findings that 'just check' reports.
 # ansible-lint exits non-zero whenever it found something, even when it fixed
-# all of it, so the exit status is ignored; 'just verify' is the gate.
+# all of it, so the exit status is ignored; 'just check' is the gate.
 format: galaxy-install
     ansible-lint --fix=yaml || true
 

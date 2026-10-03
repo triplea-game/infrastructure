@@ -175,9 +175,9 @@ APPLY=1 ./run.sh --limit [IP] --tags system
 
 ```bash
 # Lint gate (must pass before an apply)
-just verify
+just check
 
-# Auto-fix yaml formatting findings from 'just verify'
+# Auto-fix yaml formatting findings from 'just check'
 # ('just format' at the repo root fixes all formatting, repo-wide)
 just format
 
@@ -257,9 +257,9 @@ Workflow: `.github/workflows/infrastructure.yml`
 
 | Trigger | Terraform | Ansible |
 |---|---|---|
-| Pull Request | `just plan` (preview) | `just verify` (lint) then `just diff` (check + diff) |
-| Push to `main` | `just apply-now` | `just verify` (lint) then `just apply` |
-| Manual `workflow_dispatch` on `main` | `just apply-now` | `just verify` (lint) then `just apply` |
+| Pull Request | `just plan` (preview) | `just check` (lint) then `just diff` (check + diff) |
+| Push to `main` | `just apply-now` | `just check` (lint) then `just apply` |
+| Manual `workflow_dispatch` on `main` | `just apply-now` | `just check` (lint) then `just apply` |
 
 Ansible runs after Terraform (`needs: terraform`) so newly provisioned servers exist before configuration is applied.
 

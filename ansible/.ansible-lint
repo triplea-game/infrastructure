@@ -1,6 +1,6 @@
 ---
 # ansible-lint config for the TripleA infrastructure playbooks.
-# 'just verify' gates CI on this passing with zero findings before an apply.
+# 'just check' gates CI on this passing with zero findings before an apply.
 #
 # No 'profile' is set, so the full default rule set is enforced (fqcn, name,
 # yaml, etc.); only the rules below are skipped.
