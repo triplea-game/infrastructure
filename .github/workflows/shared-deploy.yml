@@ -9,11 +9,6 @@ name: Shared Deploy
 
 on:
   workflow_call:
-    inputs:
-      deploy-command:
-        description: Task-runner command run to deploy the caller repo — the Java servers use just, dice-server-js uses make.
-        type: string
-        default: just deploy
     secrets:
       DEPLOY_SSH_PRIVATE_KEY:
         required: true
@@ -52,4 +47,6 @@ jobs:
       - name: Deploy
         env:
           LINODE_ACCESS_TOKEN: ${{ secrets.LINODE_READ_ONLY_TOKEN }}
-        run: SSH_USER=deploy ${{ inputs.deploy-command }}
+        # 'github.sha' is the caller's commit, so this deploys the 'sha-' image the
+        # caller's build job pushed for that commit.
+        run: SSH_USER=deploy just deploy sha-${{ github.sha }}

@@ -2,9 +2,9 @@
 # sliding `v1` tag to the current main commit. Caller repos reference the shared
 # workflows at `@v1`, so advancing the tag propagates a vetted change to them.
 #
-# Runs only when a shared-*.yml file changes; the apply pipeline in
-# infrastructure.yml is fenced off from those same paths so editing a shared
-# workflow never reprovisions the fleet.
+# Runs only when a shared-*.yml file or this publisher changes; the apply
+# pipeline in infrastructure.yml is fenced off from those same paths so editing
+# a shared workflow never reprovisions the fleet.
 name: Publish shared workflows
 
 on:
@@ -12,6 +12,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/shared-*.yml'
+      - '.github/workflows/publish-shared-workflows.yml'
 
 permissions:
   contents: write
@@ -33,7 +34,9 @@ jobs:
         uses: reviewdog/action-actionlint@320fcdd9c860767cf17fab3b20e22e739d5d02b8  # v1.76.0
         with:
           reporter: local
-          fail_on_error: true
+          # The 'local' reporter has no diff to filter against.
+          filter_mode: nofilter
+          fail_level: error
 
       - name: Move the v1 tag to this commit
         run: |
