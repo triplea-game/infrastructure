@@ -57,7 +57,7 @@ services:
       options:
         tag: lobby-postgres
   postfix:
-    image: boky/postfix
+    image: boky/postfix:v5.1.0
     environment:
       - ALLOWED_SENDER_DOMAINS={{ lobby_mail_domain }}
       - POSTFIX_myhostname={{ lobby_mail_domain }}
