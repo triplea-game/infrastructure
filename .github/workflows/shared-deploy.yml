@@ -21,6 +21,10 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Callers never cancel deploys, so a hung one would hold their queue for
+    # GitHub's 6h default; the host scripts' own waits finish well inside this.
+    # A job calling a reusable workflow can't set this itself.
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
