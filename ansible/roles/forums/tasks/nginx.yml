@@ -24,7 +24,7 @@
   notify: Reload_nginx
   ansible.builtin.lineinfile:
     path: /etc/nginx/nginx.conf
-    regexp: '^\s*worker_connections\s'
+    regexp: "^\\s*worker_connections\\s"
     line: "\tworker_connections {{ forums_nginx_worker_connections }};"
 
 - name: Raise the nginx workers' open-file limit
@@ -32,9 +32,9 @@
   notify: Reload_nginx
   ansible.builtin.lineinfile:
     path: /etc/nginx/nginx.conf
-    regexp: '^\s*worker_rlimit_nofile\s'
+    regexp: "^\\s*worker_rlimit_nofile\\s"
     line: "worker_rlimit_nofile {{ forums_nginx_worker_rlimit_nofile }};"
-    insertafter: '^worker_processes'
+    insertafter: "^worker_processes"
 
 - name: Create the asset cache directory
   become: true

@@ -52,7 +52,7 @@
 # Imported by path because roles here are grouped per host (lobby/, marti/).
 # The receiver's tasks delegate themselves to the lobby host, so this
 # provisions the whole instance there: account, jail, prune cron and this key.
-- name: Backup sender - provision the receiver on the lobby host  # noqa: role-name[path]
+- name: Backup sender - provision the receiver on the lobby host # noqa: role-name[path]
   when: backup_sender_keypair.public_key | default('') | length > 0
   vars:
     backup_target_name: "{{ backup_sender_name }}"
