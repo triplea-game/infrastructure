@@ -1,7 +1,0 @@
-[bots]
-%{ for ip in bot_ips ~}
-${ip}
-%{ endfor ~}
-
-[all:vars]
-ansible_user=ansible

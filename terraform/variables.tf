@@ -7,7 +7,7 @@ variable "linode_token" {
 
 
 variable "admin_pub_file" {
-  description = "Path (relative to this Terraform folder) to admins.json — a JSON array of {name, ssh_keys[]} objects defining all admin maintainers. Single source of truth consumed by both Terraform (cloud-init) and Ansible (playbook.yml). To add/remove an admin, edit this file and open a PR."
+  description = "Path (relative to this Terraform folder) to admins.json — a JSON array of {name, ssh_keys[]} objects defining all admin maintainers. Single source of truth consumed by both Terraform (cloud-init) and Ansible (playbook.yml). To add an admin, edit this file; to remove one, delete them here and list them in removed_admins (ansible/group_vars/all.yml) so Ansible deletes the account."
   type        = string
   default     = "keys/admins.json"
 }

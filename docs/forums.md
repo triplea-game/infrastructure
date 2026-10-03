@@ -1,14 +1,8 @@
 
 ## Upgrading NodeBB
 
-- Change the nodebb version in: ansible/roles/forums/node-bb/Dockerfile
-- Update the package.json in: ansible/roles/forums/node-bb/install/package.json
-  - EG: https://github.com/NodeBB/NodeBB/blob/master/install/package.json
-- Run a redeployment:
-  - `cd ansible; just apply`
-- SSH to the server and restart:
-  - `sudo systemctl restart forums`
-
+NodeBB is built and deployed from the forums repo; follow its runbook:
+https://github.com/triplea-game/forums/blob/main/docs/runbooks/upgrade-nodebb.md
 
 ## Successful Startup
 

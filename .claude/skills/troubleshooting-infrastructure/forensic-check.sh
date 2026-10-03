@@ -85,7 +85,7 @@ sec "12. NGINX EFFECTIVE CONFIG (nginx -T) — the actual resolved active config
 run nginx -T
 
 sec "13. COMPOSE + ENV FILES: mtimes + port bindings"
-for f in /opt/support/docker-compose.yml /opt/lobby/docker-compose.yml /opt/oauth2-proxy/docker-compose.yml; do
+for f in /opt/support/docker-compose.yml /opt/lobby/docker-compose.yml /opt/lobby/docker-compose.override.yml /opt/oauth2-proxy/docker-compose.yml; do
   [ -f "$f" ] || continue
   echo "  --- $f ---"; stat -c '    mtime=%y' "$f"
   grep -nE 'ports:|8010|443|127\.0\.0\.1|192\.168|image:' "$f" 2>/dev/null | sed 's/^/      /'
