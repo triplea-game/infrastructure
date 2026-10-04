@@ -20,6 +20,9 @@ services:
       - ./keys:/app/keys:ro
     environment:
       - DB_PASSWORD=${DB_PASSWORD}
+      # Outside production mode, any error that reaches Express's fallback
+      # handler is answered with its stack trace.
+      - NODE_ENV=production
     depends_on:
       postgres:
         condition: service_healthy
