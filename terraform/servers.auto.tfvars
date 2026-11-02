@@ -21,4 +21,5 @@ servers = {
   Bot03-ca-central-1 = { region = "ca-central", tags = ["bots"], destroy = false, bot_number = 3, bot_location = "Toronto" }
   Bot04-gb-lon-1     = { region = "gb-lon", tags = ["bots"], destroy = false, bot_number = 4, bot_location = "London" }
   Bot05-eu-central-1 = { region = "eu-central", tags = ["bots"], destroy = false, bot_number = 5, bot_location = "Frankfurt" }
+  Bot06-ca-central-2 = { region = "ca-central", tags = ["bots"], destroy = false, bot_number = 6, bot_location = "Toronto" }
 }
